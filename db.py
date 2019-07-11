@@ -38,6 +38,7 @@ class Benchmark(db.Model):
     runby = db.Column(db.Integer)
     runok = db.Column(db.Integer)
     simpleresult = db.Column(db.Numeric)
+    results = db.relationship('BenchmarkResult', backref='benchmark', lazy='dynamic')
 
 
 class BenchmarkResult(db.Model):
@@ -55,6 +56,7 @@ class BenchmarkRun(db.Model):
     name = db.Column(db.String(255))
     rundate = db.Column(db.DateTime)
     runby = db.Column(db.Integer)  # TODO: link to user
+    benchmarks = db.relationship('Benchmark', backref='runs', lazy='dynamic')
 
 
 class BenchmarkType(db.Model):
@@ -63,6 +65,7 @@ class BenchmarkType(db.Model):
     description = db.Column(db.String(4096))
     inputhelp = db.Column(db.String(4096))
     resulthelp = db.Column(db.String(4096))
+    benchmarks = db.relationship('Benchmark', backref='bench_type', lazy='dynamic')
 
 
 class Computer(db.Model):
@@ -80,7 +83,10 @@ class Computer(db.Model):
     acq_by = db.Column(db.String(255))
     acq_for = db.Column(db.String(255))
     note = db.Column(db.String())
-
+    hardware = db.relationship('Hardware', backref='computer', lazy='dynamic')
+    benchmarks = db.relationship('Benchmark', backref='computer', lazy='dynamic')
+    def __str__(self):
+        return "PC{0} {1}".format(str(self.id).zfill(3), self.nickname)
 
 class Hardware(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -99,6 +105,9 @@ class Hardware(db.Model):
     acq_for = db.Column(db.String(255))
     note = db.Column(db.String())
 
+    def __str__(self):
+        return "PK{0} {1}".format(str(self.id).zfill(4), self.name)
+
 
 class HardwareType(db.Model):
     __tablename__ = 'hardware_type'
@@ -106,6 +115,7 @@ class HardwareType(db.Model):
     name = db.Column(db.String(255))
     description = db.Column(db.String(255))
     icon = db.Column(db.String(255))
+    items = db.relationship('Hardware', backref='type', lazy='dynamic')
 
     def __str__(self):
         return self.name
