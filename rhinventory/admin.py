@@ -16,16 +16,33 @@ class CustomModelView(ModelView):
     #def is_accessible(self):
     #    return current_user.is_authenticated
 
+RATING_OPTIONS = [(0, 'unknown'), (1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')]
 class RatingField(RadioField):
 	def __init__(self, **kwargs):
 		super().__init__(render_kw={'class': 'rating-field'}, **kwargs)
-		self.choices = [(0, 'unknown'), (1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')]
+		self.choices = RATING_OPTIONS
+		self.coerce = int
 
 class AssetView(ModelView):
 	form_overrides = {
 		'condition': RatingField,
 		'functionality': RatingField,
 	}
+	form_excluded_columns = ('metadata', 'logs', 'transactions')
+	form_edit_rules = (
+		'children',
+		'location',
+		'category',
+		'name',
+		'manufacturer',
+		'custom_code',
+		'note',
+		'serial',
+		'condition',
+		'functionality',
+		'status',
+		'parent',
+	)
 	can_view_details = True
 	column_filters = [
 		'location',
@@ -61,6 +78,11 @@ class AssetView(ModelView):
 		'status',
 		'parent',
 	]
+	column_default_sort = ('id', True)
+	column_choices = {
+		'condition': RATING_OPTIONS,
+		'functionality': RATING_OPTIONS,
+	}
 
 def add_admin_views():
     for table in tables + [LogItem]:
