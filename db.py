@@ -1,12 +1,16 @@
 import enum
+import json
+import datetime
+from os import getenv
 
 from flask import Flask
 from flask_admin import Admin
 from flask_sqlalchemy import SQLAlchemy
 from flask_admin.contrib.sqla import ModelView
 from sqlalchemy import Column, Integer, Numeric, String, Text, \
-    DateTime, LargeBinary, ForeignKey, Enum, Table
+    DateTime, LargeBinary, ForeignKey, Enum, Table, Index
 from sqlalchemy.orm import relationship, backref
+from dictalchemy import make_class_dictable
 
 # Create application
 app = Flask(__name__)
@@ -22,6 +26,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 #app.config['SQLALCHEMY_ECHO'] = True
 
 db = SQLAlchemy(app)
+make_class_dictable(db.Model)
 
 class AssetStatus(enum.Enum):
     unknown = 0
@@ -345,33 +350,31 @@ class Status(db.Model):
     id      = Column(Integer, primary_key=True)
     name    = Column(String(255))
 
-tables = (Asset, AssetMeta,
+tables = [Asset, AssetMeta,
     Category, CategoryTemplate, Transaction, Location,
     Event, Check, CheckItem, CheckLog, 
     Benchmark, BenchmarkType, Computer, Hardware,
-    )
+]
 
-#LogClass = Enum('LogClass', ["Currency", "Company", "Account", "Party", "Category", "Transaction", "Transfer"])
-#LogEvent = Enum('LogEvent', ["Create", "Update", "Delete", "Other"])
+LogEvent = enum.Enum('LogEvent', ["Create", "Update", "Delete", "Other"])
 
-'''
-class LogItem(Model):
+class LogItem(db.Model):
     __tablename__ = 'logs'
     id          = Column(Integer, primary_key=True)
     
-    table = Column(db.String(80), nullable=False)
-    object_id = Column(db.Integer(), nullable=False)
-    event = Column(db.Enum(LogEvent), nullable=False)
-    object_json = Column(db.Text())
+    table       = Column(String(80), nullable=False)
+    object_id   = Column(Integer, nullable=False)
+    event       = Column(Enum(LogEvent), nullable=False)
+    object_json = Column(Text)
     
-    extra_json = Column(db.Text())
+    extra_json  = Column(Text)
     
-    user_id = reference_col(User)
-    user = relationship(User)
+    #user_id     = reference_col(User)
+    #user        = relationship(User)
     
-    datetime = Column(db.DateTime(), nullable=False)
+    datetime    = Column(DateTime, nullable=False)
     
-    idx_obj = Index('object_class', 'object_id', unique=True)
+    idx_obj     = Index('table', 'object_id', unique=True)
     
     @property
     def object(self):
@@ -380,18 +383,34 @@ class LogItem(Model):
         assert issubclass(class_, Model)
         return class_.query.get(self.object_id)
 
-'''
+
+def log(event, object, **kwargs):
+    log_item = LogItem(table=type(object).__name__, object_id=object.id,
+        event=event, object_json=json.dumps(object.asdict(), default=repr),
+        #user=current_user,
+        datetime=datetime.datetime.now(),
+        extra_json=json.dumps(kwargs))
+    db.session.add(log_item)
 
 #db.create_all()
 
 admin = Admin(app)
 
-for table in (Asset, AssetMeta,
-    Category, CategoryTemplate, Transaction, Location,
-    Event, Check, CheckItem, CheckLog, 
-    Benchmark, BenchmarkType, Computer, Hardware,
-    ):
-    admin.add_view(ModelView(table, db.session))
+class CustomModelView(ModelView):
+    form_excluded_columns = ['transactions']
+    def on_model_change(self, form, instance, is_created):
+        if not is_created:
+            log("Update", instance)
+        else:
+            db.session.add(instance)
+            db.session.commit()
+            log("Create", instance)
+
+    #def is_accessible(self):
+    #    return current_user.is_authenticated
+
+for table in tables + [LogItem]:
+    admin.add_view(CustomModelView(table, db.session))
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', port=getenv("PORT", 5000), debug=getenv("DEBUG", False))
