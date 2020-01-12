@@ -5,6 +5,10 @@ Sanky:
 	asset:
 	- field add model (nullable string)
 	- field add photo (u pc/konzolí/komponent se hodí)
+	- generování štítku v PDF a PNG
+
+	category:
+	- přidat barvu (parametr color)
 
 Ender:
 	asset:
@@ -14,10 +18,9 @@ Ender:
 
 category:
 - counter pouze zobrazit, nikoliv create/edit
-- při create/edit asset aktuaiozvat counter je-li potřeba
+- při create/edit asset aktualizovat counter je-li potřeba
 - odstranit z create/edit: assets, templates
 - udělat samostatné view: zobrazit assests, templates
-- přidat barvu (parametr color)
 
 category template:
 - filtr podle kategorie, pokudmožno perzistentní, následně musí jít sřeadit dle key
@@ -45,6 +48,5 @@ asset:
 - condition/functionality: edit typ hvězdičky
 - create/edit odstranit "políčko" metadata, logs
 - create/edit: editor metadat, uvážit jako form field typ
-- generování štítku v PDF a PNG
 - list: přidat IDčko, aby šlo řadit
 - list: později nějaké filtry, lokace, kategorie, datum vytvoření
