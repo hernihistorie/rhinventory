@@ -15,9 +15,9 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = '123456790'
 
 # Create in-memory database
-app.config['DATABASE_FILE'] = 'rhinventory.db'
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + app.config['DATABASE_FILE']
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+app.config['DATABASE_FILE'] = 'test.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + app.config['DATABASE_FILE']
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 #app.config['SQLALCHEMY_ECHO'] = True
 
@@ -53,6 +53,9 @@ class Asset(db.Model):
     location    = relationship("Location", backref="assets")
     category    = relationship("Category", backref="assets")
 
+    def __str__(self):
+        return f"RH{self.id} {self.name}"
+
 
 class Category(db.Model):
     __tablename__ = 'categories'
@@ -60,6 +63,9 @@ class Category(db.Model):
     name        = Column(String, nullable=False)
     prefix      = Column(String)
     counter     = Column(Integer)
+
+    def __str__(self):
+        return f"{self.name}"
 
 
 class CategoryTemplate(db.Model):
@@ -335,11 +341,15 @@ class Status(db.Model):
     id      = Column(Integer, primary_key=True)
     name    = Column(String(255))
 
-db.create_all()
+#db.create_all()
 
 admin = Admin(app)
 
-for table in (Asset, Benchmark, BenchmarkType, Computer, Hardware):
+for table in (Asset, AssetMeta,
+    Category, CategoryTemplate, Transaction, Location,
+    Event, Check, CheckItem, CheckLog, 
+    Benchmark, BenchmarkType, Computer, Hardware,
+    ):
     admin.add_view(ModelView(table, db.session))
 
 if __name__ == '__main__':
