@@ -1,0 +1,7 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<LogicalDesign class="oracle.dbtools.crest.model.design.logical.LogicalDesign" name="Logical" id="72BE419B-AB61-3A99-7082-86AC36EAC365" mainViewID="7CF50759-18B2-1C9A-6E51-46FD5D322C91">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 19:57:47 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<shouldBeOpen>false</shouldBeOpen>
+</LogicalDesign>

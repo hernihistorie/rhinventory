@@ -1,0 +1,184 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="688E802A-EA60-F1E9-4234-B82FFC0A4609" name="asset">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 19:58:24 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<ordsAlias>table_1</ordsAlias>
+<allowColumnReorder>false</allowColumnReorder>
+<existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
+<parsed>true</parsed>
+<columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
+<Column name="id" id="05797B57-9AA0-E871-4B8D-05F8DC270F2E">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 20:01:37 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="parent_id" id="28CEAB10-000A-90CF-B097-5871CEC1592E">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 20:57:22 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="name" id="4BCD5B98-0D98-E97B-2F09-54EA59AAEE7F">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 20:02:02 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="manufacturer" id="C24BA47C-9616-3A3B-F1F8-9049E85AFE67">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 20:54:37 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="model" id="F251BE24-1D10-CFA5-8BB4-7C4ACBCA76C1">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 20:55:05 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="custom_code" id="7081BA2F-0A2E-11C5-A7A5-82F647C397D3">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 20:04:49 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="location_id" id="52E91C87-AF55-391C-E3CE-B6ED95FDA7B7">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 20:05:56 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="category_id" id="959715FB-F172-C3D4-CCA3-4288093D10F9">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 20:06:23 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="note" id="B0404A00-FCD6-985A-AE7A-CD6082A5C022">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 20:06:57 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT040</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="serial" id="13B565B1-E2F7-C6C1-AC15-A09BFB3B826A">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 20:43:29 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="condition" id="8014DACD-69A4-FC12-F4AA-849B392B7AF3">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 20:46:58 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="functionality" id="D608DBBC-D975-2B52-BBF4-2ADFCE6DFC79">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 20:48:29 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="status" id="870B64F0-DBD3-68A1-9397-15EB82E77A50">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 20:45:35 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+</columns>
+<indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
+<ind_PK_UK id="A83ECF12-A3DC-D67E-DBAD-5AFAD01AA5ED" name="Asset_PK">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 20:01:37 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<pk>true</pk>
+<indexState>Primary Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="05797B57-9AA0-E871-4B8D-05F8DC270F2E"/>
+</indexColumnUsage>
+</ind_PK_UK>
+</indexes>
+<impliedForeignKeys itemClass="oracle.dbtools.crest.model.design.relational.ImpliedForeignKey">
+<impliedForeignKey name="ImpliedForeignKey_1" id="C48E620E-490B-6DBE-3A47-50AFF9086B3B">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 20:10:28 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<localColumn>52E91C87-AF55-391C-E3CE-B6ED95FDA7B7</localColumn>
+<referredTableID>622DEC86-5C34-7DA1-0620-542375B31CE7</referredTableID>
+<referredColumnID>472321D1-74D6-0CCD-7769-A9836394C693</referredColumnID>
+<referredTableLongName>location</referredTableLongName>
+<referredColumnName>id</referredColumnName>
+</impliedForeignKey>
+<impliedForeignKey name="ImpliedForeignKey_2" id="2FC89DCC-93A5-9011-961D-79EBB23CF839">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 20:14:12 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<localColumn>959715FB-F172-C3D4-CCA3-4288093D10F9</localColumn>
+<referredTableID>79DC00FF-1989-499C-424D-EDA1496BBA5A</referredTableID>
+<referredColumnID>1CBC85FC-E7D6-1871-E4AE-629AD074F66E</referredColumnID>
+<referredTableLongName>category</referredTableLongName>
+<referredColumnName>id</referredColumnName>
+</impliedForeignKey>
+</impliedForeignKeys>
+</Table>

@@ -1,0 +1,67 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="B4BBB19A-C345-7489-49D5-64B4A4BF7941" name="event_check">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 21:50:43 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<ordsAlias>table_11</ordsAlias>
+<allowColumnReorder>false</allowColumnReorder>
+<existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
+<parsed>true</parsed>
+<columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
+<Column name="event_id" id="97382F48-9494-2FAF-AA65-E2477049BB46">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 21:51:11 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="check_id" id="8338D705-9BC5-8562-956C-E0CDCBA3B60E">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 21:51:26 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+</columns>
+<indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
+<ind_PK_UK id="9FADDB6B-37A7-B26E-3A16-4CC53652B026" name="event_check__UN">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 21:51:38 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<indexState>Unique Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="97382F48-9494-2FAF-AA65-E2477049BB46"/>
+<colUsage columnID="8338D705-9BC5-8562-956C-E0CDCBA3B60E"/>
+</indexColumnUsage>
+</ind_PK_UK>
+</indexes>
+<impliedForeignKeys itemClass="oracle.dbtools.crest.model.design.relational.ImpliedForeignKey">
+<impliedForeignKey name="ImpliedForeignKey_1v2" id="2015F281-47F7-9485-F19C-FC0AC1088CD7">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 21:51:46 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<localColumn>97382F48-9494-2FAF-AA65-E2477049BB46</localColumn>
+<referredTableID>B2E01A89-73A0-CE55-4DD4-51104BB33D44</referredTableID>
+<referredColumnID>81833E52-5533-0E4A-EE2E-6F50AB5C052F</referredColumnID>
+<referredTableLongName>event</referredTableLongName>
+<referredColumnName>id</referredColumnName>
+</impliedForeignKey>
+<impliedForeignKey name="ImpliedForeignKey_2v2" id="35625370-C8BA-72F2-81EC-DB63AD33E414">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 21:51:55 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<localColumn>8338D705-9BC5-8562-956C-E0CDCBA3B60E</localColumn>
+<referredTableID>05B36084-8FA4-B215-EA14-3EA08DF4D250</referredTableID>
+<referredColumnID>F03D8257-0097-D2FB-5798-2C2EA96A1A76</referredColumnID>
+<referredTableLongName>check</referredTableLongName>
+<referredColumnName>id</referredColumnName>
+</impliedForeignKey>
+</impliedForeignKeys>
+</Table>

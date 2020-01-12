@@ -1,0 +1,88 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="D542BC19-CF72-6DAB-FE23-7A017B36631B" name="check_item">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 21:54:41 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<ordsAlias>table_12</ordsAlias>
+<allowColumnReorder>false</allowColumnReorder>
+<existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
+<parsed>true</parsed>
+<columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
+<Column name="id" id="6F4D80E2-BA0E-1DF6-CE83-B1FF016FD58A">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 21:55:05 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT027</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="check_id" id="AC67964C-8F8D-958F-9422-F4CD47528B7C">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 21:55:21 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="barcode" id="5755D3CB-23D9-3375-3715-629BC0D5B67D">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 21:55:46 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="original_barcode" id="52899345-5CC6-A1B5-1726-C1D6DBFC9D13">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 21:56:35 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="status" id="AF4536ED-641F-A97F-AF10-BF8E6C800AB8">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:02:32 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+</columns>
+<indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
+<ind_PK_UK id="B04B7E63-F3D4-C5F3-5058-949E46A168BC" name="check_item_PK">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 21:55:05 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<pk>true</pk>
+<indexState>Primary Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="6F4D80E2-BA0E-1DF6-CE83-B1FF016FD58A"/>
+</indexColumnUsage>
+</ind_PK_UK>
+</indexes>
+<impliedForeignKeys itemClass="oracle.dbtools.crest.model.design.relational.ImpliedForeignKey">
+<impliedForeignKey name="ImpliedForeignKey_1v4" id="64868D4A-252B-D8F3-9BFE-41562D286CA7">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:14:00 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<localColumn>AC67964C-8F8D-958F-9422-F4CD47528B7C</localColumn>
+<referredTableID>05B36084-8FA4-B215-EA14-3EA08DF4D250</referredTableID>
+<referredColumnID>F03D8257-0097-D2FB-5798-2C2EA96A1A76</referredColumnID>
+<referredTableLongName>check</referredTableLongName>
+<referredColumnName>id</referredColumnName>
+</impliedForeignKey>
+</impliedForeignKeys>
+</Table>

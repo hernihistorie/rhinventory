@@ -1,0 +1,8 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<OSDM_Design class="oracle.dbtools.crest.model.design.Design" name="rhinventory" id="B2EDB24E-721B-D6D6-BA06-A96C04AD776F" version="3.5">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 19:57:47 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<capitalNames>false</capitalNames>
+<designId>B2EDB24E-721B-D6D6-BA06-A96C04AD776F</designId>
+</OSDM_Design>

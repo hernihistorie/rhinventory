@@ -1,0 +1,132 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="059DECA1-AC9C-EA17-8467-125FEAD09273" name="check_log">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:02:57 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<ordsAlias>table_13</ordsAlias>
+<allowColumnReorder>false</allowColumnReorder>
+<existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
+<parsed>true</parsed>
+<columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
+<Column name="id" id="62462F90-61B0-5535-B512-BC393E69B595">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:03:32 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="check_id" id="4A7393B5-7CB1-C20E-4E1A-510D50FDAA43">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:04:00 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="asset_id" id="1E87D120-E824-9283-67F7-1686B368777F">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:05:01 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="location_id" id="230EE86E-A266-E149-A6B0-3FAEA43F4690">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:05:17 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="original_location_id" id="FDACDA2E-771C-9AE8-64DC-B6EBCFD12BDE">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:07:01 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="change" id="E7F1A41D-7A83-2257-A751-78FED880E8DD">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:05:40 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+</columns>
+<indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
+<ind_PK_UK id="76DF624C-D7FF-5A08-FBEC-053BD338002C" name="check_protocol_PK">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:03:32 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<pk>true</pk>
+<indexState>Primary Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="62462F90-61B0-5535-B512-BC393E69B595"/>
+</indexColumnUsage>
+</ind_PK_UK>
+</indexes>
+<impliedForeignKeys itemClass="oracle.dbtools.crest.model.design.relational.ImpliedForeignKey">
+<impliedForeignKey name="ImpliedForeignKey_1v3" id="8CC0508F-1F58-7241-021F-BFDF531C459F">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:09:07 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<localColumn>4A7393B5-7CB1-C20E-4E1A-510D50FDAA43</localColumn>
+<referredTableID>05B36084-8FA4-B215-EA14-3EA08DF4D250</referredTableID>
+<referredColumnID>F03D8257-0097-D2FB-5798-2C2EA96A1A76</referredColumnID>
+<referredTableLongName>check</referredTableLongName>
+<referredColumnName>id</referredColumnName>
+</impliedForeignKey>
+<impliedForeignKey name="ImpliedForeignKey_2v3" id="D281DB7B-2CBD-2E67-5D69-CED42AC316FC">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:09:18 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<localColumn>1E87D120-E824-9283-67F7-1686B368777F</localColumn>
+<referredTableID>688E802A-EA60-F1E9-4234-B82FFC0A4609</referredTableID>
+<referredColumnID>05797B57-9AA0-E871-4B8D-05F8DC270F2E</referredColumnID>
+<referredTableLongName>asset</referredTableLongName>
+<referredColumnName>id</referredColumnName>
+</impliedForeignKey>
+<impliedForeignKey name="ImpliedForeignKey_3" id="89EBF5CE-C770-01AE-ABE7-666B99533763">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:10:01 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<localColumn>230EE86E-A266-E149-A6B0-3FAEA43F4690</localColumn>
+<referredTableID>622DEC86-5C34-7DA1-0620-542375B31CE7</referredTableID>
+<referredColumnID>472321D1-74D6-0CCD-7769-A9836394C693</referredColumnID>
+<referredTableLongName>location</referredTableLongName>
+<referredColumnName>id</referredColumnName>
+</impliedForeignKey>
+<impliedForeignKey name="ImpliedForeignKey_4" id="EEEB5D38-BDD3-5FAF-529D-5BB8F69E9FFA">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:10:39 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<localColumn>FDACDA2E-771C-9AE8-64DC-B6EBCFD12BDE</localColumn>
+<referredTableID>622DEC86-5C34-7DA1-0620-542375B31CE7</referredTableID>
+<referredColumnID>472321D1-74D6-0CCD-7769-A9836394C693</referredColumnID>
+<referredTableLongName>location</referredTableLongName>
+<referredColumnName>id</referredColumnName>
+</impliedForeignKey>
+</impliedForeignKeys>
+</Table>

@@ -1,0 +1,131 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Entity class="oracle.dbtools.crest.model.design.logical.Entity" directorySegmentName="seg_0" id="08765C2D-6A74-4C5B-EB2F-46F07B8B4C0F" name="transaction">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>57023D53-E7F9-E0FA-90DC-54404936491C</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<adequatelyNormalized>NO</adequatelyNormalized>
+<expectedVolumes>0</expectedVolumes>
+<fwdEngineeringStrategyName>Single Table</fwdEngineeringStrategyName>
+<growthPercent>0</growthPercent>
+<growthType>Year</growthType>
+<maxVolumes>9999999</maxVolumes>
+<minVolumes>0</minVolumes>
+<normalForm>Third</normalForm>
+<attributes itemClass="oracle.dbtools.crest.model.design.logical.Attribute">
+<Attribute name="id" id="5219664B-2EFB-5F6A-FBB4-A3331C3BD6E3">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>957D2CD5-2386-D38A-E2B5-BF02CD8FA744</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+</Attribute>
+<Attribute name="transaction type" id="E71BBBB9-3B5F-1AFC-ACE6-67B0E3C90E70">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>8D8D107B-7B4F-85EF-480C-6016CA6F0E75</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+</Attribute>
+<Attribute name="user id" id="CD05ECD5-90A0-48B1-C270-FC520B1C2918">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>8E96CEA7-1706-AF7C-3D92-0D7EB58E5320</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+</Attribute>
+<Attribute name="counterparty" id="7230F834-9E9F-E37E-CF09-CF2AC2E27E8F">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>5AEE916D-429D-8785-2C93-380CC2F1C192</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+</Attribute>
+<Attribute name="cost" id="09A5E58D-CD15-2C6D-6445-537CDBB8F099">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>6C2AFEA9-1AF9-0ECC-A9DF-371170454328</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT026</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+</Attribute>
+<Attribute name="note" id="34AFF527-DC40-EB9E-F17A-71C1EDC4C261">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>0C8F324C-DC23-BE95-99E2-4E12DCE4DB9D</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT040</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+</Attribute>
+<Attribute name="date" id="A99E3127-1ABB-FC6A-FCD3-D26FCFDF529E">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>6CBADEEB-C73B-F146-DA31-174307760FDC</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT008</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+</Attribute>
+</attributes>
+<identifiers itemClass="oracle.dbtools.crest.model.design.logical.CandidateKey">
+<identifier id="2EE8D639-74E2-84EF-7569-DFE866AE9F2F" name="transaction PK">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>A1549CF0-FB26-8E77-CCA7-3B0015E37DEE</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<pk>true</pk>
+<usedAttributes>
+<attributeRef>5219664B-2EFB-5F6A-FBB4-A3331C3BD6E3</attributeRef>
+</usedAttributes>
+</identifier>
+</identifiers>
+</Entity>

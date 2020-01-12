@@ -1,0 +1,89 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Entity class="oracle.dbtools.crest.model.design.logical.Entity" directorySegmentName="seg_0" id="5FAD71F2-6B83-9BDB-860C-09CF9EBC4989" name="location">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>622DEC86-5C34-7DA1-0620-542375B31CE7</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<adequatelyNormalized>NO</adequatelyNormalized>
+<expectedVolumes>0</expectedVolumes>
+<fwdEngineeringStrategyName>Single Table</fwdEngineeringStrategyName>
+<growthPercent>0</growthPercent>
+<growthType>Year</growthType>
+<maxVolumes>9999999</maxVolumes>
+<minVolumes>0</minVolumes>
+<normalForm>Third</normalForm>
+<attributes itemClass="oracle.dbtools.crest.model.design.logical.Attribute">
+<Attribute name="id" id="A384A304-9687-20AE-EB78-B8DC3C550155">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>472321D1-74D6-0CCD-7769-A9836394C693</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+</Attribute>
+<Attribute name="parent id" id="9B06E7D3-BBBC-1557-7BB6-F46E305EEA12">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>571DEF06-8B5D-95D3-7086-FB453C47883E</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+</Attribute>
+<Attribute name="name" id="53D1E806-65BD-7C27-DE1F-2EEA8C368378">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>3332BF9D-8DA6-BE6F-CCBA-27965E371E8B</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+</Attribute>
+<Attribute name="note" id="057D9A60-EBAE-3408-6363-BC0B1BB3F700">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>5CE48D1C-0F3A-1CB4-9828-CC15514337AB</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT040</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+</Attribute>
+</attributes>
+<identifiers itemClass="oracle.dbtools.crest.model.design.logical.CandidateKey">
+<identifier id="6AADA404-FA6D-7186-5629-5C7CB1A7BA44" name="location PK">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>373E6A3C-3400-A42B-636B-928AEA30CB50</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<pk>true</pk>
+<usedAttributes>
+<attributeRef>A384A304-9687-20AE-EB78-B8DC3C550155</attributeRef>
+</usedAttributes>
+</identifier>
+</identifiers>
+</Entity>

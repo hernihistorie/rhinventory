@@ -1,0 +1,61 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Entity class="oracle.dbtools.crest.model.design.logical.Entity" directorySegmentName="seg_0" id="3C97BB62-95D4-C315-D920-E3ED336C1EE7" name="event check">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>B4BBB19A-C345-7489-49D5-64B4A4BF7941</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<adequatelyNormalized>NO</adequatelyNormalized>
+<expectedVolumes>0</expectedVolumes>
+<fwdEngineeringStrategyName>Single Table</fwdEngineeringStrategyName>
+<growthPercent>0</growthPercent>
+<growthType>Year</growthType>
+<maxVolumes>9999999</maxVolumes>
+<minVolumes>0</minVolumes>
+<normalForm>Third</normalForm>
+<attributes itemClass="oracle.dbtools.crest.model.design.logical.Attribute">
+<Attribute name="event id" id="1196AF7F-E499-3803-6C3C-5967ABC06969">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>97382F48-9494-2FAF-AA65-E2477049BB46</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+</Attribute>
+<Attribute name="check id" id="6D0DEB1C-3740-442D-BEF5-316D07856C00">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>8338D705-9BC5-8562-956C-E0CDCBA3B60E</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+</Attribute>
+</attributes>
+<identifiers itemClass="oracle.dbtools.crest.model.design.logical.CandidateKey">
+<identifier id="0FBFBA4D-4F01-F788-3BCC-355094D5D3BC" name="event check  UN">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>9FADDB6B-37A7-B26E-3A16-4CC53652B026</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<usedAttributes>
+<attributeRef>1196AF7F-E499-3803-6C3C-5967ABC06969</attributeRef>
+<attributeRef>6D0DEB1C-3740-442D-BEF5-316D07856C00</attributeRef>
+</usedAttributes>
+</identifier>
+</identifiers>
+</Entity>

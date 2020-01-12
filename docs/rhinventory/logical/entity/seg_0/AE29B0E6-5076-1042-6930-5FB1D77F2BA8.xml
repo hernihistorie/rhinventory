@@ -1,0 +1,89 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Entity class="oracle.dbtools.crest.model.design.logical.Entity" directorySegmentName="seg_0" id="AE29B0E6-5076-1042-6930-5FB1D77F2BA8" name="category">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>79DC00FF-1989-499C-424D-EDA1496BBA5A</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<adequatelyNormalized>NO</adequatelyNormalized>
+<expectedVolumes>0</expectedVolumes>
+<fwdEngineeringStrategyName>Single Table</fwdEngineeringStrategyName>
+<growthPercent>0</growthPercent>
+<growthType>Year</growthType>
+<maxVolumes>9999999</maxVolumes>
+<minVolumes>0</minVolumes>
+<normalForm>Third</normalForm>
+<attributes itemClass="oracle.dbtools.crest.model.design.logical.Attribute">
+<Attribute name="id" id="14C0B5E0-F6D7-67B5-7C4E-61FD543A7F36">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>1CBC85FC-E7D6-1871-E4AE-629AD074F66E</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+</Attribute>
+<Attribute name="name" id="008FF399-9F29-3FB3-6116-95627786529D">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>BFBE3FD1-DD21-3FA1-E553-0C5CA68E6CAB</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+</Attribute>
+<Attribute name="prefix" id="311A2ED9-A472-4F6F-E074-BF59CF975CC1">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>7ADEDCC8-44FC-5117-4242-F09F9D4CCCDA</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT024</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+</Attribute>
+<Attribute name="counter" id="DF45C388-4826-24B9-06C4-2A3385843079">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>CA4FD1AB-E4BB-CDB1-882A-0CDA0CC8E032</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<nullsAllowed>true</nullsAllowed>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+</Attribute>
+</attributes>
+<identifiers itemClass="oracle.dbtools.crest.model.design.logical.CandidateKey">
+<identifier id="A8835CF1-D6B9-0E89-2C1C-86572603E63F" name="category PK">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 22:15:33 UTC</createdTime>
+<generatorID>8A1689EA-FD35-B687-584B-F871220B7E1B</generatorID>
+<ownerDesignName>rhinventory</ownerDesignName>
+<engineerTo>
+<item key="69414B34-BCF3-D1FB-FB27-63F752F3819B" value="true"/>
+</engineerTo>
+<pk>true</pk>
+<usedAttributes>
+<attributeRef>14C0B5E0-F6D7-67B5-7C4E-61FD543A7F36</attributeRef>
+</usedAttributes>
+</identifier>
+</identifiers>
+</Entity>

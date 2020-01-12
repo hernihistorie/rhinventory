@@ -1,0 +1,67 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Table class="oracle.dbtools.crest.model.design.relational.Table" directorySegmentName="seg_0" id="0C899EF0-F5C8-D2AA-CD1A-3FF3F4C2A743" name="transaction_asset">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 20:38:14 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<ordsAlias>table_9</ordsAlias>
+<allowColumnReorder>false</allowColumnReorder>
+<existDependencyGenerateInDDl>true</existDependencyGenerateInDDl>
+<parsed>true</parsed>
+<columns itemClass="oracle.dbtools.crest.model.design.relational.Column">
+<Column name="asset_id" id="2C4A9207-74E1-AC2A-19BE-7CE45AD1A37B">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 20:39:01 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+<Column name="transaction_id" id="E303DBB7-4A3E-8308-4474-DFCC17C16506">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 20:38:43 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<useDomainConstraints>false</useDomainConstraints>
+<use>1</use>
+<logicalDatatype>LOGDT011</logicalDatatype>
+<ownDataTypeParameters>,,</ownDataTypeParameters>
+<autoIncrementCycle>false</autoIncrementCycle>
+</Column>
+</columns>
+<indexes itemClass="oracle.dbtools.crest.model.design.relational.Index">
+<ind_PK_UK id="0DF23C32-DC0A-89F3-ADF8-F16158B9A3F9" name="transaction_asset__UN">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 20:39:19 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<indexState>Unique Constraint</indexState>
+<isSurrogateKey>false</isSurrogateKey>
+<indexColumnUsage>
+<colUsage columnID="2C4A9207-74E1-AC2A-19BE-7CE45AD1A37B"/>
+<colUsage columnID="E303DBB7-4A3E-8308-4474-DFCC17C16506"/>
+</indexColumnUsage>
+</ind_PK_UK>
+</indexes>
+<impliedForeignKeys itemClass="oracle.dbtools.crest.model.design.relational.ImpliedForeignKey">
+<impliedForeignKey name="ImpliedForeignKey_1v1" id="D02CAB37-EB99-F305-7917-1EB4EEDE219E">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 20:39:32 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<localColumn>2C4A9207-74E1-AC2A-19BE-7CE45AD1A37B</localColumn>
+<referredTableID>688E802A-EA60-F1E9-4234-B82FFC0A4609</referredTableID>
+<referredColumnID>05797B57-9AA0-E871-4B8D-05F8DC270F2E</referredColumnID>
+<referredTableLongName>asset</referredTableLongName>
+<referredColumnName>id</referredColumnName>
+</impliedForeignKey>
+<impliedForeignKey name="ImpliedForeignKey_2v1" id="CEB94215-AD30-7B91-B783-2CA8CE5D1BAF">
+<createdBy>BlackChar</createdBy>
+<createdTime>2020-01-11 20:39:33 UTC</createdTime>
+<ownerDesignName>rhinventory</ownerDesignName>
+<localColumn>E303DBB7-4A3E-8308-4474-DFCC17C16506</localColumn>
+<referredTableID>57023D53-E7F9-E0FA-90DC-54404936491C</referredTableID>
+<referredColumnID>957D2CD5-2386-D38A-E2B5-BF02CD8FA744</referredColumnID>
+<referredTableLongName>transaction</referredTableLongName>
+<referredColumnName>id</referredColumnName>
+</impliedForeignKey>
+</impliedForeignKeys>
+</Table>
