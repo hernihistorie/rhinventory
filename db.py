@@ -361,13 +361,8 @@ class Status(db.Model):
 tables = [Asset, AssetMeta,
     Category, CategoryTemplate, Transaction, Location,
     Event, Check, CheckItem, CheckLog, 
-<<<<<<< HEAD
-    Benchmark, BenchmarkType, Computer, Hardware,
-]
-=======
     #Benchmark, BenchmarkType, Computer, Hardware,
     )
->>>>>>> comment out old tables
 
 LogEvent = enum.Enum('LogEvent', ["Create", "Update", "Delete", "Other"])
 
