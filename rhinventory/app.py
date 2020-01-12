@@ -5,7 +5,7 @@ from rhinventory.extensions import db, admin, debug_toolbar
 from rhinventory.admin import add_admin_views
 
 def create_app(config_object='rhinventory.config'):
-    app = Flask(__name__.split('.')[0])
+    app = Flask(__name__.split('.')[0], template_folder='templates')
     app.config.from_object(config_object)
 
     db.init_app(app)
