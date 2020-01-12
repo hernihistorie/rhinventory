@@ -10,35 +10,38 @@ from pprint import pprint
 
 
 csv_file = {
-    'games':'/mnt/z/GM.csv'
+    'game':'/mnt/z/GM.csv',
+    'computer':'/mnt/z/PC.csv',
+    'console':'/mnt/z/GC.csv'
 }
 
 app=create_app()
 with app.app_context(): 
+    for key in csv_file:
+        with open (csv_file[key], newline='') as f:
+            reader = csv.reader(f)
+            cat=Category.query.filter(Category.name==key).one()
+            pprint ([key, csv_file[key], cat.prefix])
+            header = next(reader)
 
-    with open (csv_file['games'], newline='') as f:
-        reader = csv.reader(f)
-        cat=Category.query.filter(Category.prefix=="GM").one()
+            for row in reader:
+                row = dict(zip(header, row))
+                if row["Název"].strip() != '' and row["Název"].strip() != '-' and ('reserved' not in row["Název"].strip().lower()) :
+                    pprint ([row["Název"], row["Inv. č."]])
+                    asset = Asset(
+                        category=cat,
+                        name=row["Název"].strip(),
+                        manufacturer=row["Výrobce"].strip(),
+                        note=row["Poznámka"].strip(),
+                        custom_code=int(row["Inv. č."].replace(cat.prefix,"")),
+                        condition=0,
+                        functionality=0,
+                        status=AssetStatus.unknown
+                    )
+                    #pprint(asset)
+                    db.session.add(asset)
 
-        header = next(reader)
-
-        for row in reader:
-            row = dict(zip(header, row))
-            if row["Název"].strip():
-                asset = Asset(
-                    category=cat,
-                    name=row["Název"],
-                    manufacturer=row["Výrobce"],
-                    note=row["Poznámka"],
-                    custom_code=int(row["Inv. č."].replace("GM","")),
-                    condition=0,
-                    functionality=0,
-                    status=AssetStatus.unknown
-                )
-                #pprint(asset)
-                db.session.add(asset)
-
-        db.session.commit()
+            db.session.commit()
 
     # def get_category(code):
         # if code in db_categories:
