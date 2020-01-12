@@ -134,6 +134,10 @@ class Location(db.Model):
     children    = relationship("Location",
                     backref=backref("parent", remote_side=id),
         )
+    def __str__(self):
+        return f"{self.name}"
+
+
 
 
 
@@ -172,6 +176,10 @@ class Event(db.Model):
         "Check",
         secondary=lambda: event_checks,
         backref="events")
+        
+    def __str__(self):
+        return f"{self.name}"
+
 
 
 class CheckType(enum.Enum):
@@ -199,6 +207,11 @@ class Check(db.Model):
     date_to     = Column(DateTime)
     status      = Column(Enum(CheckStatus))
     note        = Column(Text)
+
+    def __str__(self):
+        return f"Inventura z {self.date_from}"
+
+    
 
 
 event_checks = Table('event_checks', db.Model.metadata,
