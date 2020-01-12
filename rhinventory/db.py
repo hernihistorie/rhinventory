@@ -388,4 +388,4 @@ def log(event, object, **kwargs):
         extra_json=json.dumps(kwargs))
     db.session.add(log_item)
 
-#db.create_all()
+

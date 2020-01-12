@@ -3,7 +3,9 @@ from jinja2 import StrictUndefined
 
 from rhinventory.extensions import db, admin, debug_toolbar
 from rhinventory.admin import add_admin_views
-from rhinventory.db import Asset
+from rhinventory.db import Asset, Location
+
+from rhinventory.labels import make_barcode, make_label
 
 def create_app(config_object='rhinventory.config'):
     app = Flask(__name__.split('.')[0], template_folder='templates')
@@ -21,24 +23,30 @@ def create_app(config_object='rhinventory.config'):
     
     @app.route('/barcode/<text>')
     def barcode_endpoint(text):
-        from rhinventory.labels import make_barcode
         fp = make_barcode(text)
         return send_file(fp,
                         #as_attachment=True,
                         #attachment_filename='a_file.txt',
                         mimetype='image/svg+xml')
     
-    @app.route('/label/<int:asset_id>')
-    def label_endpoint(asset_id):
-        from rhinventory.labels import make_label
-
+    @app.route('/label/asset/<int:asset_id>')
+    def label_asset(asset_id):
         asset = Asset.query.get(asset_id)
         if not asset: abort(404)
 
         id = f"RH{asset_id:05}"
         label_filename = make_label(id, asset.custom_code, asset.name)
 
-        #return Response(label, mimetype='image/svg+xml')
+        return send_file(open(label_filename, 'rb'), mimetype='image/png')
+    
+    @app.route('/label/location/<int:location_id>')
+    def label_location(location_id):
+        location = Location.query.get(location_id)
+        if not location: abort(404)
+
+        id = f"RHL{location_id:04}"
+        label_filename = make_label(id, "LOCATION", location.name)
+
         return send_file(open(label_filename, 'rb'), mimetype='image/png')
     
     return app

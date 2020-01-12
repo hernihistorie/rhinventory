@@ -83,6 +83,7 @@ class AssetView(ModelView):
 		'condition': RATING_OPTIONS,
 		'functionality': RATING_OPTIONS,
 	}
+	can_export = True
 
 def add_admin_views():
     for table in tables + [LogItem]:
