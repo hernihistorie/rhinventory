@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_admin.contrib.sqla import ModelView
 from sqlalchemy import Column, Integer, Numeric, String, Text, \
     DateTime, LargeBinary, ForeignKey, Enum, Table
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 
 # Create application
 app = Flask(__name__)
@@ -49,7 +49,9 @@ class Asset(db.Model):
     location_id = Column(Integer, ForeignKey('locations.id'))
     category_id = Column(Integer, ForeignKey('categories.id'), nullable=False)
 
-    parent      = relationship("Asset")
+    children    = relationship("Asset",
+                    backref=backref("parent", remote_side=id),
+        )
     location    = relationship("Location", backref="assets")
     category    = relationship("Category", backref="assets")
 
@@ -129,7 +131,9 @@ class Location(db.Model):
     name        = Column(String, nullable=False)
     note        = Column(Text)
     
-    parent      = relationship("Location")
+    children    = relationship("Location",
+                    backref=backref("parent", remote_side=id),
+        )
 
 
 
@@ -341,6 +345,43 @@ class Status(db.Model):
     id      = Column(Integer, primary_key=True)
     name    = Column(String(255))
 
+tables = (Asset, AssetMeta,
+    Category, CategoryTemplate, Transaction, Location,
+    Event, Check, CheckItem, CheckLog, 
+    Benchmark, BenchmarkType, Computer, Hardware,
+    )
+
+#LogClass = Enum('LogClass', ["Currency", "Company", "Account", "Party", "Category", "Transaction", "Transfer"])
+#LogEvent = Enum('LogEvent', ["Create", "Update", "Delete", "Other"])
+
+'''
+class LogItem(Model):
+    __tablename__ = 'logs'
+    id          = Column(Integer, primary_key=True)
+    
+    table = Column(db.String(80), nullable=False)
+    object_id = Column(db.Integer(), nullable=False)
+    event = Column(db.Enum(LogEvent), nullable=False)
+    object_json = Column(db.Text())
+    
+    extra_json = Column(db.Text())
+    
+    user_id = reference_col(User)
+    user = relationship(User)
+    
+    datetime = Column(db.DateTime(), nullable=False)
+    
+    idx_obj = Index('object_class', 'object_id', unique=True)
+    
+    @property
+    def object(self):
+        # don't judge me
+        class_ = globals()[self.object_class]
+        assert issubclass(class_, Model)
+        return class_.query.get(self.object_id)
+
+'''
+
 #db.create_all()
 
 admin = Admin(app)
@@ -353,4 +394,4 @@ for table in (Asset, AssetMeta,
     admin.add_view(ModelView(table, db.session))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)
