@@ -1,31 +1,15 @@
 import enum
 import json
 import datetime
-from os import getenv
 
-from flask import Flask
-from flask_admin import Admin
-from flask_sqlalchemy import SQLAlchemy
 from flask_admin.contrib.sqla import ModelView
 from sqlalchemy import Column, Integer, Numeric, String, Text, \
     DateTime, LargeBinary, ForeignKey, Enum, Table, Index
 from sqlalchemy.orm import relationship, backref
 from dictalchemy import make_class_dictable
 
-# Create application
-app = Flask(__name__)
+from rhinventory.extensions import db
 
-# Create dummy secrey key so we can use sessions
-app.config['SECRET_KEY'] = '123456790'
-
-# Create in-memory database
-app.config['DATABASE_FILE'] = 'test.db'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + app.config['DATABASE_FILE']
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-#app.config['SQLALCHEMY_ECHO'] = True
-
-db = SQLAlchemy(app)
 make_class_dictable(db.Model)
 
 class AssetStatus(enum.Enum):
@@ -362,7 +346,7 @@ tables = [Asset, AssetMeta,
     Category, CategoryTemplate, Transaction, Location,
     Event, Check, CheckItem, CheckLog, 
     #Benchmark, BenchmarkType, Computer, Hardware,
-    )
+]
 
 LogEvent = enum.Enum('LogEvent', ["Create", "Update", "Delete", "Other"])
 
@@ -388,7 +372,7 @@ class LogItem(db.Model):
     def object(self):
         # don't judge me
         class_ = globals()[self.object_class]
-        assert issubclass(class_, Model)
+        assert issubclass(class_, db.Model)
         return class_.query.get(self.object_id)
 
 
@@ -401,24 +385,3 @@ def log(event, object, **kwargs):
     db.session.add(log_item)
 
 #db.create_all()
-
-admin = Admin(app)
-
-class CustomModelView(ModelView):
-    form_excluded_columns = ['transactions']
-    def on_model_change(self, form, instance, is_created):
-        if not is_created:
-            log("Update", instance)
-        else:
-            db.session.add(instance)
-            db.session.commit()
-            log("Create", instance)
-
-    #def is_accessible(self):
-    #    return current_user.is_authenticated
-
-for table in tables + [LogItem]:
-    admin.add_view(CustomModelView(table, db.session))
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=getenv("PORT", 5000), debug=getenv("DEBUG", False))
