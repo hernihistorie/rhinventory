@@ -26,6 +26,41 @@ class AssetView(ModelView):
 		'condition': RatingField,
 		'functionality': RatingField,
 	}
+	can_view_details = True
+	column_filters = [
+		'location',
+		'category',
+	]
+	column_searchable_list = [
+		'name',
+		'serial',
+	]
+	column_list = [
+		'id',
+		'location',
+		'category',
+		'name',
+		'manufacturer',
+		'custom_code',
+		'note',
+		'serial',
+		'condition',
+		'functionality',
+		'status',
+		'parent',
+	]
+	column_sortable_list = [
+		'id',
+		'name',
+		'manufacturer',
+		'custom_code',
+		'note',
+		'serial',
+		'condition',
+		'functionality',
+		'status',
+		'parent',
+	]
 
 def add_admin_views():
     for table in tables + [LogItem]:

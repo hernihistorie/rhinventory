@@ -47,8 +47,6 @@ asset:
 - custom code integer, v create/edit udělat to, že se oprefixuje v inputu dle zvolené kategorie přes JS
 - create/edit odstranit "políčko" metadata, logs
 - create/edit: editor metadat, uvážit jako form field typ
-- list: přidat IDčko, aby šlo řadit
-- list: později nějaké filtry, lokace, kategorie, datum vytvoření
 
 
 #######
@@ -56,3 +54,5 @@ asset:
 DONE:
 	asset:
 	- condition/functionality: edit typ hvězdičky
+	- list: později nějaké filtry, lokace, kategorie
+	- list: přidat IDčko, aby šlo řadit
