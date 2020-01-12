@@ -260,11 +260,6 @@ class CheckLog(db.Model):
 
 # Old PC models follow
 
-class AuditLog(db.Model):
-    id          = Column(Integer, primary_key=True)
-    item_table  = Column(String)
-    item_id     = Column(Integer)
-    action      = Column(String)
 
 class Benchmark(db.Model):
     id          = Column(Integer, primary_key=True)
@@ -366,8 +361,13 @@ class Status(db.Model):
 tables = [Asset, AssetMeta,
     Category, CategoryTemplate, Transaction, Location,
     Event, Check, CheckItem, CheckLog, 
+<<<<<<< HEAD
     Benchmark, BenchmarkType, Computer, Hardware,
 ]
+=======
+    #Benchmark, BenchmarkType, Computer, Hardware,
+    )
+>>>>>>> comment out old tables
 
 LogEvent = enum.Enum('LogEvent', ["Create", "Update", "Delete", "Other"])
 
