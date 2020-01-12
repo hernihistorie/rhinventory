@@ -1,4 +1,4 @@
-from flask import Flask, render_template, flash, redirect, url_for, send_file, Response
+from flask import Flask, render_template, flash, redirect, url_for, send_file, Response, abort
 from jinja2 import StrictUndefined
 
 from rhinventory.extensions import db, admin, debug_toolbar
@@ -33,6 +33,7 @@ def create_app(config_object='rhinventory.config'):
         from rhinventory.labels import make_label
 
         asset = Asset.query.get(asset_id)
+        if not asset: abort(404)
 
         id = f"RH{asset_id:05}"
         label_filename = make_label(id, asset.custom_code, asset.name)

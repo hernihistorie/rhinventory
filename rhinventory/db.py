@@ -27,9 +27,12 @@ class Asset(db.Model):
     parent_id   = Column(Integer, ForeignKey('assets.id'))
     name        = Column(String, nullable=False)
     manufacturer = Column(String)
+    model       = Column(String)
     custom_code = Column(String)
     note        = Column(Text)
     serial      = Column(String)
+
+    num_photos  = Column(Integer)
 
     condition   = Column(Integer, nullable=False)
     functionality = Column(Integer, nullable=False)
@@ -54,6 +57,7 @@ class Category(db.Model):
     name        = Column(String, nullable=False)
     prefix      = Column(String)
     counter     = Column(Integer)
+    color       = Column(String)
 
     def __str__(self):
         return f"{self.name}"

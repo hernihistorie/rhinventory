@@ -2,13 +2,7 @@ BlackChar:
 	- import dat
 
 Sanky:
-	asset:
-	- field add model (nullable string)
-	- field add photo (u pc/konzolí/komponent se hodí)
-	- generování štítku v PDF a PNG
-
-	category:
-	- přidat barvu (parametr color)
+	
 
 Ender:
 	asset:
