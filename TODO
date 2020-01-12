@@ -45,8 +45,14 @@ asset:
 - create/edit: children a parent upravit na ajax lazy loading
 - create/edit: location upravit na generovaný název fully qualified (parents)
 - custom code integer, v create/edit udělat to, že se oprefixuje v inputu dle zvolené kategorie přes JS
-- condition/functionality: edit typ hvězdičky
-- create/edit odstranit "políčko" metadata, logs
 - create/edit: editor metadat, uvážit jako form field typ
-- list: přidat IDčko, aby šlo řadit
-- list: později nějaké filtry, lokace, kategorie, datum vytvoření
+
+
+#######
+
+DONE:
+	asset:
+	- condition/functionality: edit typ hvězdičky
+	- list: později nějaké filtry, lokace, kategorie
+	- list: přidat IDčko, aby šlo řadit
+	- create/edit odstranit "políčko" metadata, logs

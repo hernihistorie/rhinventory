@@ -342,7 +342,7 @@ class Status(db.Model):
     id      = Column(Integer, primary_key=True)
     name    = Column(String(255))
 
-tables = [Asset, AssetMeta,
+tables = [AssetMeta,
     Category, CategoryTemplate, Transaction, Location,
     Event, Check, CheckItem, CheckLog, 
     #Benchmark, BenchmarkType, Computer, Hardware,
