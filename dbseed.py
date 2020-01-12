@@ -10,14 +10,14 @@ from pprint import pprint
 
 
 csv_file = {
-    'game':'/mnt/z/GM.csv',
-    'console':'/mnt/z/GC.csv',
-    'console accesory':'/mnt/z/PP.csv',
-    'other software':'/mnt/z/SW.csv',
-    'keyboard':'/mnt/z/Kláv.csv',
-    'computer mouse':'/mnt/z/Myš.csv',
-    'television':'/mnt/z/TV.csv',
-    'monitor':'/mnt/z/M.csv',
+    'game':'./docs/GM.csv',
+    'console':'./docs/GC.csv',
+    'console accesory':'./docs/PP.csv',
+    'other software':'./docs/SW.csv',
+    'keyboard':'./docs/Kláv.csv',
+    'computer mouse':'./docs/Myš.csv',
+    'television':'./docs/TV.csv',
+    'monitor':'./docs/M.csv',
 
 }
 
@@ -43,6 +43,8 @@ def row_is_valid(row):
 
 app=create_app()
 with app.app_context(): 
+#    db.create_all()
+
     for key in csv_file:
         with open (csv_file[key], newline='') as f:
             reader = csv.reader(f)
@@ -58,13 +60,15 @@ with app.app_context():
                     #pprint(row)
                     title=row.get("Název", asset_titles.get(key,"")).strip()
                     
-                    pprint ([row["Inv. č."], title])
+                    # pprint ([row["Inv. č."], title])
                     asset = Asset(
                         category=cat,
                         name= title,
                         manufacturer=row["Výrobce"].strip(),
                         note=row.get("Poznámka","").strip(),
+                        model=row.get("Model","").strip(),
                         custom_code=int(row["Inv. č."].strip().replace(cat.prefix,"")),
+                        num_photos=0,
                         condition=0,
                         functionality=0,
                         status=AssetStatus.unknown
