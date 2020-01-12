@@ -18,7 +18,7 @@ class CustomModelView(ModelView):
 
 class RatingField(RadioField):
 	def __init__(self, **kwargs):
-		super().__init__(render_kw={'class': 'star-field'}, **kwargs)
+		super().__init__(render_kw={'class': 'rating-field'}, **kwargs)
 		self.choices = [(0, 'unknown'), (1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')]
 
 class AssetView(ModelView):
