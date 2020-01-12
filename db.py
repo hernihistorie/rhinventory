@@ -134,7 +134,7 @@ class AssetMeta(db.Model):
     key         = Column(String, nullable=False)
     value       = Column(Text)
 
-    asset       = relationship("Asset", backref="meta")
+    asset       = relationship("Asset", backref="metadata")
 
 
 class EventStatus(enum.Enum):
