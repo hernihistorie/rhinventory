@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="62mm"
+   height="28mm"
+   viewBox="0 0 62 28"
+   version="1.1"
+   id="svg8"
+   sodipodi:docname="label2.svg"
+   inkscape:version="0.92.4 (unknown)">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="3.6203867"
+     inkscape:cx="127.98554"
+     inkscape:cy="53.103777"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer2"
+     showgrid="false"
+     inkscape:window-width="1190"
+     inkscape:window-height="1004"
+     inkscape:window-x="545"
+     inkscape:window-y="159"
+     inkscape:window-maximized="0" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect width="100%" height="100%" fill="white"/>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Layer 2">
+    <g
+       id="g4434"
+       transform="matrix(0.96679176,0,0,0.54531458,-3.5277263,-134.97781)">
+      <g
+         transform="matrix(0.69875508,0,0,0.26458333,-1.5578665,243.87641)"
+         id="barcode_group">{{ barcode_rects | safe }}
+      </g>
+      <rect
+         style="fill:#ffffff;stroke-width:0.26974052"
+         y="259.8764"
+         x="5.1501818"
+         height="5.698534"
+         width="59.1576"
+         id="rect4348" />
+    </g>
+  </g>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-269)">
+    <image
+       y="275.66202"
+       x="0.29396728"
+       id="image3775"
+       xlink:href="{{ rh_logo_href }}"
+       preserveAspectRatio="none"
+       height="21.271191"
+       width="19.144072" />
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot3778"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:1;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
+       transform="matrix(0.26458333,0,0,0.26458333,0.6577336,272.06942)"><flowRegion
+         id="flowRegion3780"
+         style="line-height:1"><rect
+           id="rect3782"
+           width="127.06449"
+           height="52.473717"
+           x="73.466606"
+           y="25.179279"
+           style="line-height:1" /></flowRegion><flowPara
+         id="flowPara3784"
+         style="font-size:21.33333397px;line-height:1" /></flowRoot>    <flowRoot
+       xml:space="preserve"
+       id="flowRoot3778-3"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
+       transform="matrix(0.26458333,0,0,0.26458333,0.25461615,274.73471)"><flowRegion
+         id="flowRegion3780-6"
+         style="line-height:0"><rect
+           id="rect3782-7"
+           width="153.58099"
+           height="50.540226"
+           x="73.466606"
+           y="25.179279"
+           style="line-height:0" /></flowRegion><flowPara
+         id="flowPara3784-5"
+         style="font-size:18.66666691px;line-height:1">{{ name }}</flowPara></flowRoot>    <flowRoot
+       xml:space="preserve"
+       id="flowRoot3778-3-3"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
+       transform="matrix(0.26458333,0,0,0.26458333,0.71018684,270.78824)"><flowRegion
+         id="flowRegion3780-6-5"
+         style="line-height:0"><rect
+           id="rect3782-7-6"
+           width="100.8242"
+           height="13.527604"
+           x="73.466606"
+           y="25.179279"
+           style="line-height:0" /></flowRegion><flowPara
+         id="flowPara3784-5-2"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:13.3333335px;line-height:1;font-family:monospace;-inkscape-font-specification:monospace">{{ custom_code }}</flowPara></flowRoot>    <flowRoot
+       xml:space="preserve"
+       id="flowRoot3778-3-3-8"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:0;font-family:sans-serif;text-align:end;letter-spacing:0px;word-spacing:0px;text-anchor:end;fill:#000000;fill-opacity:1;stroke:none"
+       transform="matrix(0.26458333,0,0,0.26458333,16.79741,268.99467)"><flowRegion
+         id="flowRegion3780-6-5-6"
+         style="line-height:0;text-align:end;text-anchor:end"><rect
+           id="rect3782-7-6-2"
+           width="86.737305"
+           height="13.25139"
+           x="73.466606"
+           y="25.179279"
+           style="line-height:0;text-align:end;text-anchor:end" /></flowRegion><flowPara
+         id="flowPara3784-5-2-8"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.66666698px;line-height:1;font-family:monospace;-inkscape-font-specification:monospace;text-align:end;text-anchor:end">{{ id }}</flowPara></flowRoot>  </g>
+</svg>
