@@ -1,11 +1,11 @@
-#from sys import argv
+# from sys import argv
 import csv
 from datetime import datetime
 from decimal import Decimal
 from rhinventory.app import create_app
 from rhinventory.extensions import db
-from rhinventory.db import Asset, AssetStatus, Category
-#import json
+from rhinventory.db import Asset, AssetStatus, Category, AssetMeta, Transaction, TransactionType, log
+# import json
 from pprint import pprint
 
 
@@ -18,6 +18,34 @@ csv_file = {
     'computer mouse': './docs/Myš.csv',
     'television': './docs/TV.csv',
     'monitor': './docs/M.csv',
+
+}
+
+
+user_map = {
+    "Morx": 2,
+    "BlackChar": 4,
+    "Blackie": 4,
+    "BC?": 4,
+    "Sanky": 5,
+    "Scyther": 6,
+    "scyther": 6,
+    "Scyther?": 6,
+    "Sczther": 6,
+    "Behold3r": 7,
+    "John Beak": 9,
+    "Terrion": 10,
+    "Arlette": 11,
+    "Zdeněk": 103,
+    "fiflik": 28,
+    "František": 22,
+    "Brambora": 56,
+    "Buizel": 2,                     # vse od Buizela stejne domlouval morx
+    '“Někdo to poslal Morxovi”': 2,  # wat
+    "Retroherna": 6,                 # Scyther je RetroHerna
+    "John Bleak Char": 4,            # facepalm
+
+
 
 }
 
@@ -80,6 +108,17 @@ def row_is_valid(row):
         return False
 
 
+def coerce_int(value):  # F&&KIN PYTHON TO NEUMI NAPSAT NA JEDEN RADEK
+    try:
+        return int(value)
+    except Exception:
+        return None
+
+
+def value_or_none(value):
+    return value if value else None
+
+
 app = create_app()
 with app.app_context():
     #    db.create_all()
@@ -97,15 +136,15 @@ with app.app_context():
                     # pprint(row)
                     title = row.get("Název", asset_titles.get(key, "")).strip()
 
-                    # pprint ([row["Inv. č."], title])
+                    print(row["Inv. č."].strip() + " - " + title + ":", end='')
                     asset = Asset(
                         category=cat,
                         name=title,
-                        manufacturer=row["Výrobce"].strip(),
+                        manufacturer=value_or_none(row["Výrobce"].strip()),
                         note=row.get("Poznámka", "").strip(),
-                        model=row.get("Model", "").strip(),
-                        # TODO Handle null
-                        serial=row.get("Sériové číslo", "").strip(),
+                        model=value_or_none(row.get("Model", "").strip()),
+                        serial=value_or_none(
+                            row.get("Sériové číslo", "").strip()),
                         custom_code=int(
                             row["Inv. č."].strip().replace(cat.prefix, "")),
                         num_photos=0,
@@ -113,14 +152,30 @@ with app.app_context():
                         functionality=0,
                         status=AssetStatus.unknown
                     )
+                    print(" AS", end='')
                     # pprint(asset)
+                    tx = Transaction(
+                        transaction_type=TransactionType.acquisition,
+                        user_id=user_map.get(
+                            row.get("Pořízeno kým", "").strip()),
+                        counterparty=row.get("Pořízeno od", "").strip(),
+                        cost=coerce_int(row.get("Pořízeno za", "")) or None,
+                        date=None,
+                        note="Import z Googlu:\nPořídil(a): " + row.get("Pořízeno kým", "").strip() + "\n za: " + row.get(
+                            "Pořízeno za", "").strip() + "\n od: " + row.get("Pořízeno od", "").strip()
+                    )
+                    asset.transactions.append(tx)
+                    print(" TX", end='')
 
-                 #    if cat.name == ""
+                    # if cat.name == "console":
 
                     db.session.add(asset)
+                    print(" SAVE.")
                     # TODO: log creation
+                    #log("Create", asset)
 
             db.session.commit()
+            print(" **COMMIT** \n\n")
 
     # def get_category(code):
         # if code in db_categories:
