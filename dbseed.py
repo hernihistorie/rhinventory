@@ -136,7 +136,7 @@ with app.app_context():
                     # pprint(row)
                     title = row.get("Název", asset_titles.get(key, "")).strip()
 
-                    print(row["Inv. č."].strip() + " - " + title + ":", end='')
+                    print(row["Inv. č."].strip() + "\t- " + title + " :\t\t", end='')
                     asset = Asset(
                         category=cat,
                         name=title,
@@ -170,12 +170,15 @@ with app.app_context():
                     # if cat.name == "console":
 
                     db.session.add(asset)
-                    print(" SAVE.")
-                    # TODO: log creation
-                    #log("Create", asset)
+                    db.session.commit()
+                    print(" SAVE", end='')
+                    log("Create", asset)
+                    #pprint(tx)
+                    log("Create", tx)
 
-            db.session.commit()
-            print(" **COMMIT** \n\n")
+                    # TODO: log neuklada MN vazbu
+                    print(" LOG.")
+
 
     # def get_category(code):
         # if code in db_categories:
