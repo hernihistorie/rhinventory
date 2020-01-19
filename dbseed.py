@@ -61,7 +61,7 @@ game_meta = {
     "Platform": "Platforma",
     "Medium": "Formát",
     "Product No": "Písmena a čísla",
-}
+} 
 
 console_meta = {
 }
@@ -107,6 +107,13 @@ def row_is_valid(row):
     else:
         return False
 
+def add_meta(asset, skey, svalue):
+    m = AssetMeta(
+        key=skey,
+        value=svalue
+    )
+    asset.metadata.append(m)
+
 
 def coerce_int(value):  # F&&KIN PYTHON TO NEUMI NAPSAT NA JEDEN RADEK
     try:
@@ -134,7 +141,8 @@ with app.app_context():
                 row = dict(zip(header, row))
                 if row_is_valid(row):
                     # pprint(row)
-                    title = row.get("Název", asset_titles.get(key, "")).strip()
+                    title = row.get("Název", 
+                        row.get("Typ", row.get("Technologie", "")).strip() + " " + asset_titles.get(key, "")).strip()
 
                     print(row["Inv. č."].strip() + "\t- " + title + " :\t\t", end='')
                     asset = Asset(
@@ -166,8 +174,34 @@ with app.app_context():
                     )
                     asset.transactions.append(tx)
                     print(" TX", end='')
+                   
+                    if cat.name == "television" or cat.name == "monitor":
+                        add_meta(asset, "Status Note", row.get("Poznámky kompatibility"))                        
+                    else:
+                        add_meta(asset, "Status Note", row.get("Stav"))
 
-                    # if cat.name == "console":
+                    if "Funkční" in row.keys():
+                        add_meta(asset, "Functionality Note", "Funkční: " + row["Funkční"])
+
+                    #if cat.name == "console":
+
+                    if cat.name == "game":
+                        add_meta(asset, "Platform", row["Platforma"])
+                        add_meta(asset, "Medium", row["Formát"])
+                        add_meta(asset, "Product No", row["Písmena a čísla"])
+
+                    if cat.name == "computer mouse":
+                        add_meta(asset, "Color", row["Vzhled"])
+                        add_meta(asset, "Type", row["Styl"])
+                        add_meta(asset, "Connection", row["Typ"])
+                        add_meta(asset, "# of Buttons", 4 if row["4 tl"]=="TRUE" else 3 if row["mid b"] =="TRUE" else 2)
+                        add_meta(asset, "# of Wheels", 1 if row["kol"] == "TRUE" else 0)
+
+                    if cat.name == "keyboard":
+                        add_meta(asset, "Color", row["Vzhled"])
+                        #add_meta(asset, "Type", row["Styl"])
+                        add_meta(asset, "Connection", row["Typ"])
+
 
                     db.session.add(asset)
                     db.session.commit()
