@@ -48,7 +48,7 @@ class Asset(db.Model):
     category    = relationship("Category", backref="assets")
 
     def __str__(self):
-        return f"RH{self.id} {self.name}"
+        return f"RH{self.id:05} {self.name}"
 
 
 class Category(db.Model):
