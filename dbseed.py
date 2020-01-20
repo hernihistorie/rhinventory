@@ -4,11 +4,16 @@ from datetime import datetime
 from decimal import Decimal
 from rhinventory.app import create_app
 from rhinventory.extensions import db
-from rhinventory.db import Asset, AssetStatus, Category, AssetMeta, Transaction, TransactionType, log
+from rhinventory.db import Asset, AssetStatus, Category, CategoryTemplate, AssetMeta, Location, Transaction, TransactionType, log
 # import json
 from pprint import pprint
 
 
+prep_file = {
+    "categories": "./docs/categories.csv",
+    "locations": "./docs/locations.csv",
+    "category_templates": "./docs/category_templates.csv"
+}
 csv_file = {
     'game': './docs/GM.csv',
     'console': './docs/GC.csv',
@@ -57,35 +62,35 @@ asset_titles = {
 }
 
 
-game_meta = {
-    "Platform": "Platforma",
-    "Medium": "Formát",
-    "Product No": "Písmena a čísla",
-}
+# game_meta = {
+#     "Platform": "Platforma",
+#     "Medium": "Formát",
+#     "Product No": "Písmena a čísla",
+# }
 
-console_meta = {
-}
+# console_meta = {
+# }
 
-mouse_meta = {
-    "Color": "Vzhled",
-    "Connection": "Typ",
-    "Type": "Styl",
+# mouse_meta = {
+#     "Color": "Vzhled",
+#     "Connection": "Typ",
+#     "Type": "Styl",
 
-}
+# }
 
-keyboard_meta = {
-    "Color": "Vzhled",
-    "Connection": "Typ",
-}
+# keyboard_meta = {
+#     "Color": "Vzhled",
+#     "Connection": "Typ",
+# }
 
-television_meta = {
-    "Size": "Úhlopříčka",
+# television_meta = {
+#     "Size": "Úhlopříčka",
 
-}
+# }
 
-monitor_meta = {
-    "Size": "Úhlopříčka",
-}
+# monitor_meta = {
+#     "Size": "Úhlopříčka",
+# }
 
 
 def row_is_valid(row):
@@ -129,7 +134,52 @@ def value_or_none(value):
 
 app = create_app()
 with app.app_context():
-    #    db.create_all()
+    db.create_all()
+
+   # CREATE LOCATIONS
+    with open(prep_file["locations"], newline='') as f:
+        reader = csv.reader(f)
+        header = next(reader)
+
+        for row in reader:
+            row = dict(zip(header, row))
+            l = Location(
+                name=row["name"],
+                note=row["note"],
+            )
+            db.session.add(l)
+        db.session.commit()
+
+    # CREATE CATEGORIES
+    with open(prep_file["categories"], newline='') as f:
+        reader = csv.reader(f)
+        header = next(reader)
+
+        for row in reader:
+            row = dict(zip(header, row))
+            c = Category(
+                name=row["name"],
+                prefix=row["prefix"],
+                counter=row["counter"]
+            )
+            db.session.add(c)
+        db.session.commit()
+
+    # CREATE CATEGORY TEMPLATES
+    with open(prep_file["category_templates"], newline='') as f:
+        reader = csv.reader(f)
+        header = next(reader)
+
+        for row in reader:
+            row = dict(zip(header, row))
+            cat = Category.query.filter(Category.name == row["category"]).one()
+            ct = CategoryTemplate(
+                category=cat,
+                key=row["key"],
+                value=row["value"],
+            )
+            db.session.add(ct)
+        db.session.commit()
 
     for key in csv_file:
         with open(csv_file[key], newline='') as f:
@@ -162,7 +212,7 @@ with app.app_context():
                         functionality=0,
                         status=AssetStatus.unknown
                     )
-                    print(" AS", end='')
+                    print(" ASSET", end='')
                     # pprint(asset)
                     tx = Transaction(
                         transaction_type=TransactionType.acquisition,
@@ -244,7 +294,7 @@ with app.app_context():
                         if "IN " in row["DC"]:
                             add_meta(asset, "Voltage",
                                      row["DC"].strip().replace("IN", "DC"))
-
+                    print(" META", end='')
                     db.session.add(asset)
                     db.session.commit()
                     print(" SAVE", end='')
