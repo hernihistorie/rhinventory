@@ -61,7 +61,7 @@ game_meta = {
     "Platform": "Platforma",
     "Medium": "Formát",
     "Product No": "Písmena a čísla",
-} 
+}
 
 console_meta = {
 }
@@ -107,6 +107,7 @@ def row_is_valid(row):
     else:
         return False
 
+
 def add_meta(asset, skey, svalue):
     m = AssetMeta(
         key=skey,
@@ -141,10 +142,11 @@ with app.app_context():
                 row = dict(zip(header, row))
                 if row_is_valid(row):
                     # pprint(row)
-                    title = row.get("Název", 
-                        row.get("Typ", row.get("Technologie", "")).strip() + " " + asset_titles.get(key, "")).strip()
+                    title = row.get("Název",
+                                    row.get("Typ", row.get("Technologie", "")).strip() + " " + asset_titles.get(key, "")).strip()
 
-                    print(row["Inv. č."].strip() + "\t- " + title + " :\t\t", end='')
+                    print(row["Inv. č."].strip() +
+                          "\t- " + title + " :\t\t", end='')
                     asset = Asset(
                         category=cat,
                         name=title,
@@ -174,18 +176,20 @@ with app.app_context():
                     )
                     asset.transactions.append(tx)
                     print(" TX", end='')
-                   
-                    if cat.name == "television" or cat.name == "monitor":
-                        add_meta(asset, "Status Note", row.get("Poznámky kompatibility"))                        
+
+                    if cat.name in ["television", "monitor"]:
+                        add_meta(asset, "Status Note", row.get(
+                            "Poznámky kompatibility"))
                     else:
                         add_meta(asset, "Status Note", row.get("Stav"))
 
                     if "Funkční" in row.keys():
-                        add_meta(asset, "Functionality Note", "Funkční: " + row["Funkční"])
+                        add_meta(asset, "Functionality Note",
+                                 "Funkční: " + row["Funkční"])
 
-                    #if cat.name == "console":
+                    # if cat.name == "console":
 
-                    if cat.name == "game":
+                    if cat.name in ["game", "other software"]:
                         add_meta(asset, "Platform", row["Platforma"])
                         add_meta(asset, "Medium", row["Formát"])
                         add_meta(asset, "Product No", row["Písmena a čísla"])
@@ -194,34 +198,59 @@ with app.app_context():
                         add_meta(asset, "Color", row["Vzhled"])
                         add_meta(asset, "Type", row["Styl"])
                         add_meta(asset, "Connection", row["Typ"])
-                        add_meta(asset, "# of Buttons", 4 if row["4 tl"]=="TRUE" else 3 if row["mid b"] =="TRUE" else 2)
-                        add_meta(asset, "# of Wheels", 1 if row["kol"] == "TRUE" else 0)
+                        add_meta(
+                            asset, "# of Buttons", 4 if row["4 tl"] == "TRUE" else 3 if row["mid b"] == "TRUE" else 2)
+                        add_meta(asset, "# of Wheels",
+                                 1 if row["kol"] == "TRUE" else 0)
 
                     if cat.name == "keyboard":
                         add_meta(asset, "Color", row["Vzhled"])
                         #add_meta(asset, "Type", row["Styl"])
                         add_meta(asset, "Connection", row["Typ"])
 
+                    if cat.name == "television":
+                        add_meta(asset, "Size", row["Úhlopříčka"])
+                        add_meta(asset, "Needs remote", row["Ovladač potřeba"])
+                        if row["Coax"].strip() == "1":
+                            add_meta(asset, "Input", "Coaxial")
+                        if row["Cinch"].strip() == "2":
+                            add_meta(asset, "Input", "Cinch x2")
+                        elif row["Cinch"].strip() == "1":
+                            add_meta(asset, "Input", "Cinch")
+                        if row["SCART"].strip() == "3":
+                            add_meta(asset, "Input", "SCART x3")
+                        elif row["SCART"].strip() == "2":
+                            add_meta(asset, "Input", "SCART x2")
+                        elif row["SCART"].strip() == "1":
+                            add_meta(asset, "Input", "SCART")
+                        if row["DIN"].strip() == "1":
+                            add_meta(asset, "Input", "DIN")
+
+                    if cat.name == "monitor":
+                        add_meta(asset, "Size", row["Úhlopříčka"].strip())
+                        add_meta(asset, "Visual notes",
+                                 row["Pozn. znamení"].strip())
+                        if row["VGA"].strip() in ["IN", "OUT", "in", "2 IN"]:
+                            add_meta(
+                                asset, "Input", "VGA x2" if row["VGA"].strip() == "2 IN" else "VGA")
+                            if row["VGA"].strip() == "OUT":
+                                add_meta(asset, "Fixed cable", "VGA")
+                        if row["DVI"].strip() == "IN":
+                            add_meta(asset, "Input", "DVI")
+                        if row["AUDIO"].strip() == "1":
+                            add_meta(asset, "Input", "Audio jack")
+                        if row["AC"].strip() == "IN":
+                            add_meta(asset, "Voltage", "AC 220V")
+                        if "IN " in row["DC"]:
+                            add_meta(asset, "Voltage",
+                                     row["DC"].strip().replace("IN", "DC"))
 
                     db.session.add(asset)
                     db.session.commit()
                     print(" SAVE", end='')
                     log("Create", asset)
-                    #pprint(tx)
+                    # pprint(tx)
                     log("Create", tx)
 
                     # TODO: log neuklada MN vazbu
                     print(" LOG.")
-
-
-    # def get_category(code):
-        # if code in db_categories:
-        #     return db_categories[code]
-        # else:
-        #     category = Category.query.filter(Category.code == str(code)).scalar()
-        #     if not category:
-        #         category = Category(code=code, name=code, identifier=code, tally=True, deleted=False)
-        #         category.save()
-        #         log("Create", category)
-        #     db_categories[code] = category
-        #     return category
