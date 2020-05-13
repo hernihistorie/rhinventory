@@ -38,7 +38,7 @@ def make_label(id, custom_code, name):
     filename = f'rhinventory/labels/out/{id}'
     open(filename+'.svg', 'w').write(label_svg)
 
-    system(f'inkscape -z {filename}.svg -e {filename}.png -w {PNG_WIDTH}')
+    system(f'inkscape -p {filename}.svg -o {filename}.png -w {PNG_WIDTH}')
 
     return filename+'.png'
 
