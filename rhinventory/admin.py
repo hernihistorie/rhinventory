@@ -1,5 +1,6 @@
 from flask_admin.contrib.sqla import ModelView
 from wtforms import RadioField
+from sqlalchemy import desc
 
 from rhinventory.extensions import db, admin
 from rhinventory.db import tables, LogItem, log, Asset
@@ -35,6 +36,7 @@ class AssetView(ModelView):
 		'location',
 		'category',
 		'custom_code',
+		'medium',
 		'name',
 		'manufacturer',
 		'model',
@@ -46,7 +48,7 @@ class AssetView(ModelView):
 		'parent',
 	)
 	form_create_rules = form_edit_rules
-	
+
 	can_view_details = True
 	column_filters = [
 		'location',
@@ -61,6 +63,7 @@ class AssetView(ModelView):
 		'location',
 		'category',
 		'custom_code',
+		'medium',
 		'name',
 		'manufacturer',
 		'note',
@@ -90,6 +93,20 @@ class AssetView(ModelView):
 	can_export = True
 
 	details_template = "admin/details.html"
+
+	def on_model_change(self, form, instance, is_created):
+		if is_created:
+			if not instance.custom_code:
+				last_category_asset = db.session.query(Asset) \
+					.filter(Asset.category_id == instance.category.id) \
+					.order_by(desc(Asset.custom_code)).limit(1).scalar()
+
+				if last_category_asset:
+					instance.custom_code = int(last_category_asset.custom_code) + 1
+				else:
+					instance.custom_code = 1
+
+		super().on_model_change(form, instance, is_created)
 
 def add_admin_views():
     for table in tables + [LogItem]:

@@ -28,7 +28,7 @@ class Asset(db.Model):
     name        = Column(String, nullable=False)
     manufacturer = Column(String)
     model       = Column(String)
-    custom_code = Column(String)
+    custom_code = Column(Integer)
     note        = Column(Text)
     serial      = Column(String)
 
@@ -54,7 +54,10 @@ class Asset(db.Model):
         secondary='transaction_assets')
 
     def __str__(self):
-        return f"RH{self.id:05} {self.name}"
+        if self.id is not None:
+            return f"RH{self.id:05} {self.name}"
+        else:
+            return f"RHXXXXX {self.name}"
 
 
 class Category(db.Model):
@@ -361,8 +364,8 @@ class Status(db.Model):
     name    = Column(String(255))
 
 tables = [AssetMeta,
-    Category, CategoryTemplate, Transaction, Location,
-    Event, Check, CheckItem, CheckLog, 
+    Category, CategoryTemplate, Medium, Transaction, Location,
+    #Event, Check, CheckItem, CheckLog, 
     #Benchmark, BenchmarkType, Computer, Hardware,
 ]
 
