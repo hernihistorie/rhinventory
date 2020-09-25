@@ -37,6 +37,10 @@ def create_app(config_object='rhinventory.config'):
         if not asset: abort(404)
 
         id = f"RH{asset_id:05}"
+        if asset.custom_code:
+            code = f"{asset.category.prefix} {asset.custom_code}"
+        else:
+            code = f"{asset.category.prefix}"
         label_filename = make_label(id, f"{asset.category.prefix} {asset.custom_code}", asset.name)
 
         return send_file(open(label_filename, 'rb'), mimetype='image/png')
@@ -49,7 +53,7 @@ def create_app(config_object='rhinventory.config'):
         id = f"RH{asset_id:05}"
         label_filename = make_label(id, f"{asset.category.prefix} {asset.custom_code}", asset.name)
 
-        os.system("brother_ql -p /dev/usb/lp0 -m QL-700 print -l 62 rhinventory/labels/out/RH00794.png")
+        os.system(f"brother_ql -p /dev/usb/lp0 -m QL-700 print -l 62 rhinventory/labels/out/{id}.png")
         
         return 'OK'
     

@@ -34,16 +34,19 @@ class AssetView(ModelView):
 		'children',
 		'location',
 		'category',
+		'custom_code',
 		'name',
 		'manufacturer',
-		'custom_code',
-		'note',
+		'model',
 		'serial',
+		'note',
 		'condition',
 		'functionality',
 		'status',
 		'parent',
 	)
+	form_create_rules = form_edit_rules
+	
 	can_view_details = True
 	column_filters = [
 		'location',
@@ -57,9 +60,9 @@ class AssetView(ModelView):
 		'id',
 		'location',
 		'category',
+		'custom_code',
 		'name',
 		'manufacturer',
-		'custom_code',
 		'note',
 		'serial',
 		'condition',
