@@ -7,7 +7,7 @@ from rhinventory.extensions import db, admin, debug_toolbar
 from rhinventory.admin import add_admin_views
 from rhinventory.db import Asset, Location
 
-from rhinventory.labels import make_barcode, make_label
+from rhinventory.labels import make_barcode, make_label, make_asset_label
 
 def create_app(config_object='rhinventory.config'):
     app = Flask(__name__.split('.')[0], template_folder='templates')
@@ -36,12 +36,7 @@ def create_app(config_object='rhinventory.config'):
         asset = Asset.query.get(asset_id)
         if not asset: abort(404)
 
-        id = f"RH{asset_id:05}"
-        if asset.custom_code:
-            code = f"{asset.category.prefix} {asset.custom_code}"
-        else:
-            code = f"{asset.category.prefix}"
-        label_filename = make_label(id, f"{asset.category.prefix} {asset.custom_code}", asset.name)
+        label_filename = make_asset_label(asset)
 
         return send_file(open(label_filename, 'rb'), mimetype='image/png')
     
@@ -50,10 +45,9 @@ def create_app(config_object='rhinventory.config'):
         asset = Asset.query.get(asset_id)
         if not asset: abort(404)
 
-        id = f"RH{asset_id:05}"
-        label_filename = make_label(id, f"{asset.category.prefix} {asset.custom_code}", asset.name)
+        label_filename = make_asset_label(asset)
 
-        os.system(f"brother_ql -p /dev/usb/lp0 -m QL-700 print -l 62 rhinventory/labels/out/{id}.png")
+        os.system(f"brother_ql -p /dev/usb/lp0 -m QL-700 print -l 62 {label_filename}")
         
         return 'OK'
     

@@ -23,7 +23,7 @@ def make_barcode(text):
 
     return fp
 
-def make_label(id, custom_code, name):
+def make_label(id, custom_code, name, subtitle="", medium=""):
     PNG_WIDTH = 696
     
     fp = make_barcode(id)
@@ -32,6 +32,7 @@ def make_label(id, custom_code, name):
 
     label_svg = render_jinja_html('rhinventory/labels', 'label.svg',
         name=name, custom_code=custom_code, id=id, 
+        subtitle=subtitle, medium=medium,
         barcode_rects=rects,
         rh_logo_href="../rh_logo_greyscale.png")
     
@@ -42,3 +43,13 @@ def make_label(id, custom_code, name):
 
     return filename+'.png'
 
+def make_asset_label(asset):
+    id = f"RH{asset.id:05}"
+    if asset.custom_code:
+        code = f"{asset.category.prefix} {asset.custom_code}"
+    else:
+        code = f"{asset.category.prefix}"
+    
+    return make_label(id, f"{asset.category.prefix} {asset.custom_code}", asset.name,
+        subtitle=asset.manufacturer, medium=asset.medium.name if asset.medium else '')
+    
