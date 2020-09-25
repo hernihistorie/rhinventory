@@ -25,7 +25,7 @@ class RatingField(RadioField):
 		self.coerce = int
 		self.default = 0
 
-class AssetView(ModelView):
+class AssetView(CustomModelView):
 	form_overrides = {
 		'condition': RatingField,
 		'functionality': RatingField,
@@ -66,7 +66,6 @@ class AssetView(ModelView):
 		'medium',
 		'name',
 		'manufacturer',
-		'note',
 		'serial',
 		'condition',
 		'functionality',
@@ -77,8 +76,7 @@ class AssetView(ModelView):
 		'id',
 		'name',
 		'manufacturer',
-		'custom_code',
-		'note',
+		'medium',
 		'serial',
 		'condition',
 		'functionality',

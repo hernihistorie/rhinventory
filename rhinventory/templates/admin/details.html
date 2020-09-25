@@ -9,6 +9,10 @@
         </a>
         <span id="print-result"></span>
     </div>
+
+    <h2><tt>{{ model.category.prefix }} {{ model.custom_code }}</tt> {{ model.name }}</h2>
+    <strong>Manufacturer</strong>: {{ model.manufacturer }}
+
     {{ super() }}
 {% endblock %}
 
