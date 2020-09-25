@@ -22,6 +22,7 @@ class RatingField(RadioField):
 		super().__init__(render_kw={'class': 'rating-field'}, **kwargs)
 		self.choices = RATING_OPTIONS
 		self.coerce = int
+		self.default = 0
 
 class AssetView(ModelView):
 	form_overrides = {
