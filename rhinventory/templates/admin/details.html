@@ -1,0 +1,9 @@
+{% extends 'admin/model/details.html' %}
+{% block details_table %}
+    <div style="margin-bottom: 8px;">
+        <a href="{{ url_for('label_asset', asset_id=model.id) }}" class="btn btn-primary">
+            Show label
+        </a>
+    </div>
+    {{ super() }}
+{% endblock %}

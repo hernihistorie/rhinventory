@@ -35,7 +35,7 @@ def create_app(config_object='rhinventory.config'):
         if not asset: abort(404)
 
         id = f"RH{asset_id:05}"
-        label_filename = make_label(id, asset.custom_code, asset.name)
+        label_filename = make_label(id, f"{asset.category.prefix} {asset.custom_code}", asset.name)
 
         return send_file(open(label_filename, 'rb'), mimetype='image/png')
     

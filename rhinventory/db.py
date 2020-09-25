@@ -47,6 +47,10 @@ class Asset(db.Model):
     location    = relationship("Location", backref="assets")
     category    = relationship("Category", backref="assets")
 
+    transactions = relationship(
+        "Transaction",
+        secondary='transaction_assets')
+
     def __str__(self):
         return f"RH{self.id:05} {self.name}"
 
@@ -107,8 +111,7 @@ class Transaction(db.Model):
 
     assets      = relationship(
         "Asset",
-        secondary=lambda: transaction_assets,
-        backref="transactions")
+        secondary='transaction_assets')
 
 
 transaction_assets = Table('transaction_assets', db.Model.metadata,

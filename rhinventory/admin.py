@@ -85,6 +85,8 @@ class AssetView(ModelView):
 	}
 	can_export = True
 
+	details_template = "admin/details.html"
+
 def add_admin_views():
     for table in tables + [LogItem]:
         admin.add_view(CustomModelView(table, db.session))
