@@ -40,12 +40,14 @@ class Asset(db.Model):
 
     location_id = Column(Integer, ForeignKey('locations.id'))
     category_id = Column(Integer, ForeignKey('categories.id'), nullable=False)
+    medium_id   = Column(Integer, ForeignKey('media.id'))
 
     children    = relationship("Asset",
                     backref=backref("parent", remote_side=id),
         )
     location    = relationship("Location", backref="assets")
     category    = relationship("Category", backref="assets")
+    medium      = relationship("Medium", backref="assets")
 
     transactions = relationship(
         "Transaction",
@@ -248,6 +250,15 @@ class CheckLog(db.Model):
     asset       = relationship("Asset", backref="logs")
     location    = relationship("Location", backref="check_logs", foreign_keys=[location_id])
     original_location = relationship("Location", foreign_keys=[original_location_id])
+
+
+class Medium(db.Model):
+    __tablename__ = 'media'
+    id          = Column(Integer, primary_key=True)
+    name        = Column(String, nullable=False)
+        
+    def __str__(self):
+        return f"{self.name}"
 
 # Old PC models follow
 
