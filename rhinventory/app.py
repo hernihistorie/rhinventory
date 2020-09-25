@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask, render_template, flash, redirect, url_for, send_file, Response, abort
 from jinja2 import StrictUndefined
 
@@ -38,6 +40,18 @@ def create_app(config_object='rhinventory.config'):
         label_filename = make_label(id, f"{asset.category.prefix} {asset.custom_code}", asset.name)
 
         return send_file(open(label_filename, 'rb'), mimetype='image/png')
+    
+    @app.route('/label/asset/<int:asset_id>/print', methods=['POST'])
+    def print_label_asset(asset_id):
+        asset = Asset.query.get(asset_id)
+        if not asset: abort(404)
+
+        id = f"RH{asset_id:05}"
+        label_filename = make_label(id, f"{asset.category.prefix} {asset.custom_code}", asset.name)
+
+        os.system("brother_ql -p /dev/usb/lp0 -m QL-700 print -l 62 rhinventory/labels/out/RH00794.png")
+        
+        return 'OK'
     
     @app.route('/label/location/<int:location_id>')
     def label_location(location_id):
