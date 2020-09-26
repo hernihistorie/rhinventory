@@ -1,13 +1,22 @@
 {% extends 'admin/model/details.html' %}
 {% block details_table %}
     <div style="margin-bottom: 8px;">
-        <a href="{{ url_for('label_asset', asset_id=model.id) }}" class="btn btn-light">
+        <a href="{{ url_for('label_asset', asset_id=model.id, small=False) }}" class="btn btn-light">
             Show label
         </a>
         <a id="print-label" class="btn btn-primary">
             Print label
         </a>
         <span id="print-result"></span>
+    </div>
+    <div style="margin-bottom: 8px;">
+        <a href="{{ url_for('label_asset', asset_id=model.id, small=True) }}" class="btn btn-light">
+            Show small
+        </a>
+        <a id="print-label-small" class="btn btn-primary">
+            Print small
+        </a>
+        <span id="print-small-result"></span>
     </div>
 
     <h2><tt>{{ model.category.prefix }} {{ model.custom_code }}</tt> {{ model.name }}</h2>
@@ -20,13 +29,15 @@
     {{ super() }}
 
     <script>
-        $('#print-label').click(function(){
-            $("#print-result").html('Printing...');
-            $.post("{{ url_for('print_label_asset', asset_id=model.id) }}",
-                function(data){
-                    $("#print-result").html(data);
-                },
-            )
-        })
+        {% for small in ('', '-small') %}
+            $('#print-label{{small}}').click(function(){
+                $("#print{{small}}-result").html('Printing...');
+                $.post("{{ url_for('print_label_asset', asset_id=model.id, small=True if small else False) }}",
+                    function(data){
+                        $("#print{{small}}-result").html(data);
+                    },
+                )
+            })
+        {% endfor %}
     </script>
 {% endblock %}

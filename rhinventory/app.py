@@ -31,21 +31,23 @@ def create_app(config_object='rhinventory.config'):
                         #attachment_filename='a_file.txt',
                         mimetype='image/svg+xml')
     
-    @app.route('/label/asset/<int:asset_id>')
-    def label_asset(asset_id):
+    @app.route('/label/asset/<int:asset_id>', defaults={'small': False})
+    @app.route('/label/asset/<int:asset_id>-small', defaults={'small': True})
+    def label_asset(asset_id, small=False):
         asset = Asset.query.get(asset_id)
         if not asset: abort(404)
 
-        label_filename = make_asset_label(asset)
+        label_filename = make_asset_label(asset, small=small)
 
         return send_file(open(label_filename, 'rb'), mimetype='image/png')
     
-    @app.route('/label/asset/<int:asset_id>/print', methods=['POST'])
-    def print_label_asset(asset_id):
+    @app.route('/label/asset/<int:asset_id>/print', methods=['POST'], defaults={'small': False})
+    @app.route('/label/asset/<int:asset_id>-small/print', methods=['POST'], defaults={'small': True})
+    def print_label_asset(asset_id, small=False):
         asset = Asset.query.get(asset_id)
         if not asset: abort(404)
 
-        label_filename = make_asset_label(asset)
+        label_filename = make_asset_label(asset, small=small)
 
         os.system(f"brother_ql -p /dev/usb/lp0 -m QL-700 print -l 62 {label_filename}")
         

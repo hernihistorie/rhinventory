@@ -11,8 +11,13 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="62mm"
-   height="28mm"
-   viewBox="0 0 62 28"
+   {% if not small %}
+     height="28mm"
+     viewBox="0 0 62 28"
+   {% else %}
+     height="10mm"
+     viewBox="0 0 62 10"
+   {% endif %}
    version="1.1"
    id="svg8"
    sodipodi:docname="label2.svg"
@@ -76,10 +81,15 @@
      id="layer1"
      transform="translate(0,-269)">
     <image
+      {% if not small %}
        y="275.66202"
+       xlink:href="{{ rh_logo_href }}"
+      {% else %}
+       y="257.9"
+       xlink:href="{{ rh_logo_text_href }}"
+      {% endif %}
        x="0.29396728"
        id="image3775"
-       xlink:href="{{ rh_logo_href }}"
        preserveAspectRatio="none"
        height="21.271191"
        width="19.144072" />
@@ -124,7 +134,11 @@
            width="100.8242"
            height="13.527604"
            x="73.466606"
-           y="25.179279"
+           {% if not small %}
+             y="25.179279"
+           {% else %}
+             y="19.5"
+           {% endif %}
            style="line-height:0" /></flowRegion><flowPara
            id="flowPara3784-5-2"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:13.3333335px;line-height:1;font-family:monospace;-inkscape-font-specification:monospace">{{ custom_code }} <flowSpan style="font-size:6px; font-family:sans-serif;">{{ medium }}</flowSpan></flowPara></flowRoot>    <flowRoot
