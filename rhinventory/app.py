@@ -5,7 +5,7 @@ from jinja2 import StrictUndefined
 
 from rhinventory.extensions import db, admin, debug_toolbar
 from rhinventory.admin import add_admin_views
-from rhinventory.db import Asset, Location
+from rhinventory.db import Asset, Location, log
 
 from rhinventory.labels import make_barcode, make_label, make_asset_label
 
@@ -49,9 +49,15 @@ def create_app(config_object='rhinventory.config'):
 
         label_filename = make_asset_label(asset, small=small)
 
-        os.system(f"brother_ql -p /dev/usb/lp0 -m QL-700 print -l 62 {label_filename}")
-        
-        return 'OK'
+        exit_code = os.system(f"brother_ql -p /dev/usb/lp0 -m QL-700 print -l 62 {label_filename}")
+
+        if exit_code == 0:
+            log("Other", asset, log_object=False, action="print_label", small=small)
+            db.session.commit()
+            
+            return 'OK'
+        else:
+            return f'Error {exit_code}'
     
     @app.route('/label/location/<int:location_id>')
     def label_location(location_id):

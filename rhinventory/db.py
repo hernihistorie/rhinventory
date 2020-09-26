@@ -397,9 +397,9 @@ class LogItem(db.Model):
         return class_.query.get(self.object_id)
 
 
-def log(event, object, **kwargs):
+def log(event, object, log_object=True, **kwargs):
     log_item = LogItem(table=type(object).__name__, object_id=object.id,
-        event=event, object_json=json.dumps(object.asdict(), default=repr),
+        event=event, object_json=json.dumps(object.asdict(), default=repr) if log_object else None,
         #user=current_user,
         datetime=datetime.datetime.now(),
         extra_json=json.dumps(kwargs))
