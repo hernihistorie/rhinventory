@@ -105,6 +105,9 @@ class AssetView(CustomModelView):
 					instance.custom_code = 1
 
 		super().on_model_change(form, instance, is_created)
+	
+	def get_save_return_url(self, model=None, is_created=False):
+		return self.get_url('.details_view', id=model.id)
 
 def add_admin_views():
     for table in tables + [LogItem]:
