@@ -121,9 +121,9 @@
            y="25.179279"
            style="line-height:0" /></flowRegion><flowPara
            id="flowPara3784-5"
-           style="font-size:18px;line-height:0.9;letter-spacing:-0.7;">{{ name }}</flowPara><flowPara
+           style="font-size:18px;line-height:0.9;letter-spacing:-0.7;">{{ name | escape }}</flowPara><flowPara
            id="flowPara3784-5-subtitle"
-           style="font-size:10px;line-height:0.5;letter-spacing:-0.5;">{{ subtitle }}</flowPara></flowRoot>    <flowRoot
+           style="font-size:10px;line-height:0.5;letter-spacing:-0.5;">{{ subtitle | escape }}</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot3778-3-3"
        style="font-style:normal;font-weight:normal;font-size:40px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
