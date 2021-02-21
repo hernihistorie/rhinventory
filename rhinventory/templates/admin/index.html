@@ -8,6 +8,13 @@
             <p>
                 Allo!
             </p>
+            {% if not current_user %}
+                <a class="btn btn-primary" href="{{ url_for('login') }}">Login with GitHub</a>
+            {% endif %}
+            <p>
+                {% if current_user.is_authenticated and not current_user.read_access %}
+                    Nemáte práva, požádejte si o ně.
+                {% endif %}
         </div>
     </div>
 </div>

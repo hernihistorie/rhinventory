@@ -1,7 +1,7 @@
 import os
 
-from flask import Flask, render_template, flash, redirect, url_for, send_file, Response, abort
-from flask_login import current_user, login_required
+from flask import Flask, render_template, flash, redirect, url_for, send_file, Response, abort, request, session, jsonify
+from flask_login import current_user, login_required, login_user, logout_user
 from jinja2 import StrictUndefined
 
 from rhinventory.extensions import db, admin, debug_toolbar, github, login_manager
@@ -24,11 +24,65 @@ def create_app(config_object='rhinventory.config'):
 
     @login_manager.user_loader
     def load_user(user_id):
-        return User.get(user_id)
+        return User.query.get(user_id)
+    
+
+    @github.access_token_getter
+    def token_getter():
+        if current_user.is_authenticated:
+            return current_user.github_access_token
+
+
+    @app.route('/github-callback')
+    @github.authorized_handler
+    def authorized(access_token):
+        #next_url = request.args.get('next') or url_for('index')
+        if access_token is None:
+            return redirect(url_for('index'))
+        
+        github_user = github.get('/user', access_token=access_token)
+
+        user = User.query.filter_by(github_id=github_user['id']).first()
+        if user is None:
+            user = User(github_id=github_user['id'])
+            db.session.add(user)
+
+        user.github_access_token = access_token
+        user.github_login = github_user['login']
+
+        db.session.commit()
+
+        login_user(user)
+
+        return redirect(url_for('index'))
+
+
+    @app.route('/login/github')
+    def login():
+        if current_user.is_authenticated:
+            return redirect(url_for('index'))
+        
+        return github.authorize()
+
+
+    @app.route('/logout')
+    def logout():
+        logout_user()
+        return redirect(url_for('index'))
+
+
+    @app.route('/user')
+    def user():
+        return jsonify(github.get('/user'))
+
 
     @app.route('/')
     def index():
+        current_user.read_access = True
+        current_user.write_access = True
+        current_user.admin = True
         return redirect('/admin')
+    
     
     @login_required
     @app.route('/barcode/<text>')

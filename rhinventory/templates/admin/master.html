@@ -3,3 +3,13 @@
 {{ super() }}
 <link href="/static/main.css" rel="StyleSheet" type="text/css">
 {% endblock head_css %}
+
+{% block access_control %}
+    {% if current_user.is_authenticated %}
+        <div style="margin-top: 8px;">
+            Logged in: {{ current_user.github_login }}
+            &bull;
+            <a href="{{ url_for('logout') }}">Log out</a>
+        </div>
+    {% endif %}
+{% endblock %}

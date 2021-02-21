@@ -4,13 +4,13 @@ from wtforms import RadioField
 from sqlalchemy import desc
 
 from rhinventory.extensions import db, admin
-from rhinventory.db import tables, LogItem, log, Asset
+from rhinventory.db import tables, LogItem, log, Asset, User
 
 class CustomModelView(ModelView):
     form_excluded_columns = ['transactions']
 
     def is_accessible(self):
-        return current_user.is_authenticated
+        return current_user.is_authenticated and current_user.read_access
 
     def on_model_change(self, form, instance, is_created):
         if not is_created:
@@ -21,6 +21,10 @@ class CustomModelView(ModelView):
             log("Create", instance)
     #def is_accessible(self):
     #    return current_user.is_authenticated
+
+class AdminModelView(CustomModelView):
+    def is_accessible(self):
+        return current_user.is_authenticated and current_user.admin
 
 RATING_OPTIONS = [(0, 'unknown'), (1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')]
 class RatingField(RadioField):
@@ -114,8 +118,11 @@ class AssetView(CustomModelView):
 	def get_save_return_url(self, model=None, is_created=False):
 		return self.get_url('.details_view', id=model.id)
 
-def add_admin_views():
-    for table in tables + [LogItem]:
-        admin.add_view(CustomModelView(table, db.session))
-        
-admin.add_view(AssetView(Asset, db.session))
+def add_admin_views():    
+	admin.add_view(AssetView(Asset, db.session))
+
+	for table in tables:
+		admin.add_view(CustomModelView(table, db.session))
+
+	for table in [User, LogItem]:
+		admin.add_view(AdminModelView(table, db.session))
