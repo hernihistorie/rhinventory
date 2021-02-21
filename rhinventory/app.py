@@ -1,11 +1,12 @@
 import os
 
 from flask import Flask, render_template, flash, redirect, url_for, send_file, Response, abort
+from flask_login import current_user, login_required
 from jinja2 import StrictUndefined
 
-from rhinventory.extensions import db, admin, debug_toolbar
+from rhinventory.extensions import db, admin, debug_toolbar, github, login_manager
 from rhinventory.admin import add_admin_views
-from rhinventory.db import Asset, Location, log
+from rhinventory.db import User, Asset, Location, log
 
 from rhinventory.labels import make_barcode, make_label, make_asset_label
 
@@ -16,13 +17,20 @@ def create_app(config_object='rhinventory.config'):
     db.init_app(app)
     admin.init_app(app)
     debug_toolbar.init_app(app)
+    github.init_app(app)
+    login_manager.init_app(app)
     
     add_admin_views()
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.get(user_id)
 
     @app.route('/')
     def index():
         return redirect('/admin')
     
+    @login_required
     @app.route('/barcode/<text>')
     def barcode_endpoint(text):
         fp = make_barcode(text)
@@ -31,6 +39,7 @@ def create_app(config_object='rhinventory.config'):
                         #attachment_filename='a_file.txt',
                         mimetype='image/svg+xml')
     
+    @login_required
     @app.route('/label/asset/<int:asset_id>', defaults={'small': False})
     @app.route('/label/asset/<int:asset_id>-small', defaults={'small': True})
     def label_asset(asset_id, small=False):
@@ -41,6 +50,7 @@ def create_app(config_object='rhinventory.config'):
 
         return send_file(open(label_filename, 'rb'), mimetype='image/png')
     
+    @login_required
     @app.route('/label/asset/<int:asset_id>/print', methods=['POST'], defaults={'small': False})
     @app.route('/label/asset/<int:asset_id>-small/print', methods=['POST'], defaults={'small': True})
     def print_label_asset(asset_id, small=False):
@@ -59,6 +69,7 @@ def create_app(config_object='rhinventory.config'):
         else:
             return f'Error {exit_code}'
     
+    @login_required
     @app.route('/label/location/<int:location_id>')
     def label_location(location_id):
         location = Location.query.get(location_id)

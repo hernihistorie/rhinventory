@@ -1,3 +1,4 @@
+from flask_login import current_user, login_required
 from flask_admin.contrib.sqla import ModelView
 from wtforms import RadioField
 from sqlalchemy import desc
@@ -7,6 +8,10 @@ from rhinventory.db import tables, LogItem, log, Asset
 
 class CustomModelView(ModelView):
     form_excluded_columns = ['transactions']
+
+    def is_accessible(self):
+        return current_user.is_authenticated
+
     def on_model_change(self, form, instance, is_created):
         if not is_created:
             log("Update", instance)

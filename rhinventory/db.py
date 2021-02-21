@@ -2,15 +2,53 @@ import enum
 import json
 import datetime
 
-from flask_admin.contrib.sqla import ModelView
 from sqlalchemy import Column, Integer, Numeric, String, Text, \
-    DateTime, LargeBinary, ForeignKey, Enum, Table, Index
+    DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean
 from sqlalchemy.orm import relationship, backref
 from dictalchemy import make_class_dictable
 
 from rhinventory.extensions import db
 
 make_class_dictable(db.Model)
+
+class User(db.Model):
+    __tablename__ = 'users'
+    
+    id = Column(Integer, primary_key=True)
+    username = Column(String(255))
+    read_access = Column(Boolean(), nullable=False, default=False)
+    write_access = Column(Boolean(), nullable=False, default=False)
+    admin = Column(Boolean(), nullable=False, default=False)
+
+    github_access_token = Column(String(255))
+    github_id = Column(Integer)
+    github_login = Column(String(255))
+
+    #person_id = Column(Integer, ForeignKey('people.id'))
+    #person = relationship("Person")
+
+    @property
+    def is_authenticated(self):
+        return True
+    
+    @property
+    def is_active(self):
+        return True
+    
+    @property
+    def is_anonymous(self):
+        return False
+    
+    def get_id(self):
+        return str(self.id)
+
+
+class Person(db.Model):
+    __tablename__ = 'people'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255))
+    email = Column(String(255))
+    note = Column(Text)
 
 class AssetStatus(enum.Enum):
     unknown = 0
@@ -103,7 +141,7 @@ class TransactionType(enum.Enum):
     return_in   = 6
     lend        = -6
 
-
+# TODO this class should use the person database, not user and string
 class Transaction(db.Model):
     __tablename__ = 'transactions'
     id          = Column(Integer, primary_key=True)
@@ -203,11 +241,13 @@ class Check(db.Model):
     __tablename__ = 'checks'
     id          = Column(Integer, primary_key=True)
     type        = Column(Enum(CheckType), nullable=False)
-    user_id     = Column(Integer) # TODO
+    user_id     = Column(Integer, ForeignKey('users.id'))
     date_from   = Column(DateTime)
     date_to     = Column(DateTime)
     status      = Column(Enum(CheckStatus))
     note        = Column(Text)
+
+    user        = relationship(User)
 
     def __str__(self):
         return f"Inventura z {self.date_from}"
@@ -382,8 +422,8 @@ class LogItem(db.Model):
     
     extra_json  = Column(Text)
     
-    #user_id     = reference_col(User)
-    #user        = relationship(User)
+    user_id     = Column(Integer, ForeignKey('users.id'))
+    user        = relationship(User)
     
     datetime    = Column(DateTime, nullable=False)
     
