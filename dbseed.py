@@ -136,6 +136,8 @@ app = create_app()
 with app.app_context():
     db.create_all()
 
+    exit()
+
    # CREATE LOCATIONS
     with open(prep_file["locations"], newline='') as f:
         reader = csv.reader(f)
