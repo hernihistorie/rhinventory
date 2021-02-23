@@ -14,11 +14,11 @@ class CustomModelView(ModelView):
 
     def on_model_change(self, form, instance, is_created):
         if not is_created:
-            log("Update", instance)
+            log("Update", instance, user=current_user)
         else:
             db.session.add(instance)
             db.session.commit()
-            log("Create", instance)
+            log("Create", instance, user=current_user)
 
 class AdminModelView(CustomModelView):
     def is_accessible(self):
@@ -103,7 +103,7 @@ class AssetView(CustomModelView):
 		if is_created:
 			if not instance.custom_code:
 				last_category_asset = db.session.query(Asset) \
-					.filter(Asset.category_id == instance.category.id) \
+					.filter(Asset.category_id == instance.category.id, Asset.custom_code != None) \
 					.order_by(desc(Asset.custom_code)).limit(1).scalar()
 
 				if last_category_asset:
