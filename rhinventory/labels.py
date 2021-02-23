@@ -1,5 +1,6 @@
 from os import system
 from io import BytesIO
+import subprocess
 
 from bs4 import BeautifulSoup as BS
 import barcode
@@ -43,7 +44,11 @@ def make_label(id, custom_code, name, subtitle="", medium="", small=False):
         filename += "-small"
     open(filename+'.svg', 'w').write(label_svg)
 
-    system(f'inkscape -p {filename}.svg -o {filename}.png -w {PNG_WIDTH}')
+    inkscape_version = subprocess.check_output(['inkscape', '--version']).decode('utf-8').split('\n')[0].split(' ')[1]
+    if inkscape_version.startswith('0.'):
+        system(f'inkscape -z {filename}.svg -e {filename}.png -w {PNG_WIDTH}')
+    else:
+        system(f'inkscape -p {filename}.svg -o {filename}.png -w {PNG_WIDTH}')
 
     return filename+'.png'
 
