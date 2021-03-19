@@ -33,7 +33,7 @@ marshmallow==3.3.0
 mccabe==0.6.1
 packbits==0.6
 passlib==1.7.4
-Pillow==7.0.0
+Pillow==8.1.1
 psycopg2-binary==2.8.6
 pycparser==2.20
 pylint==2.4.4
