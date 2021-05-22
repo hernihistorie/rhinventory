@@ -23,11 +23,27 @@
     <strong>Manufacturer</strong>: {{ model.manufacturer }}
 
     {{ super() }}
+
+    <h2>Transactions</h2>
+
+    <table class="table table-hover table-bordered">
+        <tr>
+            <th>Date</th>
+            <th>Transaction type</th>
+            <th>Note</th>
+        </tr>
+    {% for transaction in model.transactions %}
+    <tr>
+        <td>{{ transaction.date }}</td>
+        <td>{{ transaction.transaction_type.name }}</td>
+        <td>{{ transaction.note }}</td>
+    </tr>
+    {% endfor %}
+    </table>
 {% endblock %}
 
 {% block tail %}
     {{ super() }}
-
     <script>
         {% for small in ('', '-small') %}
             $('#print-label{{small}}').click(function(){
