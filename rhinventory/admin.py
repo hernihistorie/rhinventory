@@ -130,10 +130,10 @@ class TransactionView(CustomModelView):
 def add_admin_views():
 	admin.add_view(AssetView(Asset, db.session))
 
-	admin.add_view(TransactionView(Transaction, db.session))
-
 	for table in tables:
 		admin.add_view(CustomModelView(table, db.session))
+
+	admin.add_view(TransactionView(Transaction, db.session))
 
 	for table in [User, LogItem]:
 		admin.add_view(AdminModelView(table, db.session))
