@@ -404,7 +404,7 @@ class Status(db.Model):
     name    = Column(String(255))
 
 tables = [AssetMeta,
-    Category, CategoryTemplate, Medium, Transaction, Location,
+    Category, CategoryTemplate, Medium, Location # Transaction removed
     #Event, Check, CheckItem, CheckLog, 
     #Benchmark, BenchmarkType, Computer, Hardware,
 ]

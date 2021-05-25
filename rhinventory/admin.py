@@ -1,10 +1,11 @@
+from flask import request
 from flask_login import current_user, login_required
 from flask_admin.contrib.sqla import ModelView
 from wtforms import RadioField
 from sqlalchemy import desc
 
 from rhinventory.extensions import db, admin
-from rhinventory.db import tables, LogItem, log, Asset, User
+from rhinventory.db import tables, LogItem, log, Asset, User, Transaction
 
 class CustomModelView(ModelView):
     form_excluded_columns = ['transactions']
@@ -116,11 +117,23 @@ class AssetView(CustomModelView):
 	def get_save_return_url(self, model=None, is_created=False):
 		return self.get_url('.details_view', id=model.id)
 
-def add_admin_views():    
+class TransactionView(CustomModelView):
+	def create_form(self, obj=None):
+		form = super(TransactionView, self).create_form()
+
+		if "asset_id" in request.args.keys():
+			asset_query = self.session.query(Asset).filter(Asset.id == request.args["asset_id"]).one()
+			form.assets.data = [asset_query]
+
+		return form
+
+def add_admin_views():
 	admin.add_view(AssetView(Asset, db.session))
 
 	for table in tables:
 		admin.add_view(CustomModelView(table, db.session))
+
+	admin.add_view(TransactionView(Transaction, db.session))
 
 	for table in [User, LogItem]:
 		admin.add_view(AdminModelView(table, db.session))
