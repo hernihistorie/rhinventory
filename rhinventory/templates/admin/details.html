@@ -8,6 +8,9 @@
             Print label
         </a>
         <span id="print-result"></span>
+        <a id="copy-print-label-command" class="btn btn-primary">
+            Copy print command
+        </a>
     </div>
     <div style="margin-bottom: 8px;">
         <a href="{{ url_for('label_asset', asset_id=model.id, small=True) }}" class="btn btn-light">
@@ -48,6 +51,19 @@
 {% block tail %}
     {{ super() }}
     <script>
+        const copyToClipboard = str => {
+            const el = document.createElement('textarea');
+            el.value = str;
+            el.setAttribute('readonly', '');
+            el.style.position = 'absolute';
+            el.style.left = '-9999px';
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+        };
+
+        /* why did i do this it hurts so much */
         {% for small in ('', '-small') %}
             $('#print-label{{small}}').click(function(){
                 $("#print{{small}}-result").html('Printing...');
@@ -58,5 +74,9 @@
                 )
             })
         {% endfor %}
+
+        $('#copy-print-label-command').click(function(){
+            copyToClipboard("rhprint {{model.id}}")
+        })
     </script>
 {% endblock %}
