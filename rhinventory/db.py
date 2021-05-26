@@ -403,11 +403,11 @@ class Status(db.Model):
     id      = Column(Integer, primary_key=True)
     name    = Column(String(255))
 
-tables = [AssetMeta,
-    Category, CategoryTemplate, Medium, Location # Transaction removed
-    #Event, Check, CheckItem, CheckLog, 
-    #Benchmark, BenchmarkType, Computer, Hardware,
-]
+#tables = [AssetMeta,
+#    Category, CategoryTemplate, Medium, Location # Transaction removed
+#    #Event, Check, CheckItem, CheckLog, 
+#    #Benchmark, BenchmarkType, Computer, Hardware,
+#]
 
 LogEvent = enum.Enum('LogEvent', ["Create", "Update", "Delete", "Other"])
 

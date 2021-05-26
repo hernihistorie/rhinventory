@@ -5,7 +5,7 @@ from wtforms import RadioField
 from sqlalchemy import desc
 
 from rhinventory.extensions import db, admin
-from rhinventory.db import tables, LogItem, log, Asset, User, Transaction
+from rhinventory.db import LogItem, Category, Medium, Location, log, Asset, User, Transaction
 
 class CustomModelView(ModelView):
     form_excluded_columns = ['transactions']
@@ -117,7 +117,13 @@ class AssetView(CustomModelView):
 	def get_save_return_url(self, model=None, is_created=False):
 		return self.get_url('.details_view', id=model.id)
 
+class MediumView(CustomModelView):
+	column_default_sort = ('name', True)
+
 class TransactionView(CustomModelView):
+	can_view_details = True
+	column_default_sort = ('date', True)
+	
 	def create_form(self, obj=None):
 		form = super(TransactionView, self).create_form()
 
@@ -130,9 +136,10 @@ class TransactionView(CustomModelView):
 def add_admin_views():
 	admin.add_view(AssetView(Asset, db.session))
 
-	for table in tables:
+	for table in [Category, Location]:
 		admin.add_view(CustomModelView(table, db.session))
 
+	admin.add_view(MediumView(Medium, db.session))
 	admin.add_view(TransactionView(Transaction, db.session))
 
 	for table in [User, LogItem]:
