@@ -1,11 +1,8 @@
-import flask_mail
 from flask import request
 from flask_login import current_user, login_required
 from flask_admin.contrib.sqla import ModelView
 from wtforms import RadioField
 from sqlalchemy import desc
-
-import flask_admin
 
 from rhinventory.extensions import db, admin
 from rhinventory.db import LogItem, Category, Medium, Location, log, Asset, User, Transaction
