@@ -27,25 +27,46 @@
 
     {{ super() }}
 
-    <h2>Transactions</h2>
-    <a href="{{ url_for('transaction.create_view', asset_id=model.id) }}" class="btn btn-primary">Add transaction</a>
+    <h2>Transaction history</h2>
 
-    <h3>History</h3>
+    <div style="margin-bottom: 8px">
+        <a href="{{ url_for('transaction.create_view', asset_id=model.id) }}" class="btn btn-primary">Add new transaction</a>
+    </div>
 
     <table class="table table-hover table-bordered">
         <tr>
             <th>Date</th>
             <th>Transaction type</th>
             <th>Note</th>
+            <th>Together with</th>
+            <th></th>
         </tr>
     {% for transaction in model.transactions %}
     <tr>
         <td>{{ transaction.date }}</td>
         <td>{{ transaction.transaction_type.name }}</td>
         <td>{{ transaction.note }}</td>
+        <td>
+            <ul>
+            {% for asset in transaction.assets %}
+                <li><a href="{{ url_for('asset.details_view', asset_id=asset.id) }}">{{asset.name}} (id: {{asset.id}})</a></li>
+            {% endfor %}
+            </ul>
+        </td>
+        <td>
+            <a href="{{ url_for('transaction.edit_view', id=transaction.id) }}">
+               <span class="fa fa-pencil glyphicon icon-pencil"></span>
+            </a>
+
+            <a href="{{ url_for('transaction.details_view', id=transaction.id) }}">
+                <span class="fa fa-eye glyphicon icon-eye-open"></span>
+            </a>
+        </td>
     </tr>
     {% endfor %}
     </table>
+
+
 {% endblock %}
 
 {% block tail %}

@@ -113,7 +113,7 @@ class AssetView(CustomModelView):
 					instance.custom_code = 1
 
 		super().on_model_change(form, instance, is_created)
-	
+
 	def get_save_return_url(self, model=None, is_created=False):
 		return self.get_url('.details_view', id=model.id)
 
@@ -123,11 +123,14 @@ class MediumView(CustomModelView):
 class TransactionView(CustomModelView):
 	can_view_details = True
 	column_default_sort = ('date', True)
-	
+
 	def create_form(self, obj=None):
 		form = super(TransactionView, self).create_form()
 
-		if "asset_id" in request.args.keys():
+		# second condition forces program to not overwrite data that has been
+		# sent by user. If data has been sent, `form.assets.data` is already filled
+		# with appropriate stuff and thus, you must not overwrite it
+		if "asset_id" in request.args.keys() and len(form.assets.data) == 0:
 			asset_query = self.session.query(Asset).filter(Asset.id == request.args["asset_id"]).one()
 			form.assets.data = [asset_query]
 
