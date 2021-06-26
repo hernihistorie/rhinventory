@@ -1,8 +1,10 @@
 from flask import request
 from flask_login import current_user, login_required
 from flask_admin.contrib.sqla import ModelView
+from flask_admin.contrib.fileadmin import FileAdmin
 from wtforms import RadioField
 from sqlalchemy import desc
+import os.path
 
 from rhinventory.extensions import db, admin
 from rhinventory.db import LogItem, Category, Medium, Location, log, Asset, User, Transaction, File
@@ -145,5 +147,10 @@ def add_admin_views():
 	admin.add_view(MediumView(Medium, db.session))
 	admin.add_view(TransactionView(Transaction, db.session))
 
-	for table in [File, User, LogItem]:
+	admin.add_view(AdminModelView(File, db.session))
+	
+	path = os.path.join(os.path.dirname(__file__), '../files')
+	admin.add_view(FileAdmin(path, '/files/', name='File management'))
+
+	for table in [User, LogItem]:
 		admin.add_view(AdminModelView(table, db.session))
