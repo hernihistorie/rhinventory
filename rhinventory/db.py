@@ -42,6 +42,9 @@ class User(db.Model):
     
     def get_id(self):
         return str(self.id)
+    
+    def __str__(self):
+        return self.username or self.github_login
 
 
 class Person(db.Model):

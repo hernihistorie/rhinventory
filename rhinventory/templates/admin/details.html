@@ -27,6 +27,35 @@
 
     {{ super() }}
 
+    <h2>Files</h2>
+
+    <div style="margin-bottom: 8px">
+        <a href="{{ url_for('file.create_view', asset_id=model.id) }}" class="btn btn-primary">Add file</a>
+    </div>
+
+    <table class="table table-hover table-bordered">
+        <tr>
+            <th></th>
+            <th>Path</th>
+            <th>Category</th>
+        </tr>
+    {% for file in model.files %}
+    <tr>
+        <td>
+            <a href="{{ url_for('file.edit_view', id=file.id) }}">
+               <span class="fa fa-pencil glyphicon icon-pencil"></span>
+            </a>
+
+            <a href="{{ url_for('file.details_view', id=file.id) }}">
+                <span class="fa fa-eye glyphicon icon-eye-open"></span>
+            </a>
+        </td>
+        <td>{{ file.filepath }}</td>
+        <td>{{ file.category }}</td>
+    </tr>
+    {% endfor %}
+    </table>
+
     <h2>Transaction history</h2>
 
     <div style="margin-bottom: 8px">
