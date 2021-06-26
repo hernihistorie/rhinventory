@@ -6,6 +6,7 @@ from sqlalchemy import Column, Integer, Numeric, String, Text, \
     DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean
 from sqlalchemy.orm import relationship, backref
 from dictalchemy import make_class_dictable
+from sqlalchemy.sql.expression import text
 
 from rhinventory.extensions import db
 
@@ -177,6 +178,45 @@ class Location(db.Model):
         return f"{self.name}"
 
 
+class FileCategory(enum.Enum):
+    unknown     = 0
+    other       = 1
+
+    image       = 10
+    photo       = 11
+    scan        = 12
+
+    dump        = 20
+    dump_metadata = 21
+
+    text        = 30
+    prose       = 31
+    transcription = 32
+
+    collection  = 90
+
+
+
+class File(db.Model):
+    __tablename__ = 'files'
+    id          = Column(Integer, primary_key=True)
+    filepath    = Column(String, nullable=False)
+    storage     = Column(String, nullable=False)
+    primary     = Column(Boolean, nullable=False, default=False)
+    has_thumbnail = Column(Boolean, nullable=False, default=False)
+    category    = Column(Enum(FileCategory))
+    title       = Column(String)
+    comment     = Column(Text)
+    analyzed    = Column(DateTime) # last time it was scanned digitally for barcodes for example
+    upload_date = Column(DateTime)
+    user_id     = Column(Integer, ForeignKey('users.id'))
+    asset_id    = Column(Integer, ForeignKey('assets.id'))
+
+    user        = relationship("User", backref="files")
+    asset       = relationship("Asset", backref="files")
+
+    def __str__(self):
+        return f"<File {self.filepath}>"
 
 
 
