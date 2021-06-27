@@ -20,10 +20,10 @@ def create_app(config_object='rhinventory.config'):
     github.init_app(app)
     login_manager.init_app(app)
     
-    files_blueprint = Blueprint('files', __name__, static_url_path='/files', static_folder='../files')
+    files_blueprint = Blueprint('files', __name__, static_url_path='/files', static_folder=app.config['FILES_DIR'])
     app.register_blueprint(files_blueprint)
 
-    add_admin_views()
+    add_admin_views(app)
 
     @login_manager.user_loader
     def load_user(user_id):
