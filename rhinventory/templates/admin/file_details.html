@@ -1,0 +1,21 @@
+{% extends 'admin/model/details.html' %}
+{% block details_table %}
+    <h2>File: {{ model.filepath }}</h2>
+    <strong>Asset:</strong>
+    {% if model.asset %}
+        <a href="{{ url_for('asset.details_view', id=model.asset.id) }}">{{ model.asset }}</a>
+    {% else %}
+        None
+    {% endif %}
+
+    <div style="margin: 8px 0 8px 0;">
+        <a href="{{ url_for('files.static', filename=model.filepath) }}" class="btn btn-primary">Download</a>
+    </div>
+    {% if model.category.name in ('image', 'photo', 'scan') %}
+        <img src="{{ url_for('files.static', filename=model.filepath) }}" style="margin-bottom: 8px;">
+    {% endif %}
+
+    {{ super() }}
+
+
+{% endblock %}

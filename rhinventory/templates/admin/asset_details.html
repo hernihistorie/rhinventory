@@ -56,7 +56,14 @@
                 <span class="fa fa-eye glyphicon icon-eye-open"></span>
             </a>
         </td>
-        <td>{{ file.filepath }}</td>
+        <td>
+            {% if file.primary %}
+                <span class="fa fa-eye glyphicon icon-star"></span>
+            {% endif %}
+            <a href="{{ url_for('file.details_view', id=file.id) }}">
+                {{ file.filepath }}
+            </a>
+        </td>
         <td>{{ file.category }}</td>
     </tr>
     {% endfor %}

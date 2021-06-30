@@ -116,7 +116,7 @@ class AssetView(CustomModelView):
 	}
 	can_export = True
 
-	details_template = "admin/details.html"
+	details_template = "admin/asset_details.html"
 
 	def on_model_change(self, form, instance, is_created):
 		if is_created:
@@ -207,6 +207,10 @@ class TransactionView(CustomModelView):
 
 		return form
 
+class FileView(CustomModelView):
+	can_view_details = True
+	details_template = "admin/file_details.html"
+
 def add_admin_views(app):
 	admin.add_view(AssetView(Asset, db.session))
 
@@ -216,7 +220,7 @@ def add_admin_views(app):
 	admin.add_view(MediumView(Medium, db.session))
 	admin.add_view(TransactionView(Transaction, db.session))
 
-	admin.add_view(AdminModelView(File, db.session))
+	admin.add_view(FileView(File, db.session))
 	
 	path = os.path.join(os.path.dirname(__file__), app.config['FILES_DIR'])
 	admin.add_view(FileAdmin(path, '/files/', name='File management'))
