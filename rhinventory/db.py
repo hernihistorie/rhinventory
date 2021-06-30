@@ -1,12 +1,15 @@
 import enum
 import json
 import datetime
+import os.path
 
+from flask import current_app
 from sqlalchemy import Column, Integer, Numeric, String, Text, \
     DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean
 from sqlalchemy.orm import relationship, backref
 from dictalchemy import make_class_dictable
 from sqlalchemy.sql.expression import text
+from PIL import Image
 
 from rhinventory.extensions import db
 
@@ -206,7 +209,7 @@ class File(db.Model):
     filepath    = Column(String, nullable=False)
     storage     = Column(String, nullable=False)
     primary     = Column(Boolean, nullable=False, default=False)
-    has_thumbnail = Column(Boolean, nullable=False, default=False)
+    has_thumbnail = Column(Boolean, nullable=False, default=False) # _thumb
     category    = Column(Enum(FileCategory))
     title       = Column(String)
     comment     = Column(Text)
@@ -218,8 +221,29 @@ class File(db.Model):
     user        = relationship("User", backref="files")
     asset       = relationship("Asset", backref="files")
 
+    THUMBNAIL_SIZE = (800, 800)
+
     def __str__(self):
         return f"<File {self.filepath}>"
+    
+    @property
+    def is_image(self):
+        return self.category.name in ('image', 'photo', 'scan')
+    
+    @property
+    def filepath_thumbnail(self):
+        path = self.filepath.split('.')
+        path[-2] += '_thumb'
+        return '.'.join(path)
+    
+    # Make sure to save the model after calling this method...
+    def make_thumbnail(self):
+        files_dir = current_app.config['FILES_DIR']
+        im = Image.open(os.path.join(files_dir, self.filepath))
+        im.thumbnail(self.THUMBNAIL_SIZE)
+        im.save(os.path.join(files_dir, self.filepath_thumbnail))
+        self.has_thumbnail = True
+
 
 
 

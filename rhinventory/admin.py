@@ -176,12 +176,21 @@ class AssetView(CustomModelView):
 			filepath = f'{directory}/{filename}'
 			file.save(current_app.config['FILES_DIR'] + "/" + filepath)
 
-			file_db = File(filepath=filepath, storage='files', primary=False, category=form.category.data,
+			category = form.category.data
+			if category == 'unknown' and filename.split('.')[-1].lower() in ('jpg', 'jpeg', 'png', 'gif'):
+				category = 'image'
+
+			file_db = File(filepath=filepath, storage='files', primary=False, category=category,
 				title=form.title.data, upload_date=datetime.datetime.now(), user_id=current_user.id,
 				asset_id=id)
-			
+
 			db.session.add(file_db)
 			db.session.commit()
+			
+			if file_db.is_image:
+				file_db.make_thumbnail()
+				db.session.add(file_db)
+				db.session.commit()
 			flash("File {} uploaded".format(filename), 'success')
 		else:
 			flash("Upload form validation failed: {}".format(form.errors), 'error')
@@ -210,6 +219,17 @@ class TransactionView(CustomModelView):
 class FileView(CustomModelView):
 	can_view_details = True
 	details_template = "admin/file_details.html"
+
+	@expose('/make_thumbnail/', methods=['POST'])
+	def make_thumbnail_view(self):
+		id = get_mdict_item_or_list(request.args, 'id')
+		model = self.get_one(id)
+
+		model.make_thumbnail()
+		db.session.add(model)
+		db.session.commit()
+		flash("Thumbnail created", 'success')
+		return redirect(url_for("file.details_view", id=id))
 
 def add_admin_views(app):
 	admin.add_view(AssetView(Asset, db.session))

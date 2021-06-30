@@ -10,8 +10,17 @@
 
     <div style="margin: 8px 0 8px 0;">
         <a href="{{ url_for('files.static', filename=model.filepath) }}" class="btn btn-primary">Download</a>
+        {% if model.is_image %}
+            {% if model.has_thumbnail %}
+                <a href="{{ url_for('files.static', filename=model.filepath_thumbnail) }}" class="btn btn-primary">Thumbnail</a>
+            {% else %}
+                <form method="POST" action="{{ url_for('file.make_thumbnail_view', id=model.id) }}" style="display: inline;">
+                    <input type="submit" value="Make thumbnail">
+                </form>
+            {% endif %}
+        {% endif %}
     </div>
-    {% if model.category.name in ('image', 'photo', 'scan') %}
+    {% if model.is_image %}
         <img src="{{ url_for('files.static', filename=model.filepath) }}" style="margin-bottom: 8px;">
     {% endif %}
 
