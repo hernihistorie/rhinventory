@@ -104,6 +104,9 @@ class Asset(db.Model):
         else:
             return f"RHXXXXX {self.name}"
 
+    def get_primary_image(self):
+        return db.session.query(File).filter(File.asset_id==self.id and File.category in IMAGE_CATEGORIES).order_by(File.primary.desc(), File.has_thumbnail.desc()).first()
+
 
 class Category(db.Model):
     __tablename__ = 'categories'
@@ -201,7 +204,7 @@ class FileCategory(enum.Enum):
 
     collection  = 90
 
-
+IMAGE_CATEGORIES = [FileCategory.image, FileCategory.photo, FileCategory.scan]
 
 class File(db.Model):
     __tablename__ = 'files'
@@ -228,7 +231,7 @@ class File(db.Model):
     
     @property
     def is_image(self):
-        return self.category.name in ('image', 'photo', 'scan')
+        return self.category in IMAGE_CATEGORIES
     
     @property
     def filepath_thumbnail(self):

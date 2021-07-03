@@ -1,0 +1,97 @@
+{% extends 'admin/model/list.html' %}
+
+{# Modified https://github.com/flask-admin/flask-admin/blob/master/flask_admin/templates/bootstrap2/admin/model/list.html #}
+
+{% block model_menu_bar %}
+    <ul class="nav nav-tabs actions-nav">
+        <li>
+            <a href="{{ get_url('.index_view') }}">{{ _gettext('List') }}</a>
+        </li>
+
+        <li class="active">
+            <a href="{{ get_url('.gallery_view') }}">Gallery {% if count %} ({{ count }}){% endif %}</a>
+        </li>
+
+        {% if admin_view.can_create %}
+        <li>
+          {%- if admin_view.create_modal -%}
+            {{ lib.add_modal_button(url=get_url('.create_view', url=return_url, modal=True), title=_gettext('Create New Record'), content=_gettext('Create')) }}
+          {% else %}
+            <a href="{{ get_url('.create_view', url=return_url) }}" title="{{ _gettext('Create New Record') }}">{{ _gettext('Create') }}</a>
+          {%- endif -%}
+        </li>
+        {% endif %}
+
+        {% if admin_view.can_export %}
+            {{ model_layout.export_options() }}
+        {% endif %}
+
+        {% block model_menu_bar_before_filters %}{% endblock %}
+
+        {% if filters %}
+        <li class="dropdown">
+            {{ model_layout.filter_options() }}
+        </li>
+        {% endif %}
+
+        {% if can_set_page_size %}
+        <li class="dropdown">
+            {{ model_layout.page_size_form(page_size_url) }}
+        </li>
+        {% endif %}
+
+        {% if actions %}
+        <li class="dropdown">
+            {{ actionlib.dropdown(actions) }}
+        </li>
+        {% endif %}
+
+        {% if search_supported %}
+        <li>
+            {{ model_layout.search_form() }}
+        </li>
+        {% endif %}
+        {% block model_menu_bar_after_filters %}{% endblock %}
+
+    </ul>
+{% endblock %}
+
+{% block model_list_table %}
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-around;">
+        {% for asset in data %}
+            <div style="width: 268px; max-width: 100%; border: 1px solid #bbb; border-radius: 2px; padding: 4px; margin: 4px;
+                        display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <strong>RH{{ asset.id }}</strong> {{ asset.category }}<br>
+                </div>
+                <div>
+                    {% set file = asset.get_primary_image() %}
+                    {% if file %}
+                        <a href="{{ url_for('asset.details_view', id=asset.id) }}">
+                            {% if file.has_thumbnail %}
+                                <img src="{{ url_for('files.static', filename=file.filepath_thumbnail) }}">
+                            {% else %}
+                                (Thumbnail missing)
+                            {% endif %}
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('asset.details_view', id=asset.id) }}" style="font-size: 128px; text-align: center; color: #ccc; min-height: 128px; padding-top: 28px; display: flex; align-items: center; justify-content: center; text-decoration: none;">✱</a>
+                    {% endif %}
+                </div>
+                <div>
+                    <a href="{{ url_for('asset.details_view', id=asset.id) }}">
+                        {{ asset.name or '???' }}
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% block list_pager %}
+    {% if num_pages is not none %}
+    {{ lib.pager(page, num_pages, pager_url) }}
+    {% else %}
+    {{ lib.simple_pager(page, data|length == page_size, pager_url) }}
+    {% endif %}
+    {% endblock %}
+{% endblock %}
