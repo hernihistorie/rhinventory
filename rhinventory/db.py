@@ -236,6 +236,10 @@ class File(db.Model):
         path[-2] += '_thumb'
         return '.'.join(path)
     
+    @property
+    def filename(self):
+        return self.filepath.split('/')[-1]
+    
     # Make sure to save the model after calling this method...
     def make_thumbnail(self):
         files_dir = current_app.config['FILES_DIR']

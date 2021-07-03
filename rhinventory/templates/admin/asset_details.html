@@ -39,6 +39,37 @@
         </form>
     </div>
 
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-around;">
+        {% for file in model.files %}
+            {% if file.is_image %}
+                <div style="width: 300px; max-width: 100%; border: 1px solid #bbb; border-radius: 2px; padding: 4px; margin: 4px;
+                            display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        {% if file.has_thumbnail %}
+                            <img src="{{ url_for('files.static', filename=file.filepath_thumbnail) }}">
+                        {% else %}
+                            (Thumbnail missing)
+                        {% endif %}
+                    </div>
+                    <div>
+                        <a href="{{ url_for('file.edit_view', id=file.id) }}">
+                            <span class="fa fa-pencil glyphicon icon-pencil"></span>
+                        </a>
+                        <a href="{{ url_for('file.details_view', id=file.id) }}">
+                            <span class="fa fa-eye glyphicon icon-eye-open"></span>
+                        </a>
+                        {% if file.primary %}
+                            <span class="fa fa-eye glyphicon icon-star"></span>
+                        {% endif %}
+                        <a href="{{ url_for('file.details_view', id=file.id) }}">
+                            {{ file.filename }}
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
     <table class="table table-hover table-bordered">
         <tr>
             <th></th>
