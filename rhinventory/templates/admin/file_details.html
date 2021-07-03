@@ -23,8 +23,31 @@
     </div>
     {% if model.is_image %}
         <img src="{{ url_for('files.static', filename=model.filepath) }}" style="margin-bottom: 8px;">
+        {% set barcodes = model.read_barcodes() %}
+        {% if barcodes %}
+            <h3>Decoded barcodes</h3>
+            <table class="table table-hover table-bordered">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Data</th>
+                    </tr>
+                </thead>
+                {% for barcode in barcodes %}
+                    <tr>
+                        <td>
+                            {{ barcode.type }}
+                        </td>
+                        <td>
+                            <tt>{{ barcode.data.decode('utf-8') }}</tt>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        {% endif %}
     {% endif %}
 
+    <h3>Metadata</h3>
     {{ super() }}
 
 

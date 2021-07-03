@@ -10,6 +10,7 @@ from sqlalchemy.orm import relationship, backref
 from dictalchemy import make_class_dictable
 from sqlalchemy.sql.expression import text
 from PIL import Image
+from pyzbar import pyzbar
 
 from rhinventory.extensions import db
 
@@ -243,13 +244,23 @@ class File(db.Model):
     def filename(self):
         return self.filepath.split('/')[-1]
     
+    def open_file(self):
+        files_dir = current_app.config['FILES_DIR']
+        im = Image.open(os.path.join(files_dir, self.filepath))
+        return im
+    
     # Make sure to save the model after calling this method...
     def make_thumbnail(self):
         files_dir = current_app.config['FILES_DIR']
-        im = Image.open(os.path.join(files_dir, self.filepath))
+        im = self.open_file()
         im.thumbnail(self.THUMBNAIL_SIZE)
         im.save(os.path.join(files_dir, self.filepath_thumbnail))
         self.has_thumbnail = True
+    
+    def read_barcodes(self):
+        im = self.open_file()
+        return pyzbar.decode(im)
+
 
 
 
