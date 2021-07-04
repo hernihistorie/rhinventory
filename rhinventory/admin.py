@@ -2,6 +2,7 @@ import datetime
 import os
 import os.path
 from math import ceil
+import multiprocessing as mp
 
 from flask import request, flash, redirect, url_for, current_app
 from flask_login import current_user, login_required
@@ -365,7 +366,7 @@ class TransactionView(CustomModelView):
 
 class FileForm(Form):
     files = MultipleFileField("Files")
-    category = Select2Field("Category", choices=[(el.name, el.name) for el in FileCategory])
+    category = Select2Field("Category", choices=[(el.value, el.name) for el in FileCategory], coerce=int)
     auto_assign = BooleanField("Auto assign", render_kw ={'checked':''})
 
 class FileAssignForm(Form):
@@ -406,8 +407,6 @@ class FileView(CustomModelView):
             db.session.commit()
             flash(f"File assigned to asset #{file_assign_form.asset.data}", 'success')
             return redirect(url_for('.details_view', id=id))
-        
-        print(file_assign_form.errors, file_assign_form.asset.data)
 
         return self.render(template,
                             model=model,
@@ -419,35 +418,53 @@ class FileView(CustomModelView):
     @expose('/upload/', methods=['GET', 'POST'])
     def upload_view(self):
         form = FileForm(request.form)
-        if form.validate():
+        if request.method == 'POST' and form.validate():
             files = []
+            image_files = []
             num_files = len(request.files.getlist("files"))
+            print(f"Saving {num_files} files...")
             for i, file in enumerate(request.files.getlist("files")):
-                print(f"File {i}/{num_files}")
                 filename = secure_filename(file.filename)
                 directory = 'uploads'
                 os.makedirs(current_app.config['FILES_DIR'] + "/" + directory, exist_ok=True)
                 filepath = f'{directory}/{filename}'
                 file.save(current_app.config['FILES_DIR'] + "/" + filepath)
 
-                category = form.category.data
-                if category == 'unknown' and filename.split('.')[-1].lower() in ('jpg', 'jpeg', 'png', 'gif'):
-                    category = 'image'
+                category = FileCategory(form.category.data)
+                if category == FileCategory.unknown and filename.split('.')[-1].lower() in ('jpg', 'jpeg', 'png', 'gif'):
+                    category = FileCategory.image
 
                 file_db = File(filepath=filepath, storage='files', primary=False, category=category,
                     upload_date=datetime.datetime.now(), user_id=current_user.id)
-
-                db.session.add(file_db)
-                db.session.commit()
                 
                 if file_db.is_image:
-                    if form.auto_assign.data:
-                        file_db.auto_assign()
-                    file_db.make_thumbnail()
-                    db.session.add(file_db)
-                    db.session.commit()
+                    image_files.append(file_db)
                 
                 files.append(file_db)
+            
+            pool = mp.Pool(mp.cpu_count())
+
+            print("Reading barcodes...")
+            # Read barcodes in parallel
+            if form.auto_assign.data and image_files:
+                result_objects = [pool.apply_async(File.read_rh_barcode, args=(file,)) for file in image_files]
+                asset_ids = [r.get() for r in result_objects]
+                for file, asset_id in zip(image_files, asset_ids):
+                    file.assign(asset_id)
+
+            print("Creating thumbnails...")
+            # Create thumbnails in parallel
+            if image_files:
+                result_objects = [pool.apply_async(File.make_thumbnail, args=(file,)) for file in image_files]
+                for file in image_files:
+                    file.has_thumbnail = True
+            
+            pool.close()
+            pool.join()
+
+            print("Committing...")
+            db.session.add_all(files)
+            db.session.commit()
 
             return self.render('admin/file/upload_result.html', files=files, auto_assign=form.auto_assign.data)
         return self.render('admin/file/upload.html', form=form)

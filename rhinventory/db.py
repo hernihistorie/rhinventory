@@ -10,7 +10,7 @@ from sqlalchemy import Column, Integer, Numeric, String, Text, \
 from sqlalchemy.orm import relationship, backref
 from dictalchemy import make_class_dictable
 from sqlalchemy.sql.expression import text
-from PIL import Image
+from PIL import Image, ImageEnhance
 from pyzbar import pyzbar
 
 from rhinventory.extensions import db
@@ -245,28 +245,39 @@ class File(db.Model):
     def filename(self):
         return self.filepath.split('/')[-1]
     
-    def open_file(self):
+    def open_image(self):
+        if not self.is_image:
+            return
         files_dir = current_app.config['FILES_DIR']
         im = Image.open(os.path.join(files_dir, self.filepath))
         return im
     
     # Make sure to save the model after calling this method...
     def make_thumbnail(self):
+        if not self.is_image:
+            return
         files_dir = current_app.config['FILES_DIR']
-        im = self.open_file()
+        im = self.open_image()
         im.thumbnail(self.THUMBNAIL_SIZE)
         im.save(os.path.join(files_dir, self.filepath_thumbnail))
         self.has_thumbnail = True
     
     def read_barcodes(self, symbols=None):
-        im = self.open_file()
+        if not self.is_image:
+            return
+        im = self.open_image()
+        im = ImageEnhance.Color(im).enhance(0)
+        im = ImageEnhance.Contrast(im).enhance(2)
+        im = ImageEnhance.Sharpness(im).enhance(-1)
+        im.thumbnail((1200, 1200))
         if symbols:
             return pyzbar.decode(im, symbols=symbols)
         else:
             return pyzbar.decode(im)
-
-    def auto_assign(self):
-        # only read CODE128 to speed up decoding
+    
+    def read_rh_barcode(self):
+        if not self.is_image:
+            return
         barcodes = self.read_barcodes(symbols=[pyzbar.ZBarSymbol.CODE128])
         for barcode in barcodes:
             if barcode.type == "CODE128" and barcode.data.decode('utf-8').startswith("RH"):
@@ -274,9 +285,15 @@ class File(db.Model):
                     asset_id = int(barcode.data.decode('utf-8')[2:])
                 except Exception:
                     continue
-                self.assign(asset_id)
                 return asset_id
-        return None
+
+    def auto_assign(self):
+        if not self.is_image:
+            return
+        # only read CODE128 to speed up decoding
+        asset_id = self.read_rh_barcode()
+        if asset_id:
+            self.assign(asset_id)
     
     def assign(self, asset_id):
         '''Assigns File to a given Asset and renames file and thumbnail'''

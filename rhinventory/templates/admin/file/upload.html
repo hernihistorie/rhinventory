@@ -11,6 +11,11 @@
     </ul>
 
     <form method="POST" enctype="multipart/form-data" action="" class="admin-form form-horizontal">
+        {% if form.errors %}
+            <div class="text-error">
+                Form errors: {{ form.errors }}
+            </div>
+        {% endif %}
         {% for control in form %}
             <div class="control-group">
                 <div class="control-label">{{ control.label }}</div>
