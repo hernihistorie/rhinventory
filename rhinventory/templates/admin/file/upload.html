@@ -1,0 +1,23 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+    <ul class="nav nav-tabs">
+        <li>
+            <a href="{{ url_for('.details_view') }}">{{ _gettext('List') }}</a>
+        </li>
+        <li class="active">
+            <a href="javascript:void(0)">Upload</a>
+        </li>
+    </ul>
+
+    <form method="POST" enctype="multipart/form-data" action="" class="admin-form form-horizontal">
+        {% for control in form %}
+            <div class="control-group">
+                <div class="control-label">{{ control.label }}</div>
+                <div class="controls">{{ control }}</div>
+            </div>
+        {% endfor %}
+        (Auto assign is TODO)
+        <input type="submit" value="Submit" class="btn btn-primary" style="vertical-align: top;">
+    </form>
+{% endblock %}

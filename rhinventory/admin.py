@@ -12,7 +12,7 @@ from flask_admin.contrib.sqla import ModelView
 from flask_admin.contrib.fileadmin import FileAdmin
 from flask_admin.form.fields import Select2Field
 #from flask_admin.form.upload import FileUploadField
-from wtforms import Form, RadioField, StringField, FileField
+from wtforms import Form, RadioField, StringField, BooleanField, FileField, MultipleFileField
 from wtforms.validators import InputRequired
 from sqlalchemy import desc
 from werkzeug.utils import secure_filename
@@ -116,8 +116,8 @@ class AssetView(CustomModelView):
     }
     can_export = True
 
-    list_template = "admin/asset_list.html"
-    details_template = "admin/asset_details.html"
+    list_template = "admin/asset/list.html"
+    details_template = "admin/asset/details.html"
 
     def on_model_change(self, form, instance, is_created):
         if is_created:
@@ -230,7 +230,7 @@ class AssetView(CustomModelView):
                                                               filters=None))
 
         return self.render(
-            'admin/asset_gallery.html',
+            'admin/asset/gallery.html',
             data=data,
             list_forms=list_forms,
             delete_form=delete_form,
@@ -279,7 +279,7 @@ class AssetView(CustomModelView):
             get_value=self.get_list_value,
             return_url=self._get_gallery_url(view_args),
 
-			extra_args={}
+            extra_args={}
         )
     
     # Overridden https://flask-admin.readthedocs.io/en/latest/_modules/flask_admin/model/base/#BaseModelView.details_view
@@ -363,9 +363,94 @@ class TransactionView(CustomModelView):
 
         return form
 
+class FileForm(Form):
+    files = MultipleFileField("Files")
+    category = Select2Field("Category", choices=[(el.name, el.name) for el in FileCategory])
+    auto_assign = BooleanField("Auto assign", render_kw ={'checked':''})
+
+class FileAssignForm(Form):
+    asset = Select2Field("asset", coerce=int)
+
 class FileView(CustomModelView):
     can_view_details = True
-    details_template = "admin/file_details.html"
+    list_template = "admin/file/list.html"
+    details_template = "admin/file/details.html"
+
+    # Overridden https://flask-admin.readthedocs.io/en/latest/_modules/flask_admin/model/base/#BaseModelView.details_view
+    @expose('/details/', methods=['GET', 'POST'])
+    def details_view(self):
+        return_url = get_redirect_target() or self.get_url('.index_view')
+
+        id = get_mdict_item_or_list(request.args, 'id')
+        if id is None:
+            return redirect(return_url)
+
+        model = self.get_one(id)
+
+        if model is None:
+            flash('Record does not exist.', 'error')
+            return redirect(return_url)
+
+        template = self.details_template
+
+        file_assign_form = FileAssignForm()
+        assets = [(0, "No asset")]
+        assets += [(a.id, str(a)) for a in self.session.query(Asset).order_by(Asset.id.asc())]
+        file_assign_form.asset.choices = assets
+        file_assign_form.asset.default = model.asset_id or 0
+        file_assign_form.process(request.form)
+
+        if request.method == "POST" and file_assign_form.validate():
+            model.asset_id = file_assign_form.asset.data or None
+            db.session.add(model)
+            db.session.commit()
+            flash(f"File assigned to asset #{file_assign_form.asset.data}", 'success')
+            return redirect(url_for('.details_view', id=id))
+        
+        print(file_assign_form.errors, file_assign_form.asset.data)
+
+        return self.render(template,
+                            model=model,
+                            details_columns=self._details_columns,
+                            get_value=self.get_detail_value,
+                            return_url=return_url,
+                            file_assign_form=file_assign_form)
+
+    @expose('/upload/', methods=['GET', 'POST'])
+    def upload_view(self):
+        form = FileForm(request.form)
+        if form.validate():
+            files = []
+            num_files = len(request.files.getlist("files"))
+            for i, file in enumerate(request.files.getlist("files")):
+                print(f"File {i}/{num_files}")
+                filename = secure_filename(file.filename)
+                directory = 'uploads'
+                os.makedirs(current_app.config['FILES_DIR'] + "/" + directory, exist_ok=True)
+                filepath = f'{directory}/{filename}'
+                file.save(current_app.config['FILES_DIR'] + "/" + filepath)
+
+                category = form.category.data
+                if category == 'unknown' and filename.split('.')[-1].lower() in ('jpg', 'jpeg', 'png', 'gif'):
+                    category = 'image'
+
+                file_db = File(filepath=filepath, storage='files', primary=False, category=category,
+                    upload_date=datetime.datetime.now(), user_id=current_user.id)
+
+                db.session.add(file_db)
+                db.session.commit()
+                
+                if file_db.is_image:
+                    if form.auto_assign.data:
+                        file_db.auto_assign()
+                    file_db.make_thumbnail()
+                    db.session.add(file_db)
+                    db.session.commit()
+                
+                files.append(file_db)
+
+            return self.render('admin/file/upload_result.html', files=files, auto_assign=form.auto_assign.data)
+        return self.render('admin/file/upload.html', form=form)
 
     @expose('/make_thumbnail/', methods=['POST'])
     def make_thumbnail_view(self):
@@ -376,6 +461,20 @@ class FileView(CustomModelView):
         db.session.add(model)
         db.session.commit()
         flash("Thumbnail created", 'success')
+        return redirect(url_for("file.details_view", id=id))
+    
+    @expose('/auto_assign/', methods=['POST'])
+    def auto_assign_view(self):
+        id = get_mdict_item_or_list(request.args, 'id')
+        model = self.get_one(id)
+
+        asset_id = model.auto_assign()
+        if asset_id:
+            db.session.add(model)
+            db.session.commit()
+            flash(f"Automatically assigned to asset #{asset_id:05}", 'success')
+        else:
+            flash("No RH barcode found.", 'success')
         return redirect(url_for("file.details_view", id=id))
 
 def add_admin_views(app):

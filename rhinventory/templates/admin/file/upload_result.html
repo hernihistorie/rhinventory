@@ -1,0 +1,51 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+    <h2>Files uploaded</h2>
+    <table class="table table-hover table-bordered">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Filename</th>
+                <th>Category</th>
+                <th>Thumbnail</th>
+                <th>Asset</th>
+            </tr>
+        </thead>
+        {% for file in files %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('file.edit_view', id=file.id) }}">
+                    <span class="fa fa-pencil glyphicon icon-pencil"></span>
+                    </a>
+
+                    <a href="{{ url_for('file.details_view', id=file.id) }}">
+                        <span class="fa fa-eye glyphicon icon-eye-open"></span>
+                    </a>
+                </td>
+                <td>
+                    <a href="{{ url_for('file.details_view', id=file.id) }}">
+                        {{ file.filename }}
+                    </a>
+                </td>
+                <td>
+                    {{ file.category }}
+                </td>
+                <td>
+                    {{ file.has_thumbnail }}
+                </td>
+                <td>
+                    {% if file.asset %}
+                        <a href="{{ url_for('asset.details_view', id=file.asset.id) }}">
+                            {{ file.asset }}
+                        </a>
+                    {% elif file.is_image and auto_assign %}
+                        <span class="text-danger">
+                            RH barcode not detected
+                        </span>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

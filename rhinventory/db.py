@@ -1,6 +1,7 @@
 import enum
 import json
 import datetime
+import os
 import os.path
 
 from flask import current_app
@@ -257,9 +258,45 @@ class File(db.Model):
         im.save(os.path.join(files_dir, self.filepath_thumbnail))
         self.has_thumbnail = True
     
-    def read_barcodes(self):
+    def read_barcodes(self, symbols=None):
         im = self.open_file()
-        return pyzbar.decode(im)
+        if symbols:
+            return pyzbar.decode(im, symbols=symbols)
+        else:
+            return pyzbar.decode(im)
+
+    def auto_assign(self):
+        # only read CODE128 to speed up decoding
+        barcodes = self.read_barcodes(symbols=[pyzbar.ZBarSymbol.CODE128])
+        for barcode in barcodes:
+            if barcode.type == "CODE128" and barcode.data.decode('utf-8').startswith("RH"):
+                try:
+                    asset_id = int(barcode.data.decode('utf-8')[2:])
+                except Exception:
+                    continue
+                self.assign(asset_id)
+                return asset_id
+        return None
+    
+    def assign(self, asset_id):
+        '''Assigns File to a given Asset and renames file and thumbnail'''
+        self.asset_id = asset_id
+
+        files_dir = current_app.config['FILES_DIR']
+
+        directory = f'assets/{asset_id}'
+        os.makedirs(current_app.config['FILES_DIR'] + "/" + directory, exist_ok=True)
+        new_filepath = f'{directory}/{self.filename}'
+
+        os.rename(os.path.join(files_dir, self.filepath), os.path.join(files_dir, new_filepath))
+        if self.has_thumbnail:
+            old_filepath_thumbnail = self.filepath_thumbnail
+        
+        self.filepath = new_filepath
+
+        if self.has_thumbnail:
+            os.rename(os.path.join(files_dir, old_filepath_thumbnail), os.path.join(files_dir, self.filepath_thumbnail))
+
 
 
 

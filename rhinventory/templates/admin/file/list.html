@@ -1,0 +1,10 @@
+{% extends 'admin/model/list.html' %}
+
+{% block model_menu_bar %}
+    <ul class="nav nav-tabs">
+        <li>
+            <a href="{{ url_for('.upload_view') }}" class="tab">Upload</a>
+        </li>
+    </ul>
+    {{ super() }}
+{% endblock %}
