@@ -305,6 +305,10 @@ class File(db.Model):
         os.makedirs(current_app.config['FILES_DIR'] + "/" + directory, exist_ok=True)
         new_filepath = f'{directory}/{self.filename}'
 
+        while os.path.exists(os.path.join(files_dir, new_filepath)):
+            p = new_filepath.split('.')
+            p[-2] += '_1'
+            new_filepath = '.'.join(p)
         os.rename(os.path.join(files_dir, self.filepath), os.path.join(files_dir, new_filepath))
         if self.has_thumbnail:
             old_filepath_thumbnail = self.filepath_thumbnail

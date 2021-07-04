@@ -317,12 +317,18 @@ class AssetView(CustomModelView):
         form = AssetFileForm(request.form)
 
         if form.validate():
+            files_dir = current_app.config['FILES_DIR']
+
             file = request.files['file']
             filename = secure_filename(file.filename)
             directory = f'assets/{id}'
-            os.makedirs(current_app.config['FILES_DIR'] + "/" + directory, exist_ok=True)
+            os.makedirs(files_dir + "/" + directory, exist_ok=True)
             filepath = f'{directory}/{filename}'
-            file.save(current_app.config['FILES_DIR'] + "/" + filepath)
+            while os.path.exists(os.path.join(files_dir, filepath)):
+                p = filepath.split('.')
+                p[-2] += '_1'
+                filepath = '.'.join(p)
+            file.save(files_dir + "/" + filepath)
 
             category = form.category.data
             if category == 'unknown' and filename.split('.')[-1].lower() in ('jpg', 'jpeg', 'png', 'gif'):
@@ -424,11 +430,16 @@ class FileView(CustomModelView):
             num_files = len(request.files.getlist("files"))
             print(f"Saving {num_files} files...")
             for i, file in enumerate(request.files.getlist("files")):
+                files_dir = current_app.config['FILES_DIR']
                 filename = secure_filename(file.filename)
                 directory = 'uploads'
-                os.makedirs(current_app.config['FILES_DIR'] + "/" + directory, exist_ok=True)
+                os.makedirs(files_dir + "/" + directory, exist_ok=True)
                 filepath = f'{directory}/{filename}'
-                file.save(current_app.config['FILES_DIR'] + "/" + filepath)
+                while os.path.exists(os.path.join(files_dir, filepath)):
+                    p = filepath.split('.')
+                    p[-2] += '_1'
+                    filepath = '.'.join(p)
+                file.save(files_dir + "/" + filepath)
 
                 category = FileCategory(form.category.data)
                 if category == FileCategory.unknown and filename.split('.')[-1].lower() in ('jpg', 'jpeg', 'png', 'gif'):
