@@ -6,6 +6,8 @@ RH inventory
 ```
     # Řeknu si Sankymu aby mi vysvětlil alembic.ini...
 
+    source .venv/bin/activate
+
     # Jako git status
     alembic current
 

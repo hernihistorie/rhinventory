@@ -10,7 +10,7 @@ from sqlalchemy import Column, Integer, Numeric, String, Text, \
 from sqlalchemy.orm import relationship, backref
 from dictalchemy import make_class_dictable
 from sqlalchemy.sql.expression import text
-from PIL import Image, ImageEnhance
+from PIL import Image, ImageEnhance, ImageOps
 from pyzbar import pyzbar
 
 from rhinventory.extensions import db
@@ -258,6 +258,7 @@ class File(db.Model):
             return
         files_dir = current_app.config['FILES_DIR']
         im = self.open_image()
+        im = ImageOps.exif_transpose(im)
         im.thumbnail(self.THUMBNAIL_SIZE)
         im.save(os.path.join(files_dir, self.filepath_thumbnail))
         self.has_thumbnail = True
