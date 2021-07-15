@@ -408,7 +408,7 @@ class FileView(CustomModelView):
         file_assign_form.process(request.form)
 
         if request.method == "POST" and file_assign_form.validate():
-            model.asset_id = file_assign_form.asset.data or None
+            model.assign(file_assign_form.asset.data)
             db.session.add(model)
             db.session.commit()
             flash(f"File assigned to asset #{file_assign_form.asset.data}", 'success')
