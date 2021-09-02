@@ -56,11 +56,10 @@
     <h2>Files</h2>
 
     <div style="margin-bottom: 8px">
-        <strong>Attach file to this asset</strong>:
-        <form method="POST" enctype="multipart/form-data" action="{{ url_for('asset.attach_file_view', id=model.id) }}" style="display: inline;">
-            {{ asset_file_form.file }}
-            {{ asset_file_form.title }}
-            {{ asset_file_form.category }}
+        <strong>Attach files to this asset</strong>:
+        <form method="POST" enctype="multipart/form-data" action="{{ url_for('file.upload_view', id=model.id) }}" style="display: inline;">
+            {{ file_form.files }}
+            {{ file_form.category }}
             <input type="submit" value="Submit" class="btn btn-primary" style="vertical-align: top;">
         </form>
     </div>

@@ -11,15 +11,15 @@ from flask_admin.helpers import get_redirect_target
 from flask_admin.model.helpers import get_mdict_item_or_list
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.contrib.fileadmin import FileAdmin
-from flask_admin.form.fields import Select2Field
 #from flask_admin.form.upload import FileUploadField
-from wtforms import Form, RadioField, StringField, BooleanField, FileField, MultipleFileField
+from wtforms import RadioField
 from wtforms.validators import InputRequired
 from sqlalchemy import desc
 from werkzeug.utils import secure_filename
 
 from rhinventory.extensions import db, admin
 from rhinventory.db import LogItem, Category, Medium, Location, log, Asset, User, Transaction, File, FileCategory
+from rhinventory.forms import FileForm, FileAssignForm
 
 class CustomModelView(ModelView):
     form_excluded_columns = ['transactions']
@@ -46,11 +46,6 @@ class RatingField(RadioField):
         self.choices = RATING_OPTIONS
         self.coerce = int
         self.default = 0
-
-class AssetFileForm(Form):
-    file = FileField("File")
-    title = StringField("Title", render_kw={"placeholder": "Title"})
-    category = Select2Field("Category", choices=[(el.name, el.name) for el in FileCategory])
 
 class AssetView(CustomModelView):
     form_overrides = {
@@ -300,56 +295,14 @@ class AssetView(CustomModelView):
 
         template = self.details_template
 
-        asset_file_form = AssetFileForm()
+        file_form = FileForm()
 
         return self.render(template,
                             model=model,
                             details_columns=self._details_columns,
                             get_value=self.get_detail_value,
                             return_url=return_url,
-                            asset_file_form=asset_file_form)
-
-    @expose('/attach_file/', methods=['POST'])
-    def attach_file_view(self):
-        id = get_mdict_item_or_list(request.args, 'id')
-        model = self.get_one(id)
-
-        form = AssetFileForm(request.form)
-
-        if form.validate():
-            files_dir = current_app.config['FILES_DIR']
-
-            file = request.files['file']
-            filename = secure_filename(file.filename)
-            directory = f'assets/{id}'
-            os.makedirs(files_dir + "/" + directory, exist_ok=True)
-            filepath = f'{directory}/{filename}'
-            while os.path.exists(os.path.join(files_dir, filepath)):
-                p = filepath.split('.')
-                p[-2] += '_1'
-                filepath = '.'.join(p)
-            file.save(files_dir + "/" + filepath)
-
-            category = form.category.data
-            if category == 'unknown' and filename.split('.')[-1].lower() in ('jpg', 'jpeg', 'png', 'gif'):
-                category = 'image'
-
-            file_db = File(filepath=filepath, storage='files', primary=False, category=category,
-                title=form.title.data, upload_date=datetime.datetime.now(), user_id=current_user.id,
-                asset_id=id)
-
-            db.session.add(file_db)
-            db.session.commit()
-            
-            if file_db.is_image:
-                file_db.make_thumbnail()
-                db.session.add(file_db)
-                db.session.commit()
-            flash("File {} uploaded".format(filename), 'success')
-        else:
-            flash("Upload form validation failed: {}".format(form.errors), 'error')
-        
-        return redirect(url_for('.details_view', id=id))
+                            file_form=file_form)
 
 class MediumView(CustomModelView):
     column_default_sort = ('name', True)
@@ -370,13 +323,6 @@ class TransactionView(CustomModelView):
 
         return form
 
-class FileForm(Form):
-    files = MultipleFileField("Files")
-    category = Select2Field("Category", choices=[(el.value, el.name) for el in FileCategory], coerce=int)
-    auto_assign = BooleanField("Auto assign", render_kw ={'checked':''})
-
-class FileAssignForm(Form):
-    asset = Select2Field("asset", coerce=int)
 
 class FileView(CustomModelView):
     can_view_details = True
@@ -423,6 +369,12 @@ class FileView(CustomModelView):
 
     @expose('/upload/', methods=['GET', 'POST'])
     def upload_view(self):
+        id = get_mdict_item_or_list(request.args, 'id')
+        if id:
+            assign_asset = db.session.query(Asset).get(id)
+        else:
+            assign_asset = None
+
         form = FileForm(request.form)
         if request.method == 'POST' and form.validate():
             files = []
@@ -459,13 +411,17 @@ class FileView(CustomModelView):
             
             pool = mp.Pool(mp.cpu_count())
 
-            print("Reading barcodes...")
-            # Read barcodes in parallel
-            if form.auto_assign.data and image_files:
-                result_objects = [pool.apply_async(File.read_rh_barcode, args=(file,)) for file in image_files]
-                asset_ids = [r.get() for r in result_objects]
-                for file, asset_id in zip(image_files, asset_ids):
-                    file.assign(asset_id)
+            if assign_asset:
+                for file in files:
+                    file.assign(assign_asset.id)
+            else:
+                print("Reading barcodes...")
+                # Read barcodes in parallel
+                if form.auto_assign.data and image_files:
+                    result_objects = [pool.apply_async(File.read_rh_barcode, args=(file,)) for file in image_files]
+                    asset_ids = [r.get() for r in result_objects]
+                    for file, asset_id in zip(image_files, asset_ids):
+                        file.assign(asset_id)
 
             print("Creating thumbnails...")
             # Create thumbnails in parallel
@@ -481,7 +437,11 @@ class FileView(CustomModelView):
             db.session.add_all(files)
             db.session.commit()
 
-            return self.render('admin/file/upload_result.html', files=files, auto_assign=form.auto_assign.data)
+            if assign_asset:
+                flash(f"{len(files)} files uploaded and attached to asset", 'success')
+                return redirect(url_for("asset.details_view", id=assign_asset.id))
+            else:
+                return self.render('admin/file/upload_result.html', files=files, auto_assign=form.auto_assign.data)
         return self.render('admin/file/upload.html', form=form)
 
     @expose('/make_thumbnail/', methods=['POST'])
