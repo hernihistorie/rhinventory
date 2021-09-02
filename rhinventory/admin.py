@@ -429,7 +429,11 @@ class FileView(CustomModelView):
             image_files = []
             num_files = len(request.files.getlist("files"))
             print(f"Saving {num_files} files...")
-            for i, file in enumerate(request.files.getlist("files")):
+
+            file_list = request.files.getlist("files")
+            file_list.sort(key=lambda f: f.filename)
+
+            for i, file in enumerate(file_list):
                 files_dir = current_app.config['FILES_DIR']
                 filename = secure_filename(file.filename)
                 directory = 'uploads'
