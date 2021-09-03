@@ -241,6 +241,10 @@ class File(db.Model):
         path[-2] += '_thumb'
         return '.'.join(path)
     
+    def thumbnail_file_exists(self):
+        files_dir = current_app.config['FILES_DIR']
+        return os.path.exists(os.path.join(files_dir, self.filepath_thumbnail))
+    
     @property
     def filename(self):
         return self.filepath.split('/')[-1]
