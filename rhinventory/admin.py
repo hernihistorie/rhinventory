@@ -356,6 +356,7 @@ class FileView(CustomModelView):
         if request.method == "POST" and file_assign_form.validate():
             model.assign(file_assign_form.asset.data)
             db.session.add(model)
+            log("Update", model, user=current_user)
             db.session.commit()
             flash(f"File assigned to asset #{file_assign_form.asset.data}", 'success')
             return redirect(url_for('.details_view', id=id))
@@ -437,6 +438,10 @@ class FileView(CustomModelView):
             db.session.add_all(files)
             db.session.commit()
 
+            for file in files:
+                log("Create", file, user=current_user)
+            db.session.commit()
+
             if assign_asset:
                 flash(f"{len(files)} files uploaded and attached to asset", 'success')
                 return redirect(url_for("asset.details_view", id=assign_asset.id))
@@ -451,6 +456,7 @@ class FileView(CustomModelView):
 
         model.make_thumbnail()
         db.session.add(model)
+        log("Update", model, user=current_user)
         db.session.commit()
         flash("Thumbnail created", 'success')
         return redirect(url_for("file.details_view", id=id))
@@ -463,6 +469,7 @@ class FileView(CustomModelView):
         asset_id = model.auto_assign()
         if asset_id:
             db.session.add(model)
+            log("Update", model, user=current_user)
             db.session.commit()
             flash(f"Automatically assigned to asset #{asset_id:05}", 'success')
         else:

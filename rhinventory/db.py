@@ -271,9 +271,13 @@ class File(db.Model):
         if not self.is_image:
             return
         im = self.open_image()
-        im = ImageEnhance.Color(im).enhance(0)
-        im = ImageEnhance.Contrast(im).enhance(2)
-        im = ImageEnhance.Sharpness(im).enhance(-1)
+        try:
+            im = ImageEnhance.Color(im).enhance(0)
+            im = ImageEnhance.Contrast(im).enhance(2)
+            im = ImageEnhance.Sharpness(im).enhance(-1)
+        except ValueError:
+            return None
+        
         im.thumbnail((1200, 1200))
         if symbols:
             return pyzbar.decode(im, symbols=symbols)
@@ -284,6 +288,8 @@ class File(db.Model):
         if not self.is_image:
             return
         barcodes = self.read_barcodes(symbols=[pyzbar.ZBarSymbol.CODE128])
+        if not barcodes:
+            return
         for barcode in barcodes:
             if barcode.type == "CODE128" and barcode.data.decode('utf-8').startswith("RH"):
                 try:
@@ -302,6 +308,8 @@ class File(db.Model):
     
     def assign(self, asset_id):
         '''Assigns File to a given Asset and renames file and thumbnail'''
+        if not asset_id:
+            return
         self.asset_id = asset_id
 
         files_dir = current_app.config['FILES_DIR']
