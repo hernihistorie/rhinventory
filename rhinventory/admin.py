@@ -286,6 +286,9 @@ class AssetView(CustomModelView):
         id = get_mdict_item_or_list(request.args, 'id')
         if id is None:
             return redirect(return_url)
+        
+        if id.startswith("RH"):
+            id = id[2:]
 
         model = self.get_one(id)
 
