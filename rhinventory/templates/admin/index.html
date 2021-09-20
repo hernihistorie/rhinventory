@@ -9,7 +9,7 @@
                 Allo!
             </p>
             {% if not current_user.is_authenticated %}
-                <a class="btn btn-primary" href="{{ url_for('login') }}">Login with GitHub</a>
+                <a class="btn btn-primary" href="{{ url_for('login', next=next) }}">Login with GitHub</a>
             {% endif %}
             <p>
                 {% if current_user.is_authenticated and not current_user.read_access %}

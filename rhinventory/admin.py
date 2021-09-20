@@ -6,7 +6,7 @@ import multiprocessing as mp
 
 from flask import request, flash, redirect, url_for, current_app
 from flask_login import current_user, login_required
-from flask_admin import expose
+from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.helpers import get_redirect_target
 from flask_admin.model.helpers import get_mdict_item_or_list
 from flask_admin.contrib.sqla import ModelView
@@ -21,11 +21,23 @@ from rhinventory.extensions import db, admin
 from rhinventory.db import LogItem, Category, Medium, Location, log, Asset, User, Transaction, File, FileCategory
 from rhinventory.forms import FileForm, FileAssignForm
 
+class CustomIndexView(AdminIndexView):
+    @expose('/')
+    def index(self):
+        next = request.args.get('next')
+        return self.render('admin/index.html', next=next)
+
+admin._set_admin_index_view(CustomIndexView()) # XXX this is not great
+
 class CustomModelView(ModelView):
     form_excluded_columns = ['transactions']
 
     def is_accessible(self):
         return current_user.is_authenticated and current_user.read_access
+    
+    def inaccessible_callback(self, name, **kwargs):
+        flash("You don't have permission to view this page.  Please log in.", "warning")
+        return redirect(url_for('admin.index', next=request.full_path))
 
     def on_model_change(self, form, instance, is_created):
         if not is_created:

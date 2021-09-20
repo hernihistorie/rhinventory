@@ -39,7 +39,7 @@ def create_app(config_object='rhinventory.config'):
     @app.route('/github-callback')
     @github.authorized_handler
     def authorized(access_token):
-        #next_url = request.args.get('next') or url_for('index')
+        next_url = request.args.get('next')
         if access_token is None:
             return redirect(url_for('index'))
         
@@ -57,6 +57,9 @@ def create_app(config_object='rhinventory.config'):
 
         login_user(user)
 
+        if next_url and not next_url.startswith('http'):
+            return redirect(next_url)
+
         return redirect(url_for('index'))
 
 
@@ -65,7 +68,12 @@ def create_app(config_object='rhinventory.config'):
         if current_user.is_authenticated:
             return redirect(url_for('index'))
         
-        return github.authorize()
+        if request.args.get('next'):
+            redirect_uri = app.config['GITHUB_REDIRECT_URI'] + "?next=" + request.args.get('next')
+        else:
+            redirect_uri = None
+        
+        return github.authorize(redirect_uri=redirect_uri)
 
 
     @app.route('/logout')
