@@ -6,7 +6,7 @@ import os.path
 
 from flask import current_app
 from sqlalchemy import Column, Integer, Numeric, String, Text, \
-    DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean
+    DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint
 from sqlalchemy.orm import relationship, backref
 from dictalchemy import make_class_dictable
 from sqlalchemy.sql.expression import text
@@ -88,6 +88,7 @@ class Asset(db.Model):
     location_id = Column(Integer, ForeignKey('locations.id'))
     category_id = Column(Integer, ForeignKey('categories.id'), nullable=False)
     medium_id   = Column(Integer, ForeignKey('media.id'))
+    hardware_type_id  = Column(Integer, ForeignKey('hardware_type.id'))
 
     children    = relationship("Asset",
                     backref=backref("parent", remote_side=id),
@@ -95,6 +96,7 @@ class Asset(db.Model):
     location    = relationship("Location", backref="assets")
     category    = relationship("Category", backref="assets")
     medium      = relationship("Medium", backref="assets")
+    hardware_type = relationship("HardwareType", backref="assets")
 
     transactions = relationship(
         "Transaction",
@@ -222,9 +224,18 @@ class File(db.Model):
     upload_date = Column(DateTime)
     user_id     = Column(Integer, ForeignKey('users.id'))
     asset_id    = Column(Integer, ForeignKey('assets.id'))
+    transaction_id = Column(Integer, ForeignKey('transactions.id'))
+    benchmark_id   = Column(Integer, ForeignKey('benchmark.id'))
+    # TODO md5 and sha256
+    #md5         = Column
 
     user        = relationship("User", backref="files")
     asset       = relationship("Asset", backref="files")
+    transaction = relationship("Transaction", backref="files")
+    transaction = relationship("Benchmark", backref="files")
+
+    # TODO constraint on only one asset/transaction/benchmark relationship
+    #CheckConstraint()
 
     THUMBNAIL_SIZE = (800, 800)
 
@@ -519,6 +530,7 @@ class Computer(db.Model):
     note        = Column(String())
     hardware    = relationship('Hardware', backref='computer', lazy='dynamic')
     benchmarks  = relationship('Benchmark', backref='computer', lazy='dynamic')
+
     def __str__(self):
         return "PC{0} {1}".format(str(self.id).zfill(3), self.nickname)
 
@@ -549,7 +561,7 @@ class HardwareType(db.Model):
     name        = Column(String(255))
     description = Column(String(255))
     icon        = Column(String(255))
-    items       = relationship('Hardware', backref='type', lazy='dynamic')
+    #items       = relationship('Hardware', backref='type', lazy='dynamic')
 
     def __str__(self):
         return self.name
