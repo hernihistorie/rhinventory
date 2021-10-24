@@ -48,4 +48,32 @@
             </tr>
         {% endfor %}
     </table>
+    {% if duplicate_files %}
+        <h2>Files skipped as duplicates</h2>
+        <table class="table table-hover table-bordered">
+            <thead>
+                <tr>
+                    <th>Filename</th>
+                    <th>Existing file</th>
+                </tr>
+            </thead>
+            {% for filename, file in duplicate_files %}
+                <tr class="warning">
+                    <td>
+                        {{ filename }}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('file.edit_view', id=file.id) }}">
+                            <span class="fa fa-pencil glyphicon icon-pencil"></span>
+                        </a>
+
+                        <a href="{{ url_for('file.details_view', id=file.id) }}">
+                            <span class="fa fa-eye glyphicon icon-eye-open"></span>
+                            {{ file.filename }}
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
 {% endblock %}

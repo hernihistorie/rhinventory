@@ -3,6 +3,7 @@ import os
 import os.path
 from math import ceil
 import multiprocessing as mp
+import hashlib
 
 from flask import request, flash, redirect, url_for, current_app
 from flask_login import current_user, login_required
@@ -401,7 +402,19 @@ class FileView(CustomModelView):
             file_list = request.files.getlist("files")
             file_list.sort(key=lambda f: f.filename)
 
+            duplicate_files = []
+
             for i, file in enumerate(file_list):
+                # Calculate MD5 hash first to ensure file is not a dupe
+                md5 = hashlib.md5(file.read()).digest()
+                file.seek(0)
+
+                matching_file = db.session.query(File).filter(File.md5 == md5).first()
+                if matching_file:
+                    duplicate_files.append((file.filename, matching_file))
+                    continue
+
+                # Save the file, partially accounting for filename collisions
                 files_dir = current_app.config['FILES_DIR']
                 filename = secure_filename(file.filename)
                 directory = 'uploads'
@@ -418,6 +431,7 @@ class FileView(CustomModelView):
                     category = FileCategory.image
 
                 file_db = File(filepath=filepath, storage='files', primary=False, category=category,
+                    md5=md5,
                     upload_date=datetime.datetime.now(), user_id=current_user.id)
                 
                 if file_db.is_image:
@@ -459,9 +473,11 @@ class FileView(CustomModelView):
 
             if assign_asset:
                 flash(f"{len(files)} files uploaded and attached to asset", 'success')
+                if duplicate_files:
+                    flash(f"{len(files)} files skipped as duplicates", 'warning')
                 return redirect(url_for("asset.details_view", id=assign_asset.id))
             else:
-                return self.render('admin/file/upload_result.html', files=files, auto_assign=form.auto_assign.data)
+                return self.render('admin/file/upload_result.html', files=files, duplicate_files=duplicate_files, auto_assign=form.auto_assign.data)
         return self.render('admin/file/upload.html', form=form)
 
     @expose('/make_thumbnail/', methods=['POST'])
@@ -502,8 +518,8 @@ def add_admin_views(app):
 
     admin.add_view(FileView(File, db.session))
     
-    path = os.path.join(os.path.dirname(__file__), app.config['FILES_DIR'])
-    admin.add_view(FileAdmin(path, '/files/', name='File management'))
+    #path = os.path.join(os.path.dirname(__file__), app.config['FILES_DIR'])
+    #admin.add_view(FileAdmin(path, '/files/', name='File management'))
 
     for table in [User, LogItem]:
         admin.add_view(AdminModelView(table, db.session))

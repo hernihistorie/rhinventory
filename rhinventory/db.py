@@ -3,6 +3,7 @@ import json
 import datetime
 import os
 import os.path
+import subprocess
 
 from flask import current_app
 from sqlalchemy import Column, Integer, Numeric, String, Text, \
@@ -226,7 +227,6 @@ class File(db.Model):
     asset_id    = Column(Integer, ForeignKey('assets.id'))
     transaction_id = Column(Integer, ForeignKey('transactions.id'))
     benchmark_id   = Column(Integer, ForeignKey('benchmark.id'))
-    # TODO md5 and sha256
     md5         = Column(LargeBinary(16))
     sha256      = Column(LargeBinary(32))
 
@@ -260,6 +260,11 @@ class File(db.Model):
     @property
     def filename(self):
         return self.filepath.split('/')[-1]
+    
+    @property
+    def full_filepath(self):
+        files_dir = current_app.config['FILES_DIR']
+        return os.path.join(files_dir, self.filepath)
     
     def open_image(self):
         if not self.is_image:
@@ -343,6 +348,12 @@ class File(db.Model):
         if self.has_thumbnail:
             os.rename(os.path.join(files_dir, old_filepath_thumbnail), os.path.join(files_dir, self.filepath_thumbnail))
 
+    def calculate_md5sum(self):
+        # Let's launch a subprocess to (hopefully) be faster
+        result = subprocess.run(["md5sum", self.full_filepath], capture_output=True)
+        if result.returncode == 0:
+            hash = bytes.fromhex(result.stdout.split()[0].decode('ascii'))
+            self.md5 = hash
 
 
 
