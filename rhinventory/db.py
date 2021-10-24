@@ -227,7 +227,8 @@ class File(db.Model):
     transaction_id = Column(Integer, ForeignKey('transactions.id'))
     benchmark_id   = Column(Integer, ForeignKey('benchmark.id'))
     # TODO md5 and sha256
-    #md5         = Column
+    md5         = Column(LargeBinary(16))
+    sha256      = Column(LargeBinary(32))
 
     user        = relationship("User", backref="files")
     asset       = relationship("Asset", backref="files")

@@ -12,8 +12,11 @@
                 <a class="btn btn-primary" href="{{ url_for('login', next=next) }}">Login with GitHub</a>
             {% endif %}
             <p>
-                {% if current_user.is_authenticated and not current_user.read_access %}
-                    Nemáte práva, požádejte si o ně.
+                {% if current_user.is_authenticated %}
+                    {% if not current_user.read_access %}
+                        <p class="text-warning">Nemáte práva, požádejte si o ně.
+                    {% endif %}
+                    <p>Omrkni další info <a href="https://retroherna.org/wiki/doku.php?id=inventar">na wiki</a>.
                 {% endif %}
         </div>
     </div>
