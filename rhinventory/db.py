@@ -31,8 +31,8 @@ class User(db.Model):
     github_id = Column(Integer)
     github_login = Column(String(255))
 
-    #person_id = Column(Integer, ForeignKey('people.id'))
-    #person = relationship("Person")
+    party_id = Column(Integer, ForeignKey('parties.id'))
+    party = relationship("Party")
 
     @property
     def is_authenticated(self):
@@ -53,11 +53,12 @@ class User(db.Model):
         return self.username or self.github_login
 
 
-class Person(db.Model):
-    __tablename__ = 'people'
+class Party(db.Model):
+    __tablename__ = 'parties'
     id = Column(Integer, primary_key=True)
     name = Column(String(255))
     email = Column(String(255))
+    is_person = Column(Boolean)
     note = Column(Text)
 
 class AssetStatus(enum.Enum):
