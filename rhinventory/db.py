@@ -61,6 +61,7 @@ class Party(db.Model):
     is_person = Column(Boolean)
     note = Column(Text)
 
+
 class AssetStatus(enum.Enum):
     unknown = 0
     owned = 1
@@ -167,6 +168,9 @@ class Transaction(db.Model):
     cost        = Column(Numeric)
     note        = Column(Text)
     date        = Column(DateTime)
+
+    url         = Column(String)
+    penouze_id  = Column(Integer)
 
     assets      = relationship(
         "Asset",
