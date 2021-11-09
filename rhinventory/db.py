@@ -57,9 +57,18 @@ class Party(db.Model):
     __tablename__ = 'parties'
     id = Column(Integer, primary_key=True)
     name = Column(String(255))
+    legal_name = Column(String(255))
     email = Column(String(255))
     is_person = Column(Boolean)
+    is_member = Column(Boolean) # member of Herní historie
     note = Column(Text)
+
+    def __str__(self):
+        name = self.name or self.legal_name
+        if self.is_member:
+            name = "[RH] " + name
+        
+        return name
 
 
 class AssetStatus(enum.Enum):
@@ -158,20 +167,24 @@ class TransactionType(enum.Enum):
     return_in   = 6
     lend        = -6
 
-# TODO this class should use the person database, not user and string
 class Transaction(db.Model):
     __tablename__ = 'transactions'
     id          = Column(Integer, primary_key=True)
     transaction_type = Column(Enum(TransactionType))
-    user_id     = Column(Integer) # TODO ForeignKey
-    counterparty = Column(String)
+    user_id     = Column(Integer) # deprecated
+    counterparty = Column(String) # deprecated
     cost        = Column(Numeric)
     note        = Column(Text)
     date        = Column(DateTime)
 
+    our_party_id = Column(Integer, ForeignKey('parties.id'))
+    counterparty_id = Column(Integer, ForeignKey('parties.id'))
+
     url         = Column(String)
     penouze_id  = Column(Integer)
 
+    our_party = relationship("Party", foreign_keys=our_party_id)
+    counterparty_new = relationship("Party", foreign_keys=counterparty_id)
     assets      = relationship(
         "Asset",
         secondary='transaction_assets')
@@ -233,7 +246,9 @@ class File(db.Model):
     transaction_id = Column(Integer, ForeignKey('transactions.id'))
     benchmark_id   = Column(Integer, ForeignKey('benchmark.id'))
     md5         = Column(LargeBinary(16))
+    original_md5 = Column(LargeBinary(16))
     sha256      = Column(LargeBinary(32))
+    original_sha256 = Column(LargeBinary(32))
 
     user        = relationship("User", backref="files")
     asset       = relationship("Asset", backref="files")
