@@ -9,26 +9,35 @@
         None
     {% endif %}
 
-    <div style="margin: 8px 0 8px 0;">
-        {% if model.has_thumbnail and not model.thumbnail_file_exists() %}
-            <div class="text-error">
-                File has thumbnail entry in DB, but file is missing!
-            </div>
-        {% endif %}
-        <a href="{{ url_for('files.static', filename=model.filepath) }}" class="btn btn-secondary">Download</a>
-        {% if model.is_image %}
-            {% if model.has_thumbnail and model.thumbnail_file_exists() %}
-                <a href="{{ url_for('files.static', filename=model.filepath_thumbnail) }}" class="btn btn-secondary">Thumbnail</a>
-            {% else %}
-                <form method="POST" action="{{ url_for('file.make_thumbnail_view', id=model.id) }}" style="display: inline;">
-                    <input type="submit" value="Make thumbnail" class="btn btn-primary">
-                </form>
+    <div style="margin: 8px 0 8px 0; display: flex; justify-content: space-between;">
+        <div>
+            {% if model.has_thumbnail and not model.thumbnail_file_exists() %}
+                <div class="text-error">
+                    File has thumbnail entry in DB, but file is missing!
+                </div>
             {% endif %}
-        {% endif %}
-        <form method="POST" action="" style="display: inline;">
-            {{ file_assign_form.asset(style='margin-bottom: 0px;') }}
-            <input type="submit" value="Assign" class="btn btn-primary">
-        </form>
+            <a href="{{ url_for('files.static', filename=model.filepath) }}" class="btn btn-secondary">Download</a>
+            {% if model.is_image %}
+                {% if model.has_thumbnail and model.thumbnail_file_exists() %}
+                    <a href="{{ url_for('files.static', filename=model.filepath_thumbnail) }}" class="btn btn-secondary">Thumbnail</a>
+                {% else %}
+                    <form method="POST" action="{{ url_for('file.make_thumbnail_view', id=model.id) }}" style="display: inline;">
+                        <input type="submit" value="Make thumbnail" class="btn btn-primary">
+                    </form>
+                {% endif %}
+            {% endif %}
+            <form method="POST" action="" style="display: inline;">
+                {{ file_assign_form.asset(style='margin-bottom: 0px;') }}
+                <input type="submit" value="Assign" class="btn btn-primary">
+            </form>
+        </div>
+        <div>
+            {% for rotation, icon in [('270', '↶'), ('90', '↷'), ('180', '180°')] %}
+                <form method="POST" action="{{ url_for('file.rotate_view', id=model.id, rotation=rotation) }}" style="display: inline;">
+                    <input type="submit" value="{{ icon }}" class="btn btn-primary">
+                </form>
+            {% endfor %}
+        </div>
     </div>
     {% if model.is_image %}
         <img src="{{ url_for('files.static', filename=model.filepath) }}" style="margin-bottom: 8px;">

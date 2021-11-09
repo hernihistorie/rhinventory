@@ -417,7 +417,7 @@ class FileView(CustomModelView):
                 md5 = hashlib.md5(file.read()).digest()
                 file.seek(0)
 
-                matching_file = db.session.query(File).filter(File.md5 == md5).first()
+                matching_file = db.session.query(File).filter((File.md5 == md5) | (File.original_md5 == md5)).first()
                 if matching_file:
                     duplicate_files.append((file.filename, matching_file))
                     continue
@@ -498,6 +498,24 @@ class FileView(CustomModelView):
         log("Update", model, user=current_user)
         db.session.commit()
         flash("Thumbnail created", 'success')
+        return redirect(url_for("file.details_view", id=id))
+    
+    @expose('/rotate/', methods=['POST'])
+    def rotate_view(self):
+        id = get_mdict_item_or_list(request.args, 'id')
+        model = self.get_one(id)
+
+        if model.filename.lower().split('.')[-1] not in ('jpg', 'jpeg'):
+            flash("Sorry, rotation is currently only available for JPEG files.", 'error')
+            return redirect(url_for("file.details_view", id=id))
+        
+        rotation = get_mdict_item_or_list(request.args, 'rotation')
+
+        model.rotate(int(rotation))
+        db.session.add(model)
+        log("Update", model, user=current_user, action="rotate", rotation=rotation)
+        db.session.commit()
+        flash("Image rotated", 'success')
         return redirect(url_for("file.details_view", id=id))
     
     @expose('/auto_assign/', methods=['POST'])

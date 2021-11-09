@@ -304,6 +304,33 @@ class File(db.Model):
         im.save(os.path.join(files_dir, self.filepath_thumbnail))
         self.has_thumbnail = True
     
+    def rotate(self, rotation=None, make_thumbnail=True):
+        if not self.is_image:
+            return
+        
+        if self.filename.lower().split('.')[-1] not in ('jpg', 'jpeg'):
+            return
+        
+        option = {
+            90: '-9',
+            180: '-1',
+            270: '-2',
+            None: '-a',
+        }[rotation]
+
+        command = ["exiftran", option, '-i', self.full_filepath]
+        result = subprocess.run(command, capture_output=True)
+        if result.returncode != 0:
+            raise RuntimeError("exiftran failed: " + repr(result))
+        
+        if self.original_md5 is None:
+            self.original_md5 = self.md5
+        
+        self.calculate_md5sum()
+
+        if make_thumbnail:
+            self.make_thumbnail()
+    
     def read_barcodes(self, symbols=None):
         if not self.is_image:
             return
