@@ -19,7 +19,7 @@ from sqlalchemy import desc
 from werkzeug.utils import secure_filename
 
 from rhinventory.extensions import db, admin
-from rhinventory.db import LogItem, Category, Medium, Location, log, Asset, User, Transaction, File, FileCategory
+from rhinventory.db import LogItem, Category, Medium, Location, log, Asset, User, Transaction, File, FileCategory, Party
 from rhinventory.forms import FileForm, FileAssignForm
 
 class CustomIndexView(AdminIndexView):
@@ -86,8 +86,11 @@ class AssetView(CustomModelView):
 
     can_view_details = True
     column_filters = [
-        'location',
-        'category',
+        'category.name',
+        'medium.name',
+        'name',
+        'manufacturer',
+        'parent.id',
     ]
     column_searchable_list = [
         'name',
@@ -325,7 +328,8 @@ class MediumView(CustomModelView):
 
 class TransactionView(CustomModelView):
     can_view_details = True
-    column_default_sort = ('date', True)
+    column_default_sort = ('id', True)
+    column_list = ('id', 'date', 'transaction_type', 'counterparty', 'assets')
 
     def create_form(self, obj=None):
         form = super(TransactionView, self).create_form()
@@ -345,7 +349,9 @@ class FileView(CustomModelView):
     list_template = "admin/file/list.html"
     details_template = "admin/file/details.html"
 
+    column_list = ('id', 'category', 'filepath', 'primary', 'asset', 'transaction', 'upload_date')
     form_excluded_columns = ('user', 'filepath', 'storage', 'has_thumbnail', 'analyzed', 'md5', 'sha256', 'upload_date')
+    column_default_sort = ('id', True)
 
     # Overridden https://flask-admin.readthedocs.io/en/latest/_modules/flask_admin/model/base/#BaseModelView.details_view
     @expose('/details/', methods=['GET', 'POST'])
@@ -509,6 +515,15 @@ class FileView(CustomModelView):
             flash("No RH barcode found.", 'success')
         return redirect(url_for("file.details_view", id=id))
 
+
+class UserView(CustomModelView):
+    column_list = ('id', 'username', 'github_login', 'read_access', 'write_access', 'admin')
+    form_excluded_columns = ()
+    column_default_sort = ('id', False)
+
+
+
+
 def add_admin_views(app):
     admin.add_view(AssetView(Asset, db.session))
 
@@ -518,10 +533,14 @@ def add_admin_views(app):
     admin.add_view(MediumView(Medium, db.session))
     admin.add_view(TransactionView(Transaction, db.session))
 
+    admin.add_view(AdminModelView(Party, db.session))
+
     admin.add_view(FileView(File, db.session))
+
+    admin.add_view(UserView(User, db.session))
     
     #path = os.path.join(os.path.dirname(__file__), app.config['FILES_DIR'])
     #admin.add_view(FileAdmin(path, '/files/', name='File management'))
 
-    for table in [User, LogItem]:
+    for table in [LogItem]:
         admin.add_view(AdminModelView(table, db.session))
