@@ -345,6 +345,8 @@ class FileView(CustomModelView):
     list_template = "admin/file/list.html"
     details_template = "admin/file/details.html"
 
+    form_excluded_columns = ('user', 'filepath', 'storage', 'has_thumbnail', 'analyzed', 'md5', 'sha256', 'upload_date')
+
     # Overridden https://flask-admin.readthedocs.io/en/latest/_modules/flask_admin/model/base/#BaseModelView.details_view
     @expose('/details/', methods=['GET', 'POST'])
     def details_view(self):
