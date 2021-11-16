@@ -3,6 +3,7 @@ ul.rating-field label { display: inline; }
 
 .upload_result_thumb {
     max-height: 46px; margin: auto; display: block;
+    transition: transform .2s; /* Animation */
 }
 
 .upload_result_thumb:hover {

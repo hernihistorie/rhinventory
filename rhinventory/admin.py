@@ -542,6 +542,24 @@ class FileView(CustomModelView):
 
         return redirect(url_for("file.details_view", id=id))
     
+    @expose('/assign/', methods=['POST'])
+    def assign_view(self):
+        id = get_mdict_item_or_list(request.args, 'id')
+        model = self.get_one(id)
+
+        asset_id = get_mdict_item_or_list(request.args, 'asset_id')
+
+        model.assign(asset_id)
+        db.session.add(model)
+        log("Update", model, user=current_user)
+        db.session.commit()
+
+        flash(f"File assigned to asset #{asset_id}", 'success')
+        if request.args.get('refresh', False):
+            return 'OK', 200, {'HX-Refresh': 'true'}
+        
+        return redirect(url_for('.details_view', id=id))
+    
     @expose('/auto_assign/', methods=['POST'])
     def auto_assign_view(self):
         id = get_mdict_item_or_list(request.args, 'id')

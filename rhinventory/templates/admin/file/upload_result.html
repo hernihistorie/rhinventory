@@ -8,12 +8,14 @@
                 <th></th>
                 <th>Filename</th>
                 <th>Category</th>
-                <th>Thumbnail</th>
-                <th></th>
-                <th>Asset</th>
+                <th colspan=2>Thumbnail</th>
+                <th colspan=2>Asset</th>
             </tr>
         </thead>
         {% for file in files %}
+            {# Let me use this space to make note of how much I abhor 1-indexing #}
+            {% set prev_file = files[loop.index - 2] %}
+            {% set next_file = files[loop.index] if loop.index < files | count else None %}
             <tr>
                 <td>
                     <a href="{{ url_for('file.edit_view', id=file.id) }}">
@@ -40,7 +42,7 @@
                 <td>
                     {% if file.has_thumbnail %}
                         {% for rotation, icon in [('270', '↶'), ('90', '↷'), ('180', '180°')] %}
-                            <button hx-post="{{ url_for('file.rotate_view', id=file.id, rotation=rotation, refresh=True) }}" class="btn btn-primary">
+                            <button hx-post="{{ url_for('file.rotate_view', id=file.id, rotation=rotation, refresh=True) }}" class="btn btn-secondary">
                                 {{ icon }}
                             </button>
                         {% endfor %}
@@ -55,6 +57,28 @@
                         <span class="text-warning">
                             RH barcode not detected
                         </span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if not file.asset and (prev_file.asset or next_file.asset) %}
+                        {% if prev_file.asset == next_file.asset %}
+                            <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=prev_file.asset.id, redirect=True) }}"
+                                class="btn btn-secondary"
+                                {% if not prev_file.asset %} disabled {% endif %}>
+                                ⇕
+                            </button>
+                        {% else %}
+                            <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=prev_file.asset.id, redirect=True) }}"
+                                class="btn btn-secondary"
+                                {% if not prev_file.asset %} disabled {% endif %}>
+                                ⇞
+                            </button>
+                            <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=next_file.asset.id, redirect=True) }}"
+                                class="btn btn-secondary"
+                                {% if not next_file.asset %} disabled {% endif %}>
+                                ⇟
+                            </button>
+                        {% endif %}
                     {% endif %}
                 </td>
             </tr>
