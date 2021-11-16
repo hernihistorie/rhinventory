@@ -5,7 +5,7 @@ from math import ceil
 import multiprocessing as mp
 import hashlib
 
-from flask import request, flash, redirect, url_for, current_app
+from flask import request, flash, redirect, url_for, current_app, jsonify
 from flask_login import current_user, login_required
 from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.helpers import get_redirect_target
@@ -488,9 +488,15 @@ class FileView(CustomModelView):
                     flash(f"{len(files)} files skipped as duplicates", 'warning')
                 return redirect(url_for("asset.details_view", id=assign_asset.id))
             else:
-                return redirect(url_for("file.upload_result_view", files=repr([f.id for f in files]),
-                                                                duplicate_files=repr([(f0, f1.id) for f0, f1 in duplicate_files]),
-                                                                auto_assign=form.auto_assign.data))
+                if request.form.get('xhr', False):
+                    return jsonify(files=[f.id for f in files],
+                            duplicate_files=[(f0, f1.id) for f0, f1 in duplicate_files],
+                            num_files=num_files,
+                            auto_assign=form.auto_assign.data)
+                else:
+                    return redirect(url_for("file.upload_result_view", files=repr([f.id for f in files]),
+                                duplicate_files=repr([(f0, f1.id) for f0, f1 in duplicate_files]),
+                                auto_assign=form.auto_assign.data))
         return self.render('admin/file/upload.html', form=form)
     
     @expose('/upload/result', methods=['GET'])
