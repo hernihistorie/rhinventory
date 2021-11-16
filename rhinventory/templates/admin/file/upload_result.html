@@ -62,18 +62,18 @@
                 <td>
                     {% if not file.asset and (prev_file.asset or next_file.asset) %}
                         {% if prev_file.asset == next_file.asset %}
-                            <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=prev_file.asset.id, redirect=True) }}"
+                            <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=prev_file.asset.id, refresh=True) }}"
                                 class="btn btn-secondary"
                                 {% if not prev_file.asset %} disabled {% endif %}>
                                 ⇕
                             </button>
                         {% else %}
-                            <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=prev_file.asset.id, redirect=True) }}"
+                            <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=prev_file.asset.id, refresh=True) }}"
                                 class="btn btn-secondary"
                                 {% if not prev_file.asset %} disabled {% endif %}>
                                 ⇞
                             </button>
-                            <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=next_file.asset.id, redirect=True) }}"
+                            <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=next_file.asset.id, refresh=True) }}"
                                 class="btn btn-secondary"
                                 {% if not next_file.asset %} disabled {% endif %}>
                                 ⇟
