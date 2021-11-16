@@ -9,6 +9,7 @@
                 <th>Filename</th>
                 <th>Category</th>
                 <th>Thumbnail</th>
+                <th></th>
                 <th>Asset</th>
             </tr>
         </thead>
@@ -32,7 +33,18 @@
                     {{ file.category }}
                 </td>
                 <td style="padding: 0;">
-                    <img src="{{ url_for('files.static', filename=file.filepath_thumbnail) }}" class="upload_result_thumb">
+                    {% if file.has_thumbnail %}
+                        <img src="{{ url_for('files.static', filename=file.filepath_thumbnail) }}" class="upload_result_thumb">
+                    {% endif %}
+                </td>
+                <td>
+                    {% if file.has_thumbnail %}
+                        {% for rotation, icon in [('270', '↶'), ('90', '↷'), ('180', '180°')] %}
+                            <button hx-post="{{ url_for('file.rotate_view', id=file.id, rotation=rotation, refresh=True) }}" class="btn btn-primary">
+                                {{ icon }}
+                            </button>
+                        {% endfor %}
+                    {% endif %}
                 </td>
                 <td>
                     {% if file.asset %}

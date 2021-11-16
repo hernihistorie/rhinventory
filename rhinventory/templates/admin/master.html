@@ -2,6 +2,8 @@
 {% block head_css %}
 {{ super() }}
 <link href="/static/main.css" rel="StyleSheet" type="text/css">
+
+<script src="https://unpkg.com/htmx.org@1.6.0"></script>
 {% endblock head_css %}
 
 {% block access_control %}
@@ -12,4 +14,13 @@
             <a href="{{ url_for('logout') }}">Log out</a>
         </div>
     {% endif %}
+{% endblock %}
+
+
+{% block tail %}
+    <!--
+        <div style="position: fixed; top: 32px; left: 32px; border: 1px solid blue; padding: 8px; font-size: 32px;" class="htmx-indicator">
+            Loading...
+        </div>
+    -->
 {% endblock %}

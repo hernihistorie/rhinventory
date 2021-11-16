@@ -2,10 +2,24 @@ ul.rating-field li { list-style-type: none; display: inline; margin-right: 1em; 
 ul.rating-field label { display: inline; }
 
 .upload_result_thumb {
-    max-height: 42px; margin: auto; display: block;
+    max-height: 46px; margin: auto; display: block;
 }
 
 .upload_result_thumb:hover {
     position: relative;
     transform: scale(6, 6);
 }
+
+.btn.htmx-request {
+    background: linear-gradient(225deg, #00abab, #00daab, #dd00ab, #abe400, #d9ab00);
+    background-size: 300% 300%;
+    animation: cycle 1s ease infinite;
+}
+
+@keyframes cycle {
+    0% {
+      background-position: 94% 0%; }
+    50% {
+      background-position: 7% 100%; }
+    100% {
+      background-position: 94% 0%; } }

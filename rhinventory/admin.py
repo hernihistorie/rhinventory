@@ -536,6 +536,10 @@ class FileView(CustomModelView):
         log("Update", model, user=current_user, action="rotate", rotation=rotation)
         db.session.commit()
         flash("Image rotated", 'success')
+        
+        if request.args.get('refresh', False):
+            return 'OK', 200, {'HX-Refresh': 'true'}
+
         return redirect(url_for("file.details_view", id=id))
     
     @expose('/auto_assign/', methods=['POST'])
