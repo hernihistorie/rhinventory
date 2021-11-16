@@ -39,13 +39,13 @@
                         <img src="{{ url_for('files.static', filename=file.filepath_thumbnail) }}" class="upload_result_thumb">
                     {% endif %}
                 </td>
-                <td>
+                <td style="white-space: nowrap;">
                     {% if file.has_thumbnail %}
-                        {% for rotation, icon in [('270', '↶'), ('0', '↓'), ('90', '↷'), ('180', '180°')] %}
+                        {% for rotation, icon in [('270', '↶'), ('0', '↓'), ('90', '↷'), ('180', '180°')] -%}
                             <button hx-post="{{ url_for('file.rotate_view', id=file.id, rotation=rotation, refresh=True) }}" class="btn btn-secondary">
                                 {{ icon }}
                             </button>
-                        {% endfor %}
+                        {%- endfor %}
                     {% endif %}
                 </td>
                 <td>
@@ -59,7 +59,7 @@
                         </span>
                     {% endif %}
                 </td>
-                <td>
+                <td style="white-space: nowrap;">
                     {% if not file.asset and (prev_file.asset or next_file.asset) %}
                         {% if prev_file.asset == next_file.asset %}
                             <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=prev_file.asset.id, refresh=True) }}"
@@ -68,14 +68,21 @@
                                 ⇕
                             </button>
                         {% else %}
-                            <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=prev_file.asset.id, refresh=True) }}"
+                            <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=prev_file.asset.id, refresh=True) if prev_file.asset else None }}"
                                 class="btn btn-secondary"
                                 {% if not prev_file.asset %} disabled {% endif %}>
                                 ⇞
                             </button>
-                            <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=next_file.asset.id, refresh=True) }}"
+                            <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=prev_file.asset.id+1, refresh=True) if prev_file.asset else None }}"
+                                class="btn btn-secondary"
+                                {% if not prev_file.asset %} disabled {% endif %}>
+                                ⇞+1
+                                {% if not prev_file.asset or not next_file.asset or (prev_file.asset.id+1 != next_file.asset.id) %}
+                            </button>
+                            <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=next_file.asset.id, refresh=True) if next_file.asset else None }}"
                                 class="btn btn-secondary"
                                 {% if not next_file.asset %} disabled {% endif %}>
+                                {% endif %}
                                 ⇟
                             </button>
                         {% endif %}

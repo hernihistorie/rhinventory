@@ -2,8 +2,9 @@ ul.rating-field li { list-style-type: none; display: inline; margin-right: 1em; 
 ul.rating-field label { display: inline; }
 
 .upload_result_thumb {
-    max-height: 46px; margin: auto; display: block;
-    transition: transform .2s; /* Animation */
+    height: 46px; margin: auto; display: block;
+    transition: transform .2s;
+    transform-origin: bottom right;
 }
 
 .upload_result_thumb:hover {
