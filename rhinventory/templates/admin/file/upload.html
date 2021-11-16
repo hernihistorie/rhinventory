@@ -46,7 +46,7 @@
             const fileUploadElem = document.querySelector("input#files")
             const formElem = document.querySelector("form#upload-form")
 
-            sliceBy = 2;
+            sliceBy = 3;
 
             formElem.addEventListener("submit", (event) => {
                 // prevent normal form submit behavior 
@@ -87,7 +87,6 @@
                         xhr.onload = () => {
                             if (xhr.readyState === 4 && xhr.status === 200) {
                                 response = JSON.parse(xhr.responseText);
-                                console.log('done', response['num_files']);
                                 fileIds = fileIds.concat(response['files']);
                                 duplicateFiles = duplicateFiles.concat(response['duplicate_files']);
 
@@ -100,13 +99,15 @@
                                 fail = true;
                             }
                         }
-
-                        xhr.onprogress = (e) => {
-                            document.querySelector("#progress").setAttribute("value", (uploadedCount / totalFileCount) + (e.loaded / e.total) * sliceBy * 100)
-                        }
                         
                         // initiate AJAX request
                         xhr.open("POST", formElem.action)
+
+                        xhr.upload.onprogress = (e) => {
+                            console.log('progr', e.lengthComputable, e.loaded, e.total)
+                            document.querySelector("#progress").setAttribute("value", ((uploadedCount + (e.loaded / e.total) * sliceBy) / totalFileCount) * 100)
+                        }
+
                         xhr.send(formData)
                     } else {
                         // we're done
