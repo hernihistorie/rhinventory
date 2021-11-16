@@ -41,7 +41,7 @@
                 </td>
                 <td>
                     {% if file.has_thumbnail %}
-                        {% for rotation, icon in [('270', '↶'), ('90', '↷'), ('180', '180°')] %}
+                        {% for rotation, icon in [('270', '↶'), ('0', '↓'), ('90', '↷'), ('180', '180°')] %}
                             <button hx-post="{{ url_for('file.rotate_view', id=file.id, rotation=rotation, refresh=True) }}" class="btn btn-secondary">
                                 {{ icon }}
                             </button>

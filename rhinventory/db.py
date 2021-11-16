@@ -311,14 +311,18 @@ class File(db.Model):
         if self.filename.lower().split('.')[-1] not in ('jpg', 'jpeg'):
             return
         
-        option = {
-            90: '-9',
-            180: '-1',
-            270: '-2',
-            None: '-a',
-        }[rotation]
+        if rotation == 0:
+            command = ["exiftran", '-a', '-ni', '-i', self.full_filepath]
+        else:
+            option = {
+                0: ['-a', '-no'],
+                90: '-9',
+                180: '-1',
+                270: '-2',
+                None: '-a',
+            }[rotation]
 
-        command = ["exiftran", option, '-i', self.full_filepath]
+            command = ["exiftran", option, '-i', self.full_filepath]
         result = subprocess.run(command, capture_output=True)
         if result.returncode != 0:
             raise RuntimeError("exiftran failed: " + repr(result))
