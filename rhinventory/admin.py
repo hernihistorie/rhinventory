@@ -17,10 +17,13 @@ from wtforms import RadioField
 from wtforms.validators import InputRequired
 from sqlalchemy import desc
 from werkzeug.utils import secure_filename
+from simpleeval import EvalWithCompoundTypes
 
 from rhinventory.extensions import db, admin
 from rhinventory.db import LogItem, Category, Medium, Location, log, Asset, User, Transaction, File, FileCategory, Party
 from rhinventory.forms import FileForm, FileAssignForm
+
+simple_eval = EvalWithCompoundTypes()
 
 class CustomIndexView(AdminIndexView):
     @expose('/')
@@ -485,8 +488,25 @@ class FileView(CustomModelView):
                     flash(f"{len(files)} files skipped as duplicates", 'warning')
                 return redirect(url_for("asset.details_view", id=assign_asset.id))
             else:
-                return self.render('admin/file/upload_result.html', files=files, duplicate_files=duplicate_files, auto_assign=form.auto_assign.data)
+                return redirect(url_for("file.upload_result_view", files=repr([f.id for f in files]),
+                                                                duplicate_files=repr([(f0, f1.id) for f0, f1 in duplicate_files]),
+                                                                auto_assign=form.auto_assign.data))
         return self.render('admin/file/upload.html', form=form)
+    
+    @expose('/upload/result', methods=['GET'])
+    def upload_result_view(self):
+        files = []
+        for file_id in simple_eval.eval(request.args['files']):
+            files.append(db.session.query(File).get(file_id))
+        
+        duplicate_files = []
+        for f0, f1_id in simple_eval.eval(request.args['duplicate_files']):
+            duplicate_files.append((f0, db.session.query(File).get(f1_id)))
+        
+        auto_assign = simple_eval.eval(request.args['auto_assign'])
+        
+        return self.render('admin/file/upload_result.html', files=files, duplicate_files=duplicate_files, auto_assign=auto_assign)
+
 
     @expose('/make_thumbnail/', methods=['POST'])
     def make_thumbnail_view(self):

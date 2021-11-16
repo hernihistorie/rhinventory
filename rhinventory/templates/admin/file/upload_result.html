@@ -31,8 +31,8 @@
                 <td>
                     {{ file.category }}
                 </td>
-                <td>
-                    {{ file.has_thumbnail }}
+                <td style="padding: 0;">
+                    <img src="{{ url_for('files.static', filename=file.filepath_thumbnail) }}" class="upload_result_thumb">
                 </td>
                 <td>
                     {% if file.asset %}
