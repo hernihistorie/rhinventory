@@ -89,9 +89,6 @@ def create_app(config_object='rhinventory.config'):
 
     @app.route('/')
     def index():
-        current_user.read_access = True
-        current_user.write_access = True
-        current_user.admin = True
         return redirect('/admin')
     
     

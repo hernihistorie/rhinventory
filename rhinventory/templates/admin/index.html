@@ -17,6 +17,13 @@
                         <p class="text-warning">Nemáte práva, požádejte si o ně.
                     {% endif %}
                     <p>Omrkni další info <a href="https://retroherna.org/wiki/doku.php?id=inventar">na wiki</a>.
+
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/bokeh/2.4.1/bokeh.min.js" integrity="sha512-2Eg0zNXJlBmICBS/KO67OamNxpln5shamyEK7UiUjvLdtYyCoAhzeAgUWYjJxilTZiPrGYZzlqWfiH1+8DBmVg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+                    
+                    {{ plot_div | safe }}
+
+                    {{ plot_script | safe }}
+
                 {% endif %}
         </div>
     </div>
