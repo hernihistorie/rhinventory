@@ -121,7 +121,7 @@ class Asset(db.Model):
             return f"RHXXXXX {self.name}"
 
     def get_primary_image(self):
-        return db.session.query(File).filter(File.asset_id==self.id and File.category in IMAGE_CATEGORIES).order_by(File.primary.desc(), File.has_thumbnail.desc()).first()
+        return db.session.query(File).filter(File.asset_id==self.id and File.category in IMAGE_CATEGORIES).order_by(File.primary.desc(), File.has_thumbnail.desc(), File.filepath.asc()).first()
 
 
 class Category(db.Model):
