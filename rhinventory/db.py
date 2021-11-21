@@ -229,6 +229,15 @@ class FileCategory(enum.Enum):
 
 IMAGE_CATEGORIES = [FileCategory.image, FileCategory.photo, FileCategory.scan]
 
+def get_next_file_batch_number():
+    largest_batch_file = db.session.query(File).filter(File.batch_number != None) \
+        .order_by(File.batch_number.desc()).limit(1).scalar()
+        
+    if largest_batch_file is None or largest_batch_file.batch_number is None:
+        return 1
+    else:
+        return largest_batch_file.batch_number + 1
+
 class File(db.Model):
     __tablename__ = 'files'
     id          = Column(Integer, primary_key=True)
@@ -241,6 +250,7 @@ class File(db.Model):
     comment     = Column(Text)
     analyzed    = Column(DateTime) # last time it was scanned digitally for barcodes for example
     upload_date = Column(DateTime)
+    batch_number = Column(Integer, default=0)
     user_id     = Column(Integer, ForeignKey('users.id'))
     asset_id    = Column(Integer, ForeignKey('assets.id'))
     transaction_id = Column(Integer, ForeignKey('transactions.id'))

@@ -20,7 +20,7 @@ from werkzeug.utils import secure_filename
 from simpleeval import EvalWithCompoundTypes
 
 from rhinventory.extensions import db, admin
-from rhinventory.db import LogItem, Category, Medium, Location, log, Asset, User, Transaction, File, FileCategory, Party
+from rhinventory.db import LogItem, Category, Medium, Location, log, Asset, User, Transaction, File, FileCategory, Party, get_next_file_batch_number
 from rhinventory.forms import FileForm, FileAssignForm
 
 simple_eval = EvalWithCompoundTypes()
@@ -317,7 +317,8 @@ class AssetView(CustomModelView):
 
         template = self.details_template
 
-        file_form = FileForm()
+        batch_number = get_next_file_batch_number()
+        file_form = FileForm(batch_number=batch_number)
 
         return self.render(template,
                             model=model,
@@ -403,7 +404,9 @@ class FileView(CustomModelView):
         else:
             assign_asset = None
 
-        form = FileForm(request.form)
+        batch_number = get_next_file_batch_number()
+
+        form = FileForm(request.form, batch_number=batch_number)
         if request.method == 'POST' and form.validate():
             files = []
             image_files = []
@@ -442,7 +445,7 @@ class FileView(CustomModelView):
                     category = FileCategory.image
 
                 file_db = File(filepath=filepath, storage='files', primary=False, category=category,
-                    md5=md5,
+                    md5=md5, batch_number=form.batch_number.data,
                     upload_date=datetime.datetime.now(), user_id=current_user.id)
                 
                 if file_db.is_image:
