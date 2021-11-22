@@ -165,6 +165,19 @@ class AssetView(CustomModelView):
         'parent',
     )
     form_create_rules = form_edit_rules
+    form_args = {
+        'category': {
+            'query_factory': lambda: Category.query.order_by(
+                Category.id.asc()
+            )
+        },
+        'medium': {
+            'query_factory': lambda: sorted(
+                Medium.query.order_by(Medium.name.asc()).all(),
+                key=lambda m: m.name[0] in "0123456789"
+            )
+        },
+    }
 
     can_view_details = True
     column_filters = [
