@@ -9,7 +9,9 @@ from flask import request, flash, redirect, url_for, current_app, jsonify
 from flask_login import current_user, login_required
 from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.helpers import get_redirect_target
+from flask_admin.actions import action
 from flask_admin.model.helpers import get_mdict_item_or_list
+from flask_admin.model.template import TemplateLinkRowAction
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.contrib.fileadmin import FileAdmin
 #from flask_admin.form.upload import FileUploadField
@@ -418,6 +420,11 @@ class AssetView(CustomModelView):
                             get_value=self.get_detail_value,
                             return_url=return_url,
                             file_form=file_form)
+                    
+    
+    @action('create_transaction', 'Create transaction')
+    def create_transaction(self, asset_ids):
+        return redirect(url_for('transaction.create_view', asset_id=repr(asset_ids)))
 
 class CategoryView(CustomModelView):
     form_excluded_columns = ('assets')
@@ -437,8 +444,13 @@ class TransactionView(CustomModelView):
         # sent by user. If data has been sent, `form.assets.data` is already filled
         # with appropriate stuff and thus, you must not overwrite it
         if "asset_id" in request.args.keys() and len(form.assets.data) == 0:
-            asset_query = self.session.query(Asset).filter(Asset.id == request.args["asset_id"]).one()
-            form.assets.data = [asset_query]
+            asset_id = simple_eval.eval(request.args["asset_id"])
+            if isinstance(asset_id, list):
+                asset_query = self.session.query(Asset).filter(Asset.id.in_(asset_id)).all()
+                form.assets.data = asset_query
+            else:
+                asset_query = self.session.query(Asset).filter(Asset.id == asset_id).one()
+                form.assets.data = [asset_query]
 
         return form
 
