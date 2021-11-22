@@ -406,6 +406,9 @@ class AssetView(CustomModelView):
                             return_url=return_url,
                             file_form=file_form)
 
+class CategoryView(CustomModelView):
+    form_excluded_columns = ('assets')
+
 class MediumView(CustomModelView):
     column_default_sort = ('name', True)
 
@@ -675,8 +678,9 @@ class UserView(CustomModelView):
 def add_admin_views(app):
     admin.add_view(AssetView(Asset, db.session))
 
-    for table in [Category, Location]:
-        admin.add_view(CustomModelView(table, db.session))
+    admin.add_view(CategoryView(Category, db.session))
+
+    admin.add_view(CustomModelView(Location, db.session))
 
     admin.add_view(MediumView(Medium, db.session))
     admin.add_view(TransactionView(Transaction, db.session))

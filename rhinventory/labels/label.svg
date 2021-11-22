@@ -118,10 +118,10 @@
            width="153.58099"
            height="70.540226"
            x="73.466606"
-           y="25.179279"
+           y="20.5"
            style="line-height:0" /></flowRegion><flowPara
            id="flowPara3784-5"
-           style="font-size:18px;line-height:0.9;letter-spacing:-0.7;">{{ name | escape }}</flowPara><flowPara
+           style="font-size:17.5px;line-height:0.9;letter-spacing:-0.9;">{{ name | escape }}</flowPara><flowPara
            id="flowPara3784-5-subtitle"
            style="font-size:10px;line-height:0.5;letter-spacing:-0.5;">{{ subtitle | escape }}</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
@@ -135,7 +135,7 @@
            height="13.527604"
            x="73.466606"
            {% if not small %}
-             y="25.179279"
+             y="21.179279"
            {% else %}
              y="19.5"
            {% endif %}

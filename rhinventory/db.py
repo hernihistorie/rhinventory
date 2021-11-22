@@ -131,6 +131,7 @@ class Category(db.Model):
     prefix      = Column(String)
     counter     = Column(Integer)
     color       = Column(String)
+    expose_number = Column(Boolean, nullable=False, default=True)
 
     def __str__(self):
         return f"{self.name}"

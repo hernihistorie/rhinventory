@@ -4,6 +4,7 @@ import subprocess
 
 from bs4 import BeautifulSoup as BS
 import barcode
+import barcode.codex
 from barcode.writer import ImageWriter
 
 import jinja2
@@ -15,8 +16,7 @@ def render_jinja_html(template_loc, file_name, **context):
     ).get_template(file_name).render(context)
 
 def make_barcode(text):
-    Code128 = barcode.get_barcode_class('code128')
-    code128 = Code128(text)
+    code128 = barcode.codex.Code128(text)
     fp = BytesIO()
     code128.write(fp)
 
@@ -54,12 +54,12 @@ def make_label(id, custom_code, name, subtitle="", medium="", small=False):
 
 def make_asset_label(asset, small=False):
     id = f"RH{asset.id:05}"
-    if asset.custom_code:
+    if asset.custom_code and asset.category.expose_number:
         code = f"{asset.category.prefix} {asset.custom_code}"
     else:
         code = f"{asset.category.prefix}"
     
-    return make_label(id, f"{asset.category.prefix} {asset.custom_code}", asset.name,
+    return make_label(id, code, asset.name,
         subtitle=asset.manufacturer, medium=asset.medium.name if asset.medium else '',
         small=small)
     
