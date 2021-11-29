@@ -115,10 +115,13 @@ class Asset(db.Model):
         secondary='transaction_assets')
 
     def __str__(self):
-        if self.id is not None:
-            return f"RH{self.id:05} {self.name}"
+        if self.category.expose_number:
+            return f"{self.category.prefix}{self.custom_code} {self.name}"
         else:
-            return f"RHXXXXX {self.name}"
+            if self.id is not None:
+                return f"RH{self.id:05} {self.name}"
+            else:
+                return f"RHXXXXX {self.name}"
 
     def get_primary_image(self):
         return db.session.query(File).filter(File.asset_id==self.id and File.category in IMAGE_CATEGORIES).order_by(File.primary.desc(), File.has_thumbnail.desc(), File.filepath.asc()).first()
