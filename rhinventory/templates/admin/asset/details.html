@@ -30,22 +30,14 @@
         <a href="{{ url_for('label_asset', asset_id=model.id, small=False) }}" class="btn btn-light">
             Show label
         </a>
-        <a id="print-label" class="btn btn-primary">
+        <a href="rhprint:{{model.id}}" id="print-label" class="btn btn-primary">
             Print label
-        </a>
-        <span id="print-result"></span>
-        <a id="copy-print-label-command" class="btn btn-primary">
-            Copy print command
         </a>
     </div>
     <div style="margin-bottom: 8px;">
         <a href="{{ url_for('label_asset', asset_id=model.id, small=True) }}" class="btn btn-light">
             Show small
         </a>
-        <a id="print-label-small" class="btn btn-primary">
-            Print small
-        </a>
-        <span id="print-small-result"></span>
     </div>
 
     <h2><tt>{{ model.category.prefix }} {{ model.custom_code }}</tt> {{ model.name }}</h2>
@@ -164,37 +156,4 @@
     </table>
 
 
-{% endblock %}
-
-{% block tail %}
-    {{ super() }}
-    <script>
-        const copyToClipboard = str => {
-            const el = document.createElement('textarea');
-            el.value = str;
-            el.setAttribute('readonly', '');
-            el.style.position = 'absolute';
-            el.style.left = '-9999px';
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-        };
-
-        /* why did i do this it hurts so much */
-        {% for small in ('', '-small') %}
-            $('#print-label{{small}}').click(function(){
-                $("#print{{small}}-result").html('Printing...');
-                $.post("{{ url_for('print_label_asset', asset_id=model.id, small=True if small else False) }}",
-                    function(data){
-                        $("#print{{small}}-result").html(data);
-                    },
-                )
-            })
-        {% endfor %}
-
-        $('#copy-print-label-command').click(function(){
-            copyToClipboard("rhprint {{model.id}}")
-        })
-    </script>
 {% endblock %}
