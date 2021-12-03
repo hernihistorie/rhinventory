@@ -156,6 +156,7 @@ class AssetView(CustomModelView):
         'category',
         'custom_code',
         'medium',
+        'hardware_type',
         'name',
         'manufacturer',
         'model',
@@ -185,6 +186,7 @@ class AssetView(CustomModelView):
     column_filters = [
         'category.name',
         'medium.name',
+        'hardware_type.name',
         'name',
         'manufacturer',
         'parent.id',
@@ -199,12 +201,13 @@ class AssetView(CustomModelView):
         'category',
         'custom_code',
         'medium',
+        'hardware_type',
         'name',
         'manufacturer',
         'serial',
-        'condition',
-        'functionality',
-        'status',
+        #'condition',
+        #'functionality',
+        #'status',
         'parent',
     ]
     column_sortable_list = [
