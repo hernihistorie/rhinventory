@@ -10,6 +10,9 @@ from rhinventory.db import User, Asset, Location, log
 
 from rhinventory.labels import make_barcode, make_label, make_asset_label
 
+from simpleeval import EvalWithCompoundTypes
+simple_eval = EvalWithCompoundTypes()
+
 def create_app(config_object='rhinventory.config'):
     app = Flask(__name__.split('.')[0], template_folder='templates')
     app.config.from_object(config_object)
@@ -111,6 +114,15 @@ def create_app(config_object='rhinventory.config'):
         label_filename = make_asset_label(asset, small=small)
 
         return send_file(open(label_filename, 'rb'), mimetype='image/png')
+    
+    
+    @login_required
+    @app.route('/label/assets')
+    def label_assets():
+        asset_ids = simple_eval.eval(request.args['asset_ids'])
+        assets = Asset.query.filter(Asset.id.in_(asset_ids)).all()
+
+        return render_template('labels.html', assets=assets)
     
     @login_required
     @app.route('/label/asset/<int:asset_id>/print', methods=['POST'], defaults={'small': False})

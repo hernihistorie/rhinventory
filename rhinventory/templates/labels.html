@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Labels</title>
+    <style>
+        html, body{
+            height: 297mm;
+            width: 210mm;
+            padding: 0;
+        }
+
+        .labels {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10mm;
+        }
+
+        img {
+            height: 150px;
+        }
+        img::last-child {
+            margin-right: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="labels">
+        {% for asset in assets %}
+            <img src="{{ url_for('label_asset', asset_id=asset.id, small=False) }}">
+        {% endfor %}
+    </div>
+</body>
+</html>

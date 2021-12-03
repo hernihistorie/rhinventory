@@ -27,6 +27,10 @@
 
         {% block model_menu_bar_before_filters %}{% endblock %}
 
+        <li>
+            <a href="#" id="add-to-sheet">Add to sheet</a>
+        </li>
+
         {% if filters %}
         <li class="dropdown">
             {{ model_layout.filter_options() }}
@@ -53,4 +57,71 @@
         {% block model_menu_bar_after_filters %}{% endblock %}
 
     </ul>
+{% endblock %}
+
+{% block tail %}
+    <style>
+        .selected {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            margin: 4px;
+            padding: 4px;
+            border: 1px solid #ccc;
+            background: white;
+            border-radius: 3px;
+        }
+
+        .selected-buttons {
+            text-align: right;
+        }
+    </style>
+    <div class="selected">
+        <div id="selected-list">
+        </div>
+        <div class="selected-buttons">
+            <button id="selected-clear">Clear</button>
+            <button id="selected-show-sheet">Show sheet</button>
+        </div>
+    </div>
+    <script>
+        var selected = [];
+
+        var selected_local_storage = localStorage.getItem("selected")
+        if (selected_local_storage) {
+            selected = JSON.parse(selected_local_storage);
+        }
+
+        function showSelected() {
+            localStorage.setItem("selected", JSON.stringify(selected));
+            document.getElementById('selected-list').innerHTML = selected;
+        }
+
+        showSelected()
+
+        document.getElementById("add-to-sheet").onclick = function() {
+            // iterate over all elements with class action-checkbox
+            var checkboxes = document.getElementsByClassName("action-checkbox");
+            for (var i = 0; i < checkboxes.length; i++) {
+                // if checked and not in array
+                if (checkboxes[i].checked && selected.indexOf(checkboxes[i].value) == -1) {
+                    selected.push(checkboxes[i].value);
+                }
+            }
+
+            selected.sort();
+
+            showSelected();
+        }
+
+        document.getElementById("selected-clear").onclick = function() {
+            selected = [];
+            localStorage.setItem("selected", selected);
+            showSelected();
+        }
+
+        document.getElementById("selected-show-sheet").onclick = function() {
+            document.location.href = "{{ get_url('label_assets') }}?asset_ids=" + selected;
+        }
+    </script>
 {% endblock %}
