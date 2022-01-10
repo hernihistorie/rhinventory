@@ -209,6 +209,7 @@ class AssetView(CustomModelView):
         #'functionality',
         #'status',
         'parent',
+        'transactions',
     ]
     column_sortable_list = [
         'id',
