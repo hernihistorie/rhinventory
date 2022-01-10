@@ -62,6 +62,9 @@
 {% block tail %}
     {{ super() }}
     <style>
+        body {
+            margin-bottom: 32px;
+        }
         .selected {
             position: fixed;
             bottom: 0;
@@ -71,6 +74,7 @@
             border: 1px solid #ccc;
             background: white;
             border-radius: 3px;
+            max-width: 50%;
         }
 
         .selected-buttons {
@@ -96,7 +100,7 @@
 
         function showSelected() {
             localStorage.setItem("selected", JSON.stringify(selected));
-            document.getElementById('selected-list').innerHTML = selected;
+            document.getElementById('selected-list').innerHTML = selected.join(', ');
         }
 
         showSelected()
@@ -127,7 +131,7 @@
         }
 
         document.getElementById("selected-create-transaction").onclick = function() {
-            document.location.href = "{{ get_url('transaction.create_view') }}?asset_id=" + selected;
+            document.location.href = "{{ get_url('transaction.create_view') }}?asset_id=[" + selected + "]";
         }
     </script>
 {% endblock %}
