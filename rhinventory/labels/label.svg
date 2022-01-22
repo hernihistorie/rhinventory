@@ -83,10 +83,10 @@
     <image
       {% if not small %}
        y="275.66202"
-       xlink:href="{{ rh_logo_href }}"
+       xlink:href="{{ logo_href }}"
       {% else %}
        y="257.9"
-       xlink:href="{{ rh_logo_text_href }}"
+       xlink:href="{{ logo_text_href }}"
       {% endif %}
        x="0.29396728"
        id="image3775"

@@ -28,15 +28,24 @@
 {% block details_table %}
     <div style="margin-bottom: 8px;">
         <a href="{{ url_for('label_asset', asset_id=model.id, small=False) }}" class="btn btn-light">
-            Show label
+            RH label
         </a>
         <a href="rhprint:{{model.id}}" id="print-label" class="btn btn-primary">
-            Print label
+            Print RH label
+        </a>
+        <a href="{{ url_for('label_asset', asset_id=model.id, small=False, logo_ha=True) }}" class="btn btn-light">
+            HA label
+        </a>
+        <a href="rhprint:{{model.id}}-ha" id="print-label" class="btn btn-primary">
+            Print HA label
         </a>
     </div>
     <div style="margin-bottom: 8px;">
         <a href="{{ url_for('label_asset', asset_id=model.id, small=True) }}" class="btn btn-light">
-            Show small
+            RH small label
+        </a>
+        <a href="rhprint:{{model.id}}-small" id="print-label" class="btn btn-primary">
+            Print RH small label
         </a>
     </div>
 

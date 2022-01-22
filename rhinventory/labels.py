@@ -24,24 +24,36 @@ def make_barcode(text):
 
     return fp
 
-def make_label(id, custom_code, name, subtitle="", medium="", small=False):
+def make_label(id, custom_code, name, subtitle="", medium="", small=False, logo_ha=False):
     PNG_WIDTH = 696
     
     fp = make_barcode(id)
     soup = BS(fp, 'lxml')
     rects = soup.find(id="barcode_group")
 
+    if logo_ha:
+        logo_kwargs = {
+            'logo_href': "../ha_logo.png",
+            'logo_text_href': "../ha_logo.png"
+        }
+    else:
+        logo_kwargs = {
+            'logo_href': "../rh_logo_greyscale.png",
+            'logo_text_href': "../rh_logo_text.png"
+        }
+
     label_svg = render_jinja_html('rhinventory/labels', 'label.svg',
         name=name, custom_code=custom_code, id=id, 
         subtitle=subtitle or '', medium=medium,
         barcode_rects=rects,
-        rh_logo_href="../rh_logo_greyscale.png",
-        rh_logo_text_href="../rh_logo_text.png",
-        small=small)
+        small=small,
+        **logo_kwargs)
     
     filename = f'rhinventory/labels/out/{id}'
     if small:
         filename += "-small"
+    if logo_ha:
+        filename += "-ha"
     open(filename+'.svg', 'w').write(label_svg)
 
     inkscape_version = subprocess.check_output(['inkscape', '--version']).decode('utf-8').split('\n')[0].split(' ')[1]
@@ -52,7 +64,7 @@ def make_label(id, custom_code, name, subtitle="", medium="", small=False):
 
     return filename+'.png'
 
-def make_asset_label(asset, small=False):
+def make_asset_label(asset, small=False, logo_ha=False):
     id = f"RH{asset.id:05}"
     if asset.custom_code and asset.category.expose_number:
         code = f"{asset.category.prefix} {asset.custom_code}"
@@ -61,5 +73,5 @@ def make_asset_label(asset, small=False):
     
     return make_label(id, code, asset.name,
         subtitle=asset.manufacturer, medium=asset.medium.name if asset.medium else '',
-        small=small)
+        small=small, logo_ha=logo_ha)
     
