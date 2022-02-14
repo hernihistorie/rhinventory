@@ -133,5 +133,31 @@
         document.getElementById("selected-create-transaction").onclick = function() {
             document.location.href = "{{ get_url('transaction.create_view') }}?asset_id=[" + selected + "]";
         }
+
+        /* Select multiple checkboxes with shift */
+
+        var checkboxes = Array.from(document.querySelectorAll('input[type=checkbox]'));
+        var lastChecked = null;
+
+        checkboxes.forEach(function(checkbox) {
+            checkbox.addEventListener('click', function(e) {
+                if (!lastChecked) {
+                    lastChecked = this;
+                    return;
+                }
+
+                if (e.shiftKey) {
+                    var start = checkboxes.indexOf(this);
+                    var end = checkboxes.indexOf(lastChecked);
+
+                    for (var i = Math.min(start,end); i <= Math.max(start,end); i++) {
+                        checkboxes[i].checked = lastChecked.checked;
+                    }
+                }
+
+                lastChecked = this;
+            });
+        });
+
     </script>
 {% endblock %}
