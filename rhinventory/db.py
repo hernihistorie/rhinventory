@@ -34,6 +34,9 @@ class User(db.Model):
     party_id = Column(Integer, ForeignKey('parties.id'))
     party = relationship("Party")
 
+    organization_id = Column(Integer, ForeignKey('organizations.id'))
+    organization = relationship("Organization", backref=backref("users", order_by=id))
+
     @property
     def is_authenticated(self):
         return True
@@ -53,6 +56,20 @@ class User(db.Model):
         return self.username or self.github_login
 
 
+class Organization(db.Model):
+    __tablename__ = 'organizations'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255))
+    shortname = Column(String(16))
+    url = Column(String(255))
+    icon_url = Column(String(255))
+    image_url = Column(String(255))
+    visible = Column(Boolean)
+
+    def __str__(self):
+        return self.name
+
+
 class Party(db.Model):
     __tablename__ = 'parties'
     id = Column(Integer, primary_key=True)
@@ -60,13 +77,15 @@ class Party(db.Model):
     legal_name = Column(String(255))
     email = Column(String(255))
     is_person = Column(Boolean)
-    is_member = Column(Boolean) # member of Herní historie
     note = Column(Text)
+
+    organization_id = Column(Integer, ForeignKey('organizations.id'), nullable=True)
+    organization = relationship("Organization", backref=backref("parties", order_by=id))
 
     def __str__(self):
         name = self.name or self.legal_name
-        if self.is_member:
-            name = "[RH] " + name
+        if self.organization:
+            name = f"[{self.party.shortname}] {name}"
         
         return name
 
@@ -114,14 +133,22 @@ class Asset(db.Model):
         "Transaction",
         secondary='transaction_assets')
 
+    organization_id = Column(Integer, ForeignKey('organizations.id'), nullable=True)
+    organization = relationship("Organization")
+
     def __str__(self):
+        string = ""
+        if self.organization:
+            string += f"{self.organization.shortname}:"
         if self.category.expose_number:
-            return f"{self.category.prefix}{self.custom_code} {self.name}"
+            string += f"{self.category.prefix}{self.custom_code} {self.name}"
         else:
             if self.id is not None:
-                return f"RH{self.id:05} {self.name}"
+                string += f"{self.id:05} {self.name}"
             else:
-                return f"RHXXXXX {self.name}"
+                string += f"XXXXX {self.name}"
+        
+        return string
 
     def get_primary_image(self):
         return db.session.query(File).filter(File.asset_id==self.id and File.category in IMAGE_CATEGORIES).order_by(File.primary.desc(), File.has_thumbnail.desc(), File.filepath.asc()).first()

@@ -51,7 +51,7 @@
 
     <h2>{{ model }}</h2>
     {% if model.category.expose_number %}
-        RH{{ model.id }}<br>
+        {{ model.organization.shortname }}{{ model.id }}<br>
     {% endif %}
     <strong>Manufacturer</strong>: {{ model.manufacturer }}
 

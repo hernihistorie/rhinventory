@@ -24,7 +24,7 @@ from bokeh.plotting import figure
 import bokeh.embed
 
 from rhinventory.extensions import db, admin
-from rhinventory.db import LogItem, Category, Medium, Location, log, LogItem, Asset, User, Transaction, File, FileCategory, Party, get_next_file_batch_number
+from rhinventory.db import LogItem, Category, Medium, Location, Organization, log, LogItem, Asset, User, Transaction, File, FileCategory, Party, get_next_file_batch_number
 from rhinventory.forms import FileForm, FileAssignForm
 
 simple_eval = EvalWithCompoundTypes()
@@ -152,6 +152,7 @@ class AssetView(CustomModelView):
     form_excluded_columns = ('metadata', 'logs', 'transactions')
     form_edit_rules = (
         'children',
+        'organization',
         'location',
         'category',
         'custom_code',
@@ -430,6 +431,15 @@ class AssetView(CustomModelView):
     def create_transaction(self, asset_ids):
         return redirect(url_for('transaction.create_view', asset_id=repr(asset_ids)))
 
+
+    def create_form(self, obj=None):
+        form = super(type(self), self).create_form()
+
+        if not form.organization.data:
+            form.organization.data = current_user.organization
+
+        return form
+
 class CategoryView(CustomModelView):
     form_excluded_columns = ('assets')
 
@@ -702,8 +712,6 @@ class UserView(CustomModelView):
     column_default_sort = ('id', False)
 
 
-
-
 def add_admin_views(app):
     admin.add_view(AssetView(Asset, db.session))
 
@@ -715,6 +723,8 @@ def add_admin_views(app):
     admin.add_view(TransactionView(Transaction, db.session))
 
     admin.add_view(AdminModelView(Party, db.session))
+
+    admin.add_view(AdminModelView(Organization, db.session))
 
     admin.add_view(FileView(File, db.session))
 
