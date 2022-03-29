@@ -83,11 +83,7 @@ class Party(db.Model):
     organization = relationship("Organization", backref=backref("parties", order_by=id))
 
     def __str__(self):
-        name = self.name or self.legal_name
-        if self.organization:
-            name = f"[{self.party.shortname}] {name}"
-        
-        return name
+        return self.name
 
 
 class AssetStatus(enum.Enum):
