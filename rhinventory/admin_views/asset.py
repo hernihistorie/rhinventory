@@ -305,6 +305,9 @@ class AssetView(CustomModelView):
                             get_value=self.get_detail_value,
                             return_url=return_url,
                             file_form=file_form)
+    @expose('/new2/', methods=['GET'])
+    def new_view(self):
+        return self.render('admin/asset/new.html')
                     
     
     @action('create_transaction', 'Create transaction')
