@@ -110,6 +110,8 @@ class AssetView(CustomModelView):
 
     list_template = "admin/asset/list.html"
     details_template = "admin/asset/details.html"
+    edit_template = "admin/asset/edit.html"
+    create_template = "admin/asset/create.html"
 
     def on_model_change(self, form, instance, is_created):
         if is_created:

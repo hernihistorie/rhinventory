@@ -1,0 +1,6 @@
+{% extends 'admin/model/edit.html' %}
+
+{% block navlinks %}
+    {% from 'admin/asset/menu_bar.html' import asset_menu_bar with context %}
+    {{ asset_menu_bar() }}
+{% endblock %}
