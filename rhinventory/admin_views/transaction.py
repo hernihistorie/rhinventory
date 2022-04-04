@@ -9,6 +9,7 @@ class TransactionView(CustomModelView):
     can_view_details = True
     column_default_sort = ('id', True)
     column_list = ('id', 'date', 'transaction_type', 'counterparty', 'assets')
+    details_template = "admin/transaction/details.html"
 
     def create_form(self, obj=None):
         form = super(TransactionView, self).create_form()

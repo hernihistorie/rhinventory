@@ -1,0 +1,26 @@
+{% extends 'admin/model/details.html' %}
+
+{% block details_table %}
+    {{ super() }}
+    <h2>Contains assets</h2>
+
+    <div style="margin-bottom: 8px;">
+        <a
+            href="rhprint:
+                {%- for asset in model.assets -%}
+                    {{asset.id}}-ha;
+                {%- endfor -%}
+            "
+            id="print-label" class="btn btn-primary"
+        >
+            Print HA label for each
+        </a>
+    </div>
+
+    <ul>
+    {% for asset in model.assets %}
+        <li><a href="{{ url_for('asset.details_view', id=asset.id) }}">{{asset.name}} (id: {{asset.id}})</a></li>
+    {% endfor %}
+    </ul>
+
+{% endblock %}

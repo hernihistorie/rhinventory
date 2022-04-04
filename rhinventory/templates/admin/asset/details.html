@@ -150,7 +150,7 @@
         <td>
             <ul>
             {% for asset in transaction.assets %}
-                <li><a href="{{ url_for('asset.details_view', asset_id=asset.id) }}">{{asset.name}} (id: {{asset.id}})</a></li>
+                <li><a href="{{ url_for('asset.details_view', id=asset.id) }}">{{asset.name}} (id: {{asset.id}})</a></li>
             {% endfor %}
             </ul>
         </td>
