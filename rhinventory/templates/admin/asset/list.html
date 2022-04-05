@@ -27,7 +27,7 @@
             text-align: right;
         }
     </style>
-    <div class="selected">
+    <div id="selected" class="selected">
         <div id="selected-list">
         </div>
         <div class="selected-buttons">
@@ -38,25 +38,30 @@
     </div>
     <script>
         var selected = [];
+        var checkboxes = Array.from(document.getElementsByClassName("action-checkbox"));
 
         var selected_local_storage = localStorage.getItem("selected")
         if (selected_local_storage) {
             selected = JSON.parse(selected_local_storage);
         }
 
+        updateCheckboxes();
+
         function showSelected() {
             localStorage.setItem("selected", JSON.stringify(selected));
+
             document.getElementById('selected-list').innerHTML = selected.join(', ');
+            document.getElementById('selected').style.display = selected.length ? 'block' : 'none';
         }
 
-        showSelected()
-
-        document.getElementById("add-to-sheet").onclick = function() {
-            // iterate over all elements with class action-checkbox
-            var checkboxes = document.getElementsByClassName("action-checkbox");
+        function updateSelected() {
+            selected = [];
             for (var i = 0; i < checkboxes.length; i++) {
                 // if checked and not in array
-                if (checkboxes[i].checked && selected.indexOf(checkboxes[i].value) == -1) {
+                if (checkboxes[i].value != "on"
+                    && checkboxes[i].checked
+                    && selected.indexOf(checkboxes[i].value) == -1
+                ) {
                     selected.push(checkboxes[i].value);
                 }
             }
@@ -66,9 +71,36 @@
             showSelected();
         }
 
+        function updateCheckboxes() {
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = selected.indexOf(checkboxes[i].value) != -1;
+            }
+        }
+
+        for (var i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].addEventListener('change', updateSelected);
+        }
+
+        let rowtoggleEl = document.querySelectorAll('input.action-rowtoggle')[0];
+        rowtoggleEl.addEventListener("click", function(){
+            if (rowtoggleEl.checked) {
+                for (var i = 0; i < checkboxes.length; i++) {
+                    if (checkboxes[i].value == "on") continue;
+                    selected.push(checkboxes[i].value);
+                }
+            } else {
+                selected = [];
+            }
+            selected.sort();
+            showSelected();
+        })
+
+        showSelected();
+
         document.getElementById("selected-clear").onclick = function() {
             selected = [];
             localStorage.setItem("selected", selected);
+            updateCheckboxes();
             showSelected();
         }
 
