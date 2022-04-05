@@ -31,7 +31,7 @@ class Asset(db.Model):
 
     condition   = Column(Integer, default=0, nullable=False)
     functionality = Column(Integer, default=0, nullable=False)
-    status      = Column(Enum(AssetStatus), default=0, nullable=False)
+    status      = Column(Enum(AssetStatus), default=AssetStatus.unknown, nullable=False)
 
     location_id = Column(Integer, ForeignKey('locations.id'))
     category_id = Column(Integer, ForeignKey('categories.id'), nullable=False)
