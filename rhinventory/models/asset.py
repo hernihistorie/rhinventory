@@ -29,9 +29,9 @@ class Asset(db.Model):
 
     num_photos  = Column(Integer)
 
-    condition   = Column(Integer, nullable=False)
-    functionality = Column(Integer, nullable=False)
-    status      = Column(Enum(AssetStatus), nullable=False)
+    condition   = Column(Integer, default=0, nullable=False)
+    functionality = Column(Integer, default=0, nullable=False)
+    status      = Column(Enum(AssetStatus), default=0, nullable=False)
 
     location_id = Column(Integer, ForeignKey('locations.id'))
     category_id = Column(Integer, ForeignKey('categories.id'), nullable=False)
