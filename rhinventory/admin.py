@@ -7,7 +7,7 @@ from flask_admin import Admin, AdminIndexView, expose
 
 from rhinventory.extensions import db, admin, simple_eval
 from rhinventory.db import LogItem, Category, Medium, Location, Organization, log, LogItem, Asset, User, Transaction, File, Party
-from rhinventory.admin_views import CustomModelView, AssetView, TransactionView, FileView
+from rhinventory.admin_views import CustomModelView, AdminModelView, AssetView, TransactionView, FileView
 from rhinventory.util import figure_counter
 
 class CustomIndexView(AdminIndexView):
@@ -28,21 +28,19 @@ class CustomIndexView(AdminIndexView):
 
 admin._set_admin_index_view(CustomIndexView()) # XXX this is not great
 
-class AdminModelView(CustomModelView):
-    def is_accessible(self):
-        return current_user.is_authenticated and current_user.admin
-
 class CategoryView(CustomModelView):
     form_excluded_columns = ('assets')
 
 class MediumView(CustomModelView):
     column_default_sort = ('name', True)
 
-class UserView(CustomModelView):
-    column_list = ('id', 'username', 'github_login', 'read_access', 'write_access', 'admin')
-    form_excluded_columns = ()
+class UserView(AdminModelView):
+    column_list = ('id', 'organization', 'username', 'github_login', 'read_access', 'write_access', 'admin')
+    form_excluded_columns = ('github_access_token', 'files', 'admin')
     column_default_sort = ('id', False)
 
+    def is_accessible(self):
+        return current_user.is_authenticated and current_user.admin
 
 def add_admin_views(app):
     admin.add_view(AssetView(Asset, db.session))

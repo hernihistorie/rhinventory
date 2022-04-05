@@ -22,3 +22,8 @@ class CustomModelView(ModelView):
             db.session.add(instance)
             db.session.commit()
             log("Create", instance, user=current_user)
+
+
+class AdminModelView(CustomModelView):
+    def is_accessible(self):
+        return current_user.is_authenticated and current_user.admin
