@@ -12,13 +12,13 @@
             RH label
         </a>
         <a href="rhprint:{{model.id}}" id="print-label" class="btn btn-primary">
-            Print RH label
+            {{ icon("print") }} Print RH label
         </a>
         <a href="{{ url_for('label_asset', asset_id=model.id, small=False, logo_ha=True) }}" class="btn btn-light">
             HA label
         </a>
         <a href="rhprint:{{model.id}}-ha" id="print-label" class="btn btn-primary">
-            Print HA label
+            {{ icon("print") }} Print HA label
         </a>
     </div>
     <div style="margin-bottom: 8px;">
@@ -26,7 +26,7 @@
             RH small label
         </a>
         <a href="rhprint:{{model.id}}-small" id="print-label" class="btn btn-primary">
-            Print RH small label
+            {{ icon("print") }} Print RH small label
         </a>
     </div>
 
@@ -38,7 +38,7 @@
 
     {{ super() }}
 
-    <h2>Files</h2>
+    <h2>{{ icon("file") }} Files</h2>
 
     <div style="margin-bottom: 8px">
         <strong>Attach files to this asset</strong>:
@@ -109,10 +109,12 @@
     {% endfor %}
     </table>
 
-    <h2>Transaction history</h2>
+    <h2>{{ icon("handshake-angle") }} Transaction history</h2>
 
     <div style="margin-bottom: 8px">
-        <a href="{{ url_for('transaction.create_view', asset_id=model.id) }}" class="btn btn-primary">Add new transaction</a>
+        <a href="{{ url_for('transaction.create_view', asset_id=model.id) }}" class="btn btn-primary">
+            {{ icon("plus-circle") }} Add new transaction
+        </a>
     </div>
 
     <table class="table table-hover table-bordered">

@@ -1,16 +1,31 @@
 {% extends admin_base_template %}
+
+{% macro icon(name) %}
+    <i class="fa-solid fa-{{name}}"></i>
+{% endmacro %}
+
 {% block head_css %}
 {{ super() }}
 <link rel="shortcut icon" href="{{ url_for('static', filename='img/rhinventory_icon.png') }}">
 <link href="/static/main.css" rel="StyleSheet" type="text/css">
 
 <script src="https://unpkg.com/htmx.org@1.6.0"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<style>
+    .glyphicon.fa::before {
+        /* Some genius at flask-admin decided to use both glyphicon and fa
+            icons at the same time.  Remove the FA icons. */
+        content: "";
+    }
+</style>
+
 {% endblock head_css %}
 
 {% block access_control %}
     {% if current_user.is_authenticated %}
         <div style="margin-top: 8px;">
-            Logged in: {{ current_user.github_login }}
+            {{ icon("user") }} {{ current_user.github_login }}
             &bull;
             <a href="{{ url_for('logout') }}">Log out</a>
         </div>

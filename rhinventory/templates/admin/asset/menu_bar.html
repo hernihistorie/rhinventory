@@ -6,11 +6,15 @@
             {% if count %}({{ count }}){% endif %}
         </li>
         <li class="{{ 'active' if request.url_rule.endpoint == 'asset.index_view' else '' }}">
-            <a href="{{ get_url('.index_view') }}">{{ _gettext('List') }}</a>
+            <a href="{{ get_url('.index_view') }}">
+                {{ icon("list") }} {{ _gettext('List') }}
+            </a>
         </li>
 
         <li class="{{ 'active' if request.url_rule.endpoint == 'asset.gallery_view' else '' }}">
-            <a href="{{ get_url('.gallery_view') }}">Gallery</a>
+            <a href="{{ get_url('.gallery_view') }}">
+                {{ icon("grip") }} Gallery
+                </a>
         </li>
 
         {% if admin_view.can_create %}
@@ -18,7 +22,9 @@
                 {%- if admin_view.create_modal -%}
                     {{ lib.add_modal_button(url=get_url('.create_view', url=return_url, modal=True), title=_gettext('Create New Record'), content=_gettext('Create')) }}
                 {% else %}
-                    <a href="{{ get_url('.create_view', url=return_url) }}" title="{{ _gettext('Create New Record') }}">{{ _gettext('Create') }}</a>
+                    <a href="{{ get_url('.create_view', url=return_url) }}" title="{{ _gettext('Create New Record') }}">
+                        {{ icon("circle-plus") }} {{ _gettext('Create') }}
+                    </a>
             {%- endif -%}
             </li>
         {% endif %}
@@ -57,11 +63,15 @@
         {% elif request.url_rule.endpoint != 'asset.create_view' %}
             {%- if admin_view.can_edit -%}
             <li class="{{ 'active' if request.url_rule.endpoint == 'asset.edit_view' else '' }}">
-                <a href="{{ get_url('.edit_view', id=request.args.get('id'), url=return_url) }}">{{ _gettext('Edit') }}</a>
+                <a href="{{ get_url('.edit_view', id=request.args.get('id'), url=return_url) }}">
+                    {{ icon("edit") }} {{ _gettext('Edit') }}
+                </a>
             </li>
             {%- endif -%}
             <li class="{{ 'active' if request.url_rule.endpoint == 'asset.details_view' else '' }}">
-                <a href="{{ get_url('.details_view', id=request.args.get('id')) }}">{{ _gettext('Details') }}</a>
+                <a href="{{ get_url('.details_view', id=request.args.get('id')) }}">
+                    {{ icon("eye") }} {{ _gettext('Details') }}
+                </a>
             </li>
         {% endif %}
 
