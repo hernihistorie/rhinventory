@@ -55,7 +55,6 @@
         }
 
         function updateSelected() {
-            selected = [];
             for (var i = 0; i < checkboxes.length; i++) {
                 // if checked and not in array
                 if (checkboxes[i].value != "on"
@@ -89,7 +88,11 @@
                     selected.push(checkboxes[i].value);
                 }
             } else {
-                selected = [];
+                for (var i = 0; i < checkboxes.length; i++) {
+                    if (checkboxes[i].value == "on") continue;
+                    // remove checkbox value from selected list
+                    selected.splice(selected.indexOf(checkboxes[i].value), 1);
+                }
             }
             selected.sort();
             showSelected();
