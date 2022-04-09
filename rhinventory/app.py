@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, Blueprint, render_template, flash, redirect, url_for, send_file, Response, abort, request, session, jsonify
+from flask import Flask, Blueprint, render_template, flash, redirect, url_for, send_file, Response, abort, request, session, jsonify, g
 from flask_login import current_user, login_required, login_user, logout_user
 from jinja2 import StrictUndefined
 
@@ -27,6 +27,10 @@ def create_app(config_object='rhinventory.config'):
     app.register_blueprint(files_blueprint)
 
     add_admin_views(app)
+
+    @app.before_request
+    def before_request():
+        g.debug = app.debug
 
     @login_manager.user_loader
     def load_user(user_id):

@@ -21,6 +21,21 @@
 
 {% endblock head_css %}
 
+
+{% block brand %}
+    <a class="brand" href="{{ admin_view.admin.url }}"
+        style="position: relative; width: 28px;"
+    >
+        <img
+            src="{{ url_for('static', filename='img/rhinventory_icon.png') }}"
+            style="position: absolute; top: -6px; left: 6px; max-height: 56px;"
+        >
+        {% if g.debug %}
+            <div style="position: absolute; color: orange; left: -4px; top: 28px;">DEBUG</div>
+        {% endif %}
+    </a>
+{% endblock %}
+
 {% block access_control %}
     {% if current_user.is_authenticated %}
         <div style="margin-top: 8px;">
