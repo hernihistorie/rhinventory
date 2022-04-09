@@ -43,7 +43,7 @@ def figure_counter(
     while date <= today:
         x.append(date)
 
-        print(date, el_date)
+        #print(date, el_date)
 
         if not el or el_date > date:
             y.append(total)
@@ -58,7 +58,7 @@ def figure_counter(
                 el = None
         date += delta
 
-    print(len(x), len(y))
+    #print(len(x), len(y))
 
     width = (x[-1] - x[0]).total_seconds() / len(x) * 900
 
