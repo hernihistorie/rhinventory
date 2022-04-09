@@ -1,4 +1,5 @@
 import enum
+from attr import attributes
 
 from sqlalchemy import Column, Integer, Numeric, String, Text, \
     DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint
@@ -27,7 +28,7 @@ class Asset(db.Model):
     note        = Column(Text)
     serial      = Column(String)
 
-    num_photos  = Column(Integer)
+    #num_photos  = Column(Integer)
 
     condition   = Column(Integer, default=0, nullable=False)
     functionality = Column(Integer, default=0, nullable=False)
@@ -54,18 +55,25 @@ class Asset(db.Model):
     organization = relationship("Organization")
 
     def __str__(self):
+        return f"{self.code} {self.name}"
+    
+    @property
+    def code(self):
         string = ""
         if self.organization:
-            string += f"{self.organization.shortname}:"
+            string += f"{self.organization.shortname}: "
+
         if self.category.expose_number:
-            string += f"{self.category.prefix}{self.custom_code} {self.name}"
+            string += f"{self.category.prefix}{self.custom_code}"
         else:
             if self.id is not None:
-                string += f"{self.id:05} {self.name}"
+                string += f"{self.id:05}"
             else:
-                string += f"XXXXX {self.name}"
+                string += "XXXXX"
         
         return string
+
+
 
     def get_primary_image(self):
         return db.session.query(File).filter(File.asset_id==self.id and File.category in IMAGE_CATEGORIES).order_by(File.primary.desc(), File.has_thumbnail.desc(), File.filepath.asc()).first()

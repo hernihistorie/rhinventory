@@ -1,6 +1,6 @@
 from math import ceil
 
-from flask import redirect, request, flash, url_for
+from flask import redirect, request, flash, url_for, get_template_attribute
 from wtforms import RadioField
 from flask_admin import expose
 from flask_admin.helpers import get_redirect_target
@@ -63,6 +63,7 @@ class AssetView(CustomModelView):
 
     can_view_details = True
     column_filters = [
+        'organization.name',
         'category.name',
         'medium.name',
         'hardware_type.name',
@@ -73,22 +74,6 @@ class AssetView(CustomModelView):
     column_searchable_list = [
         'name',
         'serial',
-    ]
-    column_list = [
-        'id',
-        'location',
-        'category',
-        'custom_code',
-        'medium',
-        'hardware_type',
-        'name',
-        'manufacturer',
-        'serial',
-        #'condition',
-        #'functionality',
-        #'status',
-        'parent',
-        'transactions',
     ]
     column_sortable_list = [
         'id',
@@ -151,6 +136,24 @@ class AssetView(CustomModelView):
         kwargs.update(self._get_filters(view_args.filters))
 
         return self.get_url('.gallery_view', **kwargs)
+
+    def get_list_value(context, model, column):
+        if column == "flags":
+            return get_template_attribute("admin/asset/_macros.html", "render_flags")(model)
+        else:
+            return super().get_list_value(context, model, column)
+
+    def get_list_columns(self):
+        return [
+            ('id', 'ID'),
+            ('code', 'Code'),
+            ('name', 'Name'),
+            ('flags', 'Flags'),
+            #('location', 'Location'),
+            #('category', 'Category'),
+            #('custom_code', 'Custom Code'),
+            #('medium', 'Medium'), ('hardware_type', 'Hardware Type'), ('name', 'Name'), ('manufacturer', 'Manufacturer'), ('serial', 'Serial'), ('parent', 'Parent'), ('transactions', 'Transactions')
+        ]
 
     @expose('/gallery/')
     def gallery_view(self):

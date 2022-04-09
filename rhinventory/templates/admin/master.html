@@ -1,8 +1,5 @@
 {% extends admin_base_template %}
-
-{% macro icon(name) %}
-    <i class="fa-solid fa-{{name}}"></i>
-{% endmacro %}
+{% from '_macros.html' import icon %}
 
 {% block head_css %}
 {{ super() }}
@@ -18,6 +15,8 @@
             icons at the same time.  Remove the FA icons. */
         content: "";
     }
+
+    .faded { opacity: 0.15; }
 </style>
 
 {% endblock head_css %}

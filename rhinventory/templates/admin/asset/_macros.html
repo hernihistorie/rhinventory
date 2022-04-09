@@ -1,0 +1,22 @@
+{% from '_macros.html' import icon %}
+
+{% macro render_flags(asset) %}
+    {% set file = asset.get_primary_image() %}
+    {% if file %}
+        <a href="{{ url_for('file.details_view', id=file.id) }}">
+            {{ icon("image") }}
+        </a>
+    {% else %}
+        {{ icon("image", faded=True) }}
+    {% endif %}
+    {% if asset.parent %}
+        <a href="{{ url_for('asset.details_view', id=asset.parent.id) }}">
+            {{ icon("jar") }}
+        </a>
+    {% endif %}
+    {% for transaction in asset.transactions %}
+        <a href="{{ url_for('transaction.details_view', id=transaction.id) }}">
+            {{ icon("handshake") }}
+        </a>
+    {% endfor %}
+{% endmacro %}
