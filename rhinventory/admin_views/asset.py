@@ -11,7 +11,7 @@ from sqlalchemy import desc
 
 from rhinventory.extensions import db
 from rhinventory.admin_views.model_view import CustomModelView
-from rhinventory.db import Category, Medium, Asset, get_next_file_batch_number
+from rhinventory.db import Category, Medium, Asset, get_next_file_batch_number, LogItem
 from rhinventory.forms import FileForm
 
 RATING_OPTIONS = [(0, 'unknown'), (1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')]
@@ -302,12 +302,18 @@ class AssetView(CustomModelView):
         batch_number = get_next_file_batch_number()
         file_form = FileForm(batch_number=batch_number)
 
+        logs = db.session.query(LogItem).filter(
+            LogItem.table == "Asset",
+            LogItem.object_id == model.id
+        ).order_by(LogItem.datetime.desc()).all()
+
         return self.render(template,
                             model=model,
                             details_columns=self._details_columns,
                             get_value=self.get_detail_value,
                             return_url=return_url,
-                            file_form=file_form)
+                            file_form=file_form,
+                            logs=logs)
     @expose('/new2/', methods=['GET'])
     def new_view(self):
         return self.render('admin/asset/new.html')

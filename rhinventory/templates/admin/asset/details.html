@@ -151,4 +151,24 @@
     </table>
 
 
+    <h2>{{ icon("file-lines") }} Edit Logs</h2>
+
+    <table class="table table-hover table-bordered">
+        <tr>
+            <th>User</th>
+            <th>Date</th>
+            <th>Event</th>
+            <th>Details</th>
+        </tr>
+    {% for log in logs %}
+    <tr>
+        <td>{{ log.user }}</td>
+        <td>{{ log.date }}</td>
+        <td>{{ log.event }}</td>
+        <td>{{ log.object_json }}</td>
+    </tr>
+    {% endfor %}
+    </table>
+
+
 {% endblock %}
