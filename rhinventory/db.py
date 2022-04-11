@@ -170,6 +170,17 @@ class Status(db.Model):
     id      = Column(Integer, primary_key=True)
     name    = Column(String(255))
 
+
+
+class Country(db.Model):
+    __tablename__ = 'countries'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255))
+    code = Column(String(16))
+
+    def __str__(self):
+        return self.code
+
 #tables = [AssetMeta,
 #    Category, CategoryTemplate, Medium, Location # Transaction removed
 #    #Event, Check, CheckItem, CheckLog, 

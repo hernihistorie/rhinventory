@@ -2,7 +2,8 @@ import enum
 from attr import attributes
 
 from sqlalchemy import Column, Integer, Numeric, String, Text, \
-    DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint
+    DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint, \
+        ARRAY
 from sqlalchemy.orm import relationship, backref
 
 from rhinventory.models.file import File, IMAGE_CATEGORIES
@@ -27,6 +28,8 @@ class Asset(db.Model):
     custom_code = Column(Integer)
     note        = Column(Text)
     serial      = Column(String)
+
+    product_codes = Column(ARRAY(String))
 
     #num_photos  = Column(Integer)
 
