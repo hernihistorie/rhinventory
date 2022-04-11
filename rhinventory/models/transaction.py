@@ -49,7 +49,8 @@ class Transaction(db.Model):
     counterparty_new = relationship("Party", foreign_keys=counterparty_id)
     assets      = relationship(
         "Asset",
-        secondary='transaction_assets')
+        secondary='transaction_assets',
+        overlaps="transactions")
 
 
 transaction_assets = Table('transaction_assets', db.Model.metadata,

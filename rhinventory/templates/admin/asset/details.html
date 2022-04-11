@@ -7,107 +7,169 @@
 {% endblock %}
 
 {% block details_table %}
-    <div style="margin-bottom: 8px;">
-        <a href="{{ url_for('label_asset', asset_id=model.id, small=False) }}" class="btn btn-light">
-            RH label
-        </a>
-        <a href="rhprint:{{model.id}}" id="print-label" class="btn btn-primary">
-            {{ icon("print") }} Print RH label
-        </a>
-        <a href="{{ url_for('label_asset', asset_id=model.id, small=False, logo_ha=True) }}" class="btn btn-light">
-            HA label
-        </a>
-        <a href="rhprint:{{model.id}}-ha" id="print-label" class="btn btn-primary">
-            {{ icon("print") }} Print HA label
-        </a>
-    </div>
-    <div style="margin-bottom: 8px;">
-        <a href="{{ url_for('label_asset', asset_id=model.id, small=True) }}" class="btn btn-light">
-            RH small label
-        </a>
-        <a href="rhprint:{{model.id}}-small" id="print-label" class="btn btn-primary">
-            {{ icon("print") }} Print RH small label
-        </a>
-    </div>
+    <style>
+        .asset-split {
+            display: flex;
+        }
 
+        .asset-data {
+            flex-grow: 1;
+        }
+
+        .asset-images-files {
+            flex-basis: 500px;
+            padding-left: 12px;
+        }
+    </style>
     <h2>{{ model }}</h2>
-    {% if model.category.expose_number %}
-        {{ model.organization.shortname }}{{ model.id }}<br>
-    {% endif %}
-    <strong>Manufacturer</strong>: {{ model.manufacturer }}
+    <div class="asset-split">
+        <div class="asset-data">
+            <div style="margin-bottom: 8px;">
+                <!--
+                    <a href="{{ url_for('label_asset', asset_id=model.id, small=False) }}" class="btn btn-light">
+                        RH label
+                    </a>
+                -->
+                <a href="rhprint:{{model.id}}" id="print-label" class="btn btn-primary">
+                    {{ icon("print") }} RH label
+                </a>
+                <a href="rhprint:{{model.id}}-ha" id="print-label" class="btn btn-primary">
+                    {{ icon("print") }} HA label
+                </a>
+                <a href="rhprint:{{model.id}}-small" id="print-label" class="btn btn-primary">
+                    {{ icon("print") }} small label
+                </a>
+            </div>
+            {% if model.category.expose_number %}
+                {{ model.organization.shortname }}{{ model.id }}<br>
+            {% endif %}
 
-    {{ super() }}
+            {{ super() }}
+        </div>
+        <div class="asset-images-files">
+            <style>
+                .asset-image-file {
+                    width: 220px; max-width: 100%; border-radius: 2px; padding: 0; margin: 4px;
+                    display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 0 4px #222;
+                    position: relative;
+                }
+                .asset-image-desc {
+                    margin: 0 4px 0 4px;
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    color: white;
+                    text-shadow: -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000, 1px 1px 1px #000;
+                }
+                .asset-image-desc a {
+                    color: lightblue;
+                    text-decoration: none;
+                }
 
-    <h2>{{ icon("file") }} Files</h2>
-
-    <div style="margin-bottom: 8px">
-        <strong>Attach files to this asset</strong>:
-        <form method="POST" enctype="multipart/form-data" action="{{ url_for('file.upload_view', id=model.id) }}" style="display: inline;">
-            {{ file_form.files }}
-            {{ file_form.category }}
-            <input type="submit" value="Submit" class="btn btn-primary" style="vertical-align: top;">
-        </form>
-    </div>
-
-    <div style="display: flex; flex-wrap: wrap; justify-content: space-around;">
-        {% for file in model.files %}
-            {% if file.is_image %}
-                <div style="width: 300px; max-width: 100%; border: 1px solid #bbb; border-radius: 2px; padding: 4px; margin: 4px;
-                            display: flex; flex-direction: column; justify-content: space-between;">
-                    <div>
-                        <a href="{{ url_for('file.details_view', id=file.id) }}">
-                            {% if file.has_thumbnail %}
-                                <img src="{{ url_for('files.static', filename=file.filepath_thumbnail) }}">
-                            {% else %}
-                                (Thumbnail missing)
+                .asset-image-file-primary {
+                    width: calc(100% - 8px);
+                }
+                
+                .asset-images {
+                    display: flex; width: 100%; flex-wrap: wrap; justify-content: space-evenly;
+                    align-items: center;
+                }
+            </style>
+            {% macro render_asset_image(file, primary=False) %}
+                {% if file.is_image %}
+                    <div class="asset-image-file {% if primary %}asset-image-file-primary{% endif %}">
+                        <div>
+                            <a href="{{ url_for('file.details_view', id=file.id) }}">
+                                {% if file.has_thumbnail %}
+                                    <img src="{{ url_for('files.static', filename=file.filepath_thumbnail) }}">
+                                {% else %}
+                                    (Thumbnail missing)
+                                {% endif %}
+                            </a>
+                        </div>
+                        <div class="asset-image-desc">
+                            <a href="{{ url_for('file.edit_view', id=file.id) }}">
+                                <span class="fa fa-pencil"></span>
+                            </a>
+                            {% if file.primary %}
+                                <span class="fa fa-star"></span>
                             {% endif %}
-                        </a>
+                            <!--
+                                <a href="{{ url_for('file.details_view', id=file.id) }}">
+                                    {{ file.filename }}
+                                </a>
+                            -->
+                        </div>
                     </div>
-                    <div>
-                        <a href="{{ url_for('file.edit_view', id=file.id) }}">
-                            <span class="fa fa-pencil glyphicon icon-pencil"></span>
-                        </a>
-                        {% if file.primary %}
-                            <span class="fa fa-eye glyphicon icon-star"></span>
-                        {% endif %}
-                        <a href="{{ url_for('file.details_view', id=file.id) }}">
-                            {{ file.filename }}
-                        </a>
-                    </div>
+                {% endif %}
+            {% endmacro %}
+            {% set images = model.get_sorted_images() %}
+            {% if images %}
+                {{ render_asset_image(images[0], primary=True) }}
+                {% set secondary_images = images[1:] %}
+                <div class="asset-images">
+                    {% for image in secondary_images[0:2] %}
+                        {{ render_asset_image(image) }}
+                    {% endfor %}
                 </div>
+                {% set more_secondary_images = secondary_images[2:] %}
+                {% if more_secondary_images %}
+                    <details>
+                        <summary class="btn-link" style="text-align: center;">
+                            {{ more_secondary_images | count }} more images
+                        </summary>
+                        <div class="asset-images">
+                            {% for image in more_secondary_images %}
+                                {{ render_asset_image(image) }}
+                            {% endfor %}
+                        </div>
+                    </details>
+                {% endif %}
             {% endif %}
-        {% endfor %}
+            <h2>{{ icon("file") }} Files</h2>
+
+            <div style="margin-bottom: 8px">
+                <strong>Attach</strong>:
+                <form method="POST" enctype="multipart/form-data" action="{{ url_for('file.upload_view', id=model.id) }}" style="display: inline;">
+                    {{ file_form.files }}
+                    {{ file_form.category }}
+                    <input type="submit" value="Submit" class="btn btn-primary" style="vertical-align: top;">
+                </form>
+            </div>
+
+            <table class="table table-hover table-bordered">
+                <tr>
+                    <th></th>
+                    <th>Filename</th>
+                    <th>Category</th>
+                </tr>
+            {% for file in model.files %}
+                {% if not file.is_image %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('file.edit_view', id=file.id) }}">
+                            <span class="fa fa-pencil glyphicon icon-pencil"></span>
+                            </a>
+
+                            <a href="{{ url_for('file.details_view', id=file.id) }}">
+                                <span class="fa fa-eye glyphicon icon-eye-open"></span>
+                            </a>
+                        </td>
+                        <td>
+                            {% if file.primary %}
+                                <span class="fa fa-eye glyphicon icon-star"></span>
+                            {% endif %}
+                            <a href="{{ url_for('file.details_view', id=file.id) }}">
+                                {{ file.filename }}
+                            </a>
+                        </td>
+                        <td>{{ file.category.name }}</td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+            </table>
+        </div>
     </div>
-
-    <table class="table table-hover table-bordered">
-        <tr>
-            <th></th>
-            <th>Path</th>
-            <th>Category</th>
-        </tr>
-    {% for file in model.files %}
-    <tr>
-        <td>
-            <a href="{{ url_for('file.edit_view', id=file.id) }}">
-               <span class="fa fa-pencil glyphicon icon-pencil"></span>
-            </a>
-
-            <a href="{{ url_for('file.details_view', id=file.id) }}">
-                <span class="fa fa-eye glyphicon icon-eye-open"></span>
-            </a>
-        </td>
-        <td>
-            {% if file.primary %}
-                <span class="fa fa-eye glyphicon icon-star"></span>
-            {% endif %}
-            <a href="{{ url_for('file.details_view', id=file.id) }}">
-                {{ file.filepath }}
-            </a>
-        </td>
-        <td>{{ file.category }}</td>
-    </tr>
-    {% endfor %}
-    </table>
 
     <h2>{{ icon("handshake-angle") }} Transaction history</h2>
 
@@ -163,7 +225,7 @@
     {% for log in logs %}
     <tr>
         <td>{{ log.user }}</td>
-        <td>{{ log.date }}</td>
+        <td>{{ log.datetime }}</td>
         <td>{{ log.event }}</td>
         <td>{{ log.object_json }}</td>
     </tr>

@@ -76,7 +76,16 @@ class Asset(db.Model):
 
 
     def get_primary_image(self):
-        return db.session.query(File).filter(File.asset_id==self.id and File.category in IMAGE_CATEGORIES).order_by(File.primary.desc(), File.has_thumbnail.desc(), File.filepath.asc()).first()
+        sorted_images = self.get_sorted_images()
+        if sorted_images:
+            return sorted_images[0]
+        return None
+    
+    def get_sorted_images(self):
+        return db.session.query(File) \
+            .filter(
+                File.asset_id==self.id and File.category in IMAGE_CATEGORIES
+            ).order_by(File.primary.desc(), File.has_thumbnail.desc(), File.filepath.asc()).all()
 
 
 class Category(db.Model):
