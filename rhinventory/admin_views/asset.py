@@ -330,4 +330,11 @@ class AssetView(CustomModelView):
         if not form.organization.data:
             form.organization.data = current_user.organization
 
+        if "category_id" in request.args.keys() and not form.category.data:
+            form.category.data = self.session.query(Category).get(request.args["category_id"])
+
+        if "parent_id" in request.args.keys() and not form.parent.data:
+            form.parent.data = self.session.query(Asset).get(request.args["parent_id"])
+
         return form
+    

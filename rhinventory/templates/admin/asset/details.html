@@ -6,6 +6,9 @@
     {{ asset_menu_bar() }}
 {% endblock %}
 
+{% block details_search %}
+{% endblock %}
+
 {% block details_table %}
     <style>
         .asset-split {
@@ -21,7 +24,7 @@
             padding-left: 12px;
         }
     </style>
-    <h2>{{ model }}</h2>
+    <h2><tt>{{ model.code }}</tt> {{ model.name }}</h2>
     <div class="asset-split">
         <div class="asset-data">
             <div style="margin-bottom: 8px;">
@@ -49,7 +52,8 @@
         <div class="asset-images-files">
             <style>
                 .asset-image-file {
-                    width: 220px; max-width: 100%; border-radius: 2px; padding: 0; margin: 4px;
+                    max-width: 220px;
+                    border-radius: 2px; padding: 0; margin: 4px;
                     display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 0 4px #222;
                     position: relative;
                 }
@@ -67,7 +71,9 @@
                 }
 
                 .asset-image-file-primary {
-                    width: calc(100% - 8px);
+                    max-width: calc(100% - 8px);
+                    margin: auto;
+                    margin-bottom: 8px;
                 }
                 
                 .asset-images {
@@ -195,7 +201,7 @@
         <td>
             <ul>
             {% for asset in transaction.assets %}
-                <li><a href="{{ url_for('asset.details_view', id=asset.id) }}">{{asset.name}} (id: {{asset.id}})</a></li>
+                <li><a href="{{ url_for('asset.details_view', id=asset.id) }}">{{ asset.name }}</a></li>
             {% endfor %}
             </ul>
         </td>

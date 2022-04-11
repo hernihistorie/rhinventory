@@ -1,6 +1,15 @@
 
 {# XXX https://github.com/flask-admin/flask-admin/blob/master/flask_admin/templates/bootstrap2/admin/model/list.html#L14 #}
 {% macro asset_menu_bar() %}
+    <style>
+        .actions-nav {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .spacer {
+            flex-grow: 1;
+        }
+    </style>
     <ul class="nav nav-tabs actions-nav">
         <li style="margin-top: 8px; margin-right: 4px;">
             {% if count %}({{ count }}){% endif %}
@@ -27,6 +36,18 @@
                     </a>
             {%- endif -%}
             </li>
+            {% if model %}
+                <li>
+                    <a href="{{ get_url('.create_view', url=return_url, category_id=model.category.id) }}">
+                        {{ icon("circle-plus") }} Create <strong>{{ model.category }}</strong>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ get_url('.create_view', url=return_url, parent_id=model.id) }}">
+                        {{ icon("circle-plus") }} Create child
+                    </a>
+                </li>
+            {% endif %}
         {% endif %}
 
         {% if request.url_rule.endpoint in ('asset.index_view', 'asset.gallery_view') %}
@@ -61,6 +82,8 @@
             {% endif %}
             {% block model_menu_bar_after_filters %}{% endblock %}
         {% elif request.url_rule.endpoint != 'asset.create_view' %}
+            <li class="spacer">
+            </li>
             {%- if admin_view.can_edit -%}
             <li class="{{ 'active' if request.url_rule.endpoint == 'asset.edit_view' else '' }}">
                 <a href="{{ get_url('.edit_view', id=request.args.get('id'), url=return_url) }}">
