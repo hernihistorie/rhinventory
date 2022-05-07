@@ -1,5 +1,4 @@
 import enum
-from attr import attributes
 
 from sqlalchemy import Column, Integer, Numeric, String, Text, \
     DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint, \
