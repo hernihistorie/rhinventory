@@ -161,4 +161,3 @@ def create_app(config_object='rhinventory.config'):
         return send_file(open(label_filename, 'rb'), mimetype='image/png')
     
     return app
-
