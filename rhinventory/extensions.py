@@ -8,6 +8,8 @@ from simpleeval import EvalWithCompoundTypes
 
 db = SQLAlchemy()
 
+db.Model.asdict = lambda self: {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
 admin = Admin()
 debug_toolbar = DebugToolbarExtension()
 github = GitHub()
