@@ -328,8 +328,6 @@ class AssetView(CustomModelView):
     def create_form(self, obj=None):
         form = super(type(self), self).create_form()
 
-        raise Exception()
-
         if not form.organization.data:
             form.organization.data = current_user.organization
 
