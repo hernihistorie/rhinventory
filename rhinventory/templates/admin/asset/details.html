@@ -33,6 +33,9 @@
                         RH label
                     </a>
                 -->
+                <a href="{{ url_for('label_asset', asset_id=model.id, small=False) }}" class="btn btn-link">
+                    Label:
+                </a>
                 <a href="rhprint:{{model.id}}" id="print-label" class="btn btn-primary">
                     {{ icon("print") }} RH label
                 </a>
