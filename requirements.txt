@@ -31,7 +31,7 @@ Mako==1.1.4
 MarkupSafe==2.0.1
 marshmallow==3.3.0
 mccabe==0.6.1
-numpy==1.21.4
+numpy==1.22.0
 oauth2==1.9.0.post1
 packaging==21.3
 packbits==0.6
