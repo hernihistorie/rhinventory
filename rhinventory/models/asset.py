@@ -2,7 +2,7 @@ import enum
 
 from sqlalchemy import Column, Integer, Numeric, String, Text, \
     DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint, \
-        ARRAY
+        ARRAY, desc
 from sqlalchemy.orm import relationship, backref
 
 from rhinventory.models.file import File, IMAGE_CATEGORIES
@@ -58,7 +58,7 @@ class Asset(db.Model):
 
     def __str__(self):
         return f"{self.code} {self.name}"
-    
+
     @property
     def code(self):
         string = ""
@@ -101,6 +101,16 @@ class Category(db.Model):
 
     def __str__(self):
         return f"{self.name}"
+
+    def get_free_custom_code(self):
+        last_category_asset = db.session.query(Asset) \
+            .filter(Asset.category_id == self.id, Asset.custom_code != None) \
+            .order_by(desc(Asset.custom_code)).limit(1).scalar()
+
+        if last_category_asset:
+            return int(last_category_asset.custom_code) + 1
+
+        return 1
 
 
 class CategoryTemplate(db.Model):

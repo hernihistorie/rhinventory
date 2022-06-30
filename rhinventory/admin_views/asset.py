@@ -99,19 +99,49 @@ class AssetView(CustomModelView):
     edit_template = "admin/asset/edit.html"
     create_template = "admin/asset/create.html"
 
-    def on_model_change(self, form, instance, is_created):
+    def on_model_change(self, form, instance: Asset, is_created):
+        print(form['category'], instance.category)
         if is_created:
             if not instance.custom_code:
-                last_category_asset = db.session.query(Asset) \
-                    .filter(Asset.category_id == instance.category.id, Asset.custom_code != None) \
-                    .order_by(desc(Asset.custom_code)).limit(1).scalar()
-
-                if last_category_asset:
-                    instance.custom_code = int(last_category_asset.custom_code) + 1
-                else:
-                    instance.custom_code = 1
-
+                instance.custom_code = instance.category.get_free_custom_code()
+        
         super().on_model_change(form, instance, is_created)
+    
+    # From https://stackoverflow.com/a/60829958
+    def update_model(self, form, model: Asset):
+        """
+            Update model from form.
+            :param form:
+                Form instance
+            :param model:
+                Model instance
+        """
+        try:
+
+            old_category: Category = model.category
+            new_category: Category = form.category.data
+
+            if new_category != old_category:
+                model.custom_code = new_category.get_free_custom_code()
+            
+            # continue processing the form
+
+            form.populate_obj(model)
+            self._on_model_change(form, model, False)
+            self.session.commit()
+        except Exception as ex:
+            if not self.handle_view_exception(ex):
+                flash('Failed to update record. ' + str(ex), 'error')
+                #log.exception('Failed to update record.')
+
+            self.session.rollback()
+
+            return False
+        else:
+            if new_category != old_category:
+                flash(f"Category of asset updated - {model}", 'success')
+            
+            self.after_model_change(form, model, False)
 
     def get_save_return_url(self, model=None, is_created=False):
         return self.get_url('.details_view', id=model.id)
