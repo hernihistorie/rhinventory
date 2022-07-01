@@ -42,7 +42,7 @@ class Party(db.Model):
     organization = relationship("Organization", backref=backref("parties", order_by=id))
 
     def __str__(self):
-        return self.name
+        return self.name or self.legal_name or self.email
 
 
 class Location(db.Model):
