@@ -43,8 +43,8 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ get_url('.create_view', url=return_url, parent_id=model.id) }}">
-                        {{ icon("circle-plus") }} Create child
+                    <a href="{{ get_url('.create_view', url=return_url, parent_id=model.id, category_id=model.category.id) }}">
+                        {{ icon("circle-plus") }} Create child <strong>{{ model.category }}</strong>
                     </a>
                 </li>
             {% endif %}
