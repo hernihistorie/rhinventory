@@ -7,7 +7,11 @@ from sqlalchemy import Column, Integer, Numeric, String, Text, \
     DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint
 from sqlalchemy.orm import relationship, backref
 from PIL import Image, ImageEnhance, ImageOps
-from pyzbar import pyzbar
+try:
+    from pyzbar import pyzbar
+except ImportError as ex:
+    print("Warning: Failed to import zbar:", ex)
+    pyzbar = None
 
 from rhinventory.extensions import db
 from rhinventory.models.computers import Benchmark
