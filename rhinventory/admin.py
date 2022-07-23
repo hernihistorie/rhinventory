@@ -45,23 +45,24 @@ class UserView(AdminModelView):
 def add_admin_views(app):
     admin.add_view(AssetView(Asset, db.session))
 
-    admin.add_view(CategoryView(Category, db.session))
-
-    admin.add_view(CustomModelView(Location, db.session))
-
-    admin.add_view(MediumView(Medium, db.session))
     admin.add_view(TransactionView(Transaction, db.session))
-
-    admin.add_view(AdminModelView(Party, db.session))
-
-    admin.add_view(AdminModelView(Organization, db.session))
 
     admin.add_view(FileView(File, db.session))
 
-    admin.add_view(UserView(User, db.session))
+    admin.add_view(CategoryView(Category, db.session, category="Misc"))
+
+    admin.add_view(CustomModelView(Location, db.session, category="Misc"))
+
+    admin.add_view(MediumView(Medium, db.session, category="Misc"))
+
+    admin.add_view(AdminModelView(Party, db.session, category="People"))
+
+    admin.add_view(AdminModelView(Organization, db.session, category="People"))
+
+    admin.add_view(UserView(User, db.session, category="Admin"))
     
     #path = os.path.join(os.path.dirname(__file__), app.config['FILES_DIR'])
     #admin.add_view(FileAdmin(path, '/files/', name='File management'))
 
     for table in [LogItem]:
-        admin.add_view(AdminModelView(table, db.session))
+        admin.add_view(AdminModelView(table, db.session, category="Admin"))

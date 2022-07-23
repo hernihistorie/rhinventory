@@ -21,7 +21,6 @@
 
 {% endblock head_css %}
 
-
 {% block brand %}
     <a class="brand" href="{{ admin_view.admin.url }}"
         style="position: relative; width: 28px;"
@@ -37,13 +36,15 @@
 {% endblock %}
 
 {% block access_control %}
-    {% if current_user.is_authenticated %}
-        <div style="margin-top: 8px;">
-            {{ icon("user") }} {{ current_user.github_login }}
-            &bull;
-            <a href="{{ url_for('logout') }}">Log out</a>
-        </div>
-    {% endif %}
+    <div class="pull-right">
+        {% if current_user.is_authenticated %}
+            <div style="margin-top: 8px;">
+                {{ icon("user") }} {{ current_user.github_login }}
+                &bull;
+                <a href="{{ url_for('logout') }}">Log out</a>
+            </div>
+        {% endif %}
+    </div>
 {% endblock %}
 
 
