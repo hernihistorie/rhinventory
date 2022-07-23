@@ -9,7 +9,7 @@ from sqlalchemy.orm import relationship, backref
 from PIL import Image, ImageEnhance, ImageOps
 try:
     from pyzbar import pyzbar
-except ImportError as ex:
+except Exception as ex:
     print("Warning: Failed to import zbar:", ex)
     pyzbar = None
 
