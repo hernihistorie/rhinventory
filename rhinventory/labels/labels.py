@@ -33,16 +33,16 @@ def make_label(id, custom_code, name, subtitle="", medium="", small=False, logo_
 
     if logo_ha:
         logo_kwargs = {
-            'logo_href': "../ha_logo.png",
-            'logo_text_href': "../ha_logo.png"
+            'logo_href': "../assets/ha_logo.png",
+            'logo_text_href': "../assets/ha_logo.png"
         }
     else:
         logo_kwargs = {
-            'logo_href': "../rh_logo_greyscale.png",
-            'logo_text_href': "../rh_logo_text.png"
+            'logo_href': "../assets/rh_logo_greyscale.png",
+            'logo_text_href': "../assets/rh_logo_text.png"
         }
 
-    label_svg = render_jinja_html('rhinventory/labels', 'label.svg',
+    label_svg = render_jinja_html('rhinventory/labels', 'assets/label.svg',
         name=name, custom_code=custom_code, id=id, 
         subtitle=subtitle or '', medium=medium,
         barcode_rects=rects,

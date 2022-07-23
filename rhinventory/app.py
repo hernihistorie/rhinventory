@@ -8,7 +8,7 @@ from rhinventory.extensions import db, admin, debug_toolbar, github, login_manag
 from rhinventory.admin import add_admin_views
 from rhinventory.db import User, Asset, Location, log
 
-from rhinventory.labels import make_barcode, make_label, make_asset_label
+from rhinventory.labels.labels import make_barcode, make_label, make_asset_label
 
 from simpleeval import EvalWithCompoundTypes
 simple_eval = EvalWithCompoundTypes()
