@@ -57,11 +57,17 @@
         function updateSelected() {
             for (var i = 0; i < checkboxes.length; i++) {
                 // if checked and not in array
-                if (checkboxes[i].value != "on"
-                    && checkboxes[i].checked
+                if (
+                    checkboxes[i].checked
                     && selected.indexOf(checkboxes[i].value) == -1
                 ) {
                     selected.push(checkboxes[i].value);
+                } else if (
+                    !checkboxes[i].checked
+                    && selected.indexOf(checkboxes[i].value) != -1
+                ) {
+                    // remove checkbox value from selected list
+                    selected.splice(selected.indexOf(checkboxes[i].value), 1);
                 }
             }
 
