@@ -39,3 +39,6 @@ python_version = "3.9"
 warn_no_return = true
 warn_return_any = true
 warn_unreachable = true
+
+[scripts]
+test = "pytest"
