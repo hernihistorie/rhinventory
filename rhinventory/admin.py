@@ -42,7 +42,7 @@ class UserView(AdminModelView):
     def is_accessible(self):
         return current_user.is_authenticated and current_user.admin
 
-def add_admin_views(app):
+def add_admin_views(admin):
     admin.add_view(AssetView(Asset, db.session))
 
     admin.add_view(TransactionView(Transaction, db.session))

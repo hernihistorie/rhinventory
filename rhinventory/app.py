@@ -13,6 +13,8 @@ from rhinventory.labels.labels import make_barcode, make_label, make_asset_label
 from simpleeval import EvalWithCompoundTypes
 simple_eval = EvalWithCompoundTypes()
 
+add_admin_views(admin)
+
 def create_app(config_object='rhinventory.config'):
     app = Flask(__name__.split('.')[0], template_folder='templates')
     app.config.from_object(config_object)
@@ -25,8 +27,6 @@ def create_app(config_object='rhinventory.config'):
     
     files_blueprint = Blueprint('files', __name__, static_url_path='/files', static_folder=app.config['FILES_DIR'])
     app.register_blueprint(files_blueprint)
-
-    add_admin_views(app)
 
     @app.before_request
     def before_request():

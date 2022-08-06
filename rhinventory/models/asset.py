@@ -1,3 +1,4 @@
+import sys
 import enum
 
 from sqlalchemy import Column, Integer, Numeric, String, Text, \
@@ -7,6 +8,8 @@ from sqlalchemy.orm import relationship, backref
 
 from rhinventory.models.file import File, IMAGE_CATEGORIES
 from rhinventory.extensions import db
+
+TESTING = "pytest" in sys.modules
 
 class AssetStatus(enum.Enum):
     unknown = 0
@@ -28,7 +31,10 @@ class Asset(db.Model):
     note        = Column(Text)
     serial      = Column(String)
 
-    product_codes = Column(ARRAY(String))
+    # ARRAY was a great idea... 
+    # ... except we can't do it in SQLite.
+    if not TESTING:
+        product_codes = Column(ARRAY(String))
 
     #num_photos  = Column(Integer)
 

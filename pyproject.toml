@@ -26,6 +26,7 @@ psycopg2 = "^2.9.3"
 gunicorn = "^20.1.0"
 lxml = "^4.8.0"
 pytest = "^7.1.2"
+SQLAlchemy = {extras = ["mypy"], version = "^1.4.39"}
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.950"
@@ -38,7 +39,4 @@ build-backend = "poetry.core.masonry.api"
 python_version = "3.9"
 warn_no_return = true
 warn_return_any = true
-warn_unreachable = true
-
-[scripts]
-test = "pytest"
+plugins = ["sqlalchemy.ext.mypy.plugin"]

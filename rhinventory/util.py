@@ -32,35 +32,36 @@ def figure_counter(
                 .all())
     x = []
     y = []
-    date = datetime.datetime(int(q[0].year), int(q[0].month), int(q[0].day))
-    today = datetime.date.today()
-    today = datetime.datetime(today.year, today.month, today.day)
-    delta = datetime.timedelta(days=1)
-    it = iter(q)
-    total = 0
-    el = next(it)
-    el_date = datetime.datetime(int(el.year), int(el.month), int(el.day))
-    while date <= today:
-        x.append(date)
+    if len(q):
+        date = datetime.datetime(int(q[0].year), int(q[0].month), int(q[0].day))
+        today = datetime.date.today()
+        today = datetime.datetime(today.year, today.month, today.day)
+        delta = datetime.timedelta(days=1)
+        it = iter(q)
+        total = 0
+        el = next(it)
+        el_date = datetime.datetime(int(el.year), int(el.month), int(el.day))
+        while date <= today:
+            x.append(date)
 
-        #print(date, el_date)
+            #print(date, el_date)
 
-        if not el or el_date > date:
-            y.append(total)
-        elif el:
-            y.append(total)
-            total += el.count
+            if not el or el_date > date:
+                y.append(total)
+            elif el:
+                y.append(total)
+                total += el.count
 
-            try:
-                el = next(it)
-                el_date = datetime.datetime(int(el.year), int(el.month), int(el.day))
-            except StopIteration:
-                el = None
-        date += delta
+                try:
+                    el = next(it)
+                    el_date = datetime.datetime(int(el.year), int(el.month), int(el.day))
+                except StopIteration:
+                    el = None
+            date += delta
 
-    #print(len(x), len(y))
+        #print(len(x), len(y))
 
-    width = (x[-1] - x[0]).total_seconds() / len(x) * 900
+        width = (x[-1] - x[0]).total_seconds() / len(x) * 900
 
     p = figure(plot_height=400,
                plot_width=900,

@@ -1,3 +1,4 @@
+import sys
 from math import ceil
 
 from flask import redirect, request, flash, url_for, get_template_attribute
@@ -14,6 +15,8 @@ from rhinventory.admin_views.model_view import CustomModelView
 from rhinventory.db import Category, Medium, Asset, get_next_file_batch_number, LogItem
 from rhinventory.forms import FileForm
 
+TESTING = "pytest" in sys.modules
+
 RATING_OPTIONS = [(0, 'unknown'), (1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')]
 class RatingField(RadioField):
     def __init__(self, **kwargs):
@@ -28,7 +31,7 @@ class AssetView(CustomModelView):
         'functionality': RatingField,
     }
     form_excluded_columns = ('metadata', 'logs', 'transactions')
-    form_edit_rules = (
+    form_edit_rules = [
         'organization',
         'category',
 #        'custom_code',
@@ -38,7 +41,10 @@ class AssetView(CustomModelView):
         'hardware_type',
         'medium',
         'model',
-        'product_codes',
+    ]
+    if not TESTING:
+        form_edit_rules.append('product_codes')
+    form_edit_rules += [
         'serial',
 #        'condition',
 #        'functionality',
@@ -46,7 +52,7 @@ class AssetView(CustomModelView):
         'note',
         'parent',
         'children',
-    )
+    ]
     form_create_rules = form_edit_rules
     form_args = {
         'category': {
@@ -100,7 +106,6 @@ class AssetView(CustomModelView):
     create_template = "admin/asset/create.html"
 
     def on_model_change(self, form, instance: Asset, is_created):
-        print(form['category'], instance.category)
         if is_created:
             if not instance.custom_code:
                 instance.custom_code = instance.category.get_free_custom_code()
