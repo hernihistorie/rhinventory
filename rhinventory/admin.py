@@ -6,7 +6,7 @@ from flask_admin import Admin, AdminIndexView, expose
 #from flask_admin.form.upload import FileUploadField
 
 from rhinventory.extensions import db, admin, simple_eval
-from rhinventory.db import LogItem, Category, Medium, Location, Organization, log, LogItem, Asset, User, Transaction, File, Party
+from rhinventory.db import LogItem, Medium, Location, Organization, log, LogItem, Asset, User, Transaction, File, Party
 from rhinventory.admin_views import CustomModelView, AdminModelView, AssetView, TransactionView, FileView
 from rhinventory.util import figure_counter
 
@@ -28,9 +28,6 @@ class CustomIndexView(AdminIndexView):
 
 admin._set_admin_index_view(CustomIndexView()) # XXX this is not great
 
-class CategoryView(CustomModelView):
-    form_excluded_columns = ('assets')
-
 class MediumView(CustomModelView):
     column_default_sort = ('name', True)
 
@@ -48,8 +45,6 @@ def add_admin_views(admin):
     admin.add_view(TransactionView(Transaction, db.session))
 
     admin.add_view(FileView(File, db.session))
-
-    admin.add_view(CategoryView(Category, db.session, category="Misc"))
 
     admin.add_view(CustomModelView(Location, db.session, category="Misc"))
 

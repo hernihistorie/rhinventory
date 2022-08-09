@@ -9,6 +9,8 @@ from barcode.writer import ImageWriter
 
 import jinja2
 
+from rhinventory.models.asset import Asset
+
 def render_jinja_html(template_loc, file_name, **context):
 
     return jinja2.Environment(
@@ -64,12 +66,12 @@ def make_label(id, custom_code, name, subtitle="", medium="", small=False, logo_
 
     return filename+'.png'
 
-def make_asset_label(asset, small=False, logo_ha=False):
+def make_asset_label(asset: Asset, small=False, logo_ha=False):
     id = f"RH{asset.id:05}"
-    if asset.custom_code and asset.category.expose_number:
-        code = f"{asset.category.prefix} {asset.custom_code}"
+    if asset.custom_code and asset.CATEGORY_EXPOSE_NUMBER:
+        code = f"{asset.CATEGORY_PREFIX} {asset.custom_code}"
     else:
-        code = f"{asset.category.prefix}"
+        code = f"{asset.CATEGORY_PREFIX} ???"
     
     return make_label(id, code, asset.name,
         subtitle=asset.manufacturer, medium=asset.medium.name if asset.medium else '',

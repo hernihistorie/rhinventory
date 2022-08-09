@@ -38,13 +38,13 @@
             </li>
             {% if model %}
                 <li>
-                    <a href="{{ get_url('.create_view', url=return_url, category_id=model.category.id) }}">
-                        {{ icon("circle-plus") }} Create <strong>{{ model.category }}</strong>
+                    <a href="{{ get_url('.create_view', url=return_url, category=model.category.name) }}">
+                        {{ icon("circle-plus") }} Create <strong>{{ model.category.name }}</strong>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ get_url('.create_view', url=return_url, parent_id=model.id, category_id=model.category.id) }}">
-                        {{ icon("circle-plus") }} Create child <strong>{{ model.category }}</strong>
+                    <a href="{{ get_url('.create_view', url=return_url, parent_id=model.id, category=model.category.name) }}">
+                        {{ icon("circle-plus") }} Create child <strong>{{ model.category.name }}</strong>
                     </a>
                 </li>
             {% endif %}

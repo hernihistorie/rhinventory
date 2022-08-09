@@ -12,8 +12,9 @@ from sqlalchemy import desc
 
 from rhinventory.extensions import db
 from rhinventory.admin_views.model_view import CustomModelView
-from rhinventory.db import Category, Medium, Asset, get_next_file_batch_number, LogItem
+from rhinventory.db import Medium, Asset, get_next_file_batch_number, LogItem
 from rhinventory.forms import FileForm
+from rhinventory.models.asset import AssetCategory
 
 TESTING = "pytest" in sys.modules
 
@@ -55,11 +56,11 @@ class AssetView(CustomModelView):
     ]
     form_create_rules = form_edit_rules
     form_args = {
-        'category': {
-            'query_factory': lambda: Category.query.order_by(
-                Category.id.asc()
-            )
-        },
+        #'category': {
+        #    'query_factory': lambda: Category.query.order_by(
+        #        Category.id.asc()
+        #    )
+        #},
         'medium': {
             'query_factory': lambda: sorted(
                 Medium.query.order_by(Medium.name.asc()).all(),
@@ -71,7 +72,7 @@ class AssetView(CustomModelView):
     can_view_details = True
     column_filters = [
         'organization.name',
-        'category.name',
+        'category',
         'medium.name',
         'hardware_type.name',
         'name',
@@ -108,7 +109,7 @@ class AssetView(CustomModelView):
     def on_model_change(self, form, instance: Asset, is_created):
         if is_created:
             if not instance.custom_code:
-                instance.custom_code = instance.category.get_free_custom_code()
+                instance.custom_code = Asset.get_free_custom_code(instance.category)
         
         super().on_model_change(form, instance, is_created)
     
@@ -127,7 +128,7 @@ class AssetView(CustomModelView):
             new_category: Category = form.category.data
 
             if new_category != old_category:
-                model.custom_code = new_category.get_free_custom_code()
+                model.custom_code = Asset.get_free_custom_code(new_category)
             
             # continue processing the form
 
@@ -366,8 +367,8 @@ class AssetView(CustomModelView):
         if not form.organization.data:
             form.organization.data = current_user.organization
 
-        if "category_id" in request.args.keys() and not form.category.data:
-            form.category.data = self.session.query(Category).get(request.args["category_id"])
+        if "category" in request.args.keys() and not form.category.data:
+            form.category.data = AssetCategory[request.args["category"]]
 
         if "parent_id" in request.args.keys() and not form.parent.data:
             form.parent.data = self.session.query(Asset).get(request.args["parent_id"])
