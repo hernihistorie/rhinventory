@@ -1,8 +1,8 @@
 """Add MagDB tables.
 
-Revision ID: 1128918c4863
+Revision ID: c7224d91b666
 Revises: 3dd084df4064
-Create Date: 2022-08-01 19:07:52.090902
+Create Date: 2022-09-06 19:57:43.697823
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '1128918c4863'
+revision = 'c7224d91b666'
 down_revision = '3dd084df4064'
 branch_labels = None
 depends_on = None

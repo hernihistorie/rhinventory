@@ -25,6 +25,7 @@ environs = "^9.5.0"
 psycopg2 = "^2.9.3"
 gunicorn = "^20.1.0"
 lxml = "^4.8.0"
+Bootstrap-Flask = "^2.1.0"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.950"

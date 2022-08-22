@@ -1,6 +1,7 @@
 import enum
 
 import flask_login
+import sqlalchemy.orm
 from sqlalchemy import func
 
 from rhinventory.extensions import db
@@ -34,6 +35,9 @@ class Magazine(HistoryTrait):
     title = db.Column(db.String(255), unique=True, info={"label": "Název časopisu"})
     description = db.Column(db.Text(), default="", info={"label": "Popis"})
     country_id = db.Column(db.Integer, db.ForeignKey('countries.id'), nullable=True)
+
+    def __str__(self):
+        return self.title
 
 
 class BindingType(enum.Enum):
@@ -111,6 +115,9 @@ class MagazineIssue(HistoryTrait):
 
     note = db.Column(db.Text())
 
+    def __str__(self):
+        return self.issue_title
+
 
 class Currency(enum.Enum):
     CZK = "CZK"
@@ -129,6 +136,9 @@ class Format(HistoryTrait):
     width = db.Column(db.Integer())
     height = db.Column(db.Integer())
 
+    def __str__(self):
+        return self.name
+
 
 class MagazineIssueVersion(HistoryTrait):
     __tablename__ = "magazine_issue_versions"
@@ -144,6 +154,9 @@ class MagazineIssueVersion(HistoryTrait):
     isbn = db.Column(db.String(25), nullable=True)
     barcode = db.Column(db.String(15), nullable=True)
     status = db.Column(db.Enum(IssueStatus))
+
+    def __str__(self):
+        return self.name_suffix
 
 
 class MagazineIssueVersionPrice(HistoryTrait):

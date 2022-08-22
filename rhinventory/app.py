@@ -2,6 +2,7 @@ import os
 
 from flask import Flask, Blueprint, render_template, flash, redirect, url_for, send_file, Response, abort, request, session, jsonify, g
 from flask_login import current_user, login_required, login_user, logout_user
+from flask_bootstrap import Bootstrap5
 from jinja2 import StrictUndefined
 
 from rhinventory.extensions import db, admin, debug_toolbar, github, login_manager
@@ -27,6 +28,11 @@ def create_app(config_object='rhinventory.config'):
     app.register_blueprint(files_blueprint)
 
     add_admin_views(app)
+
+    bootstrap = Bootstrap5(app)
+
+    from rhinventory.admin_views.magdb import magdb_bp
+    app.register_blueprint(magdb_bp)
 
     @app.before_request
     def before_request():
