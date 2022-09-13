@@ -5,6 +5,7 @@ from sqlalchemy import Column, Integer, Numeric, String, Text, \
     DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint, \
         ARRAY, desc
 from sqlalchemy.orm import relationship, backref
+from rhinventory.models.asset_attributes import Company, Medium, Packaging, ProductCode, AssetTag, asset_tag_table, asset_platform_table
 
 from rhinventory.models.file import File, IMAGE_CATEGORIES
 from rhinventory.extensions import db
@@ -18,6 +19,14 @@ class AssetStatus(enum.Enum):
 
     lost = -1
     discarded = -2
+
+
+class AssetCondition(enum.Enum):
+    unknown = 0
+    mint = 1
+    scuffed = 2
+    damaged = 3
+    garbage = 4
 
 
 class AssetCategory(enum.Enum):
@@ -59,8 +68,6 @@ class Asset(db.Model):
     if not TESTING:
         product_codes = Column(ARRAY(String))
 
-    #num_photos  = Column(Integer)
-
     condition   = Column(Integer, default=0, nullable=False)
     functionality = Column(Integer, default=0, nullable=False)
     status      = Column(Enum(AssetStatus), default=AssetStatus.unknown, nullable=False)
@@ -68,22 +75,28 @@ class Asset(db.Model):
     category = Column(Enum(AssetCategory), default=AssetCategory.unknown, nullable=False)
 
     location_id = Column(Integer, ForeignKey('locations.id'))
-    medium_id   = Column(Integer, ForeignKey('media.id'))
+    #medium_id   = Column(Integer, ForeignKey('media.id'))
     hardware_type_id  = Column(Integer, ForeignKey('hardware_type.id'))
 
-    children    = relationship("Asset",
-                    backref=backref("parent", remote_side=id),
-        )
+    children    = relationship("Asset", backref=backref("parent", remote_side=id))
     location    = relationship("Location", backref="assets")
-    medium      = relationship("Medium", backref="assets")
+    #medium      = relationship("Medium", backref="assets")
     hardware_type = relationship("HardwareType", backref="assets")
 
-    transactions = relationship(
-        "Transaction",
-        secondary='transaction_assets')
+    transactions = relationship("Transaction", secondary='transaction_assets')
 
     organization_id = Column(Integer, ForeignKey('organizations.id'), nullable=True)
     organization = relationship("Organization")
+
+    condition: AssetCondition = Column(Enum(AssetCondition), default=AssetCondition.unknown, nullable=False)  # type: ignore
+    
+    #producers = relationship(Company, backref="assets_produced")
+    #distributors = relationship(Company, backref="assets_distributed")
+
+    product_codes_new = relationship(ProductCode, backref="asset")
+
+    platforms = relationship(ProductCode, secondary=asset_platform_table, backref="assets")
+    tags      = relationship(AssetTag, secondary=asset_tag_table, backref="assets")
 
     __mapper_args__ = {
         "polymorphic_on": category
@@ -243,12 +256,3 @@ class AssetMeta(db.Model):
     value       = Column(Text)
 
     asset       = relationship("Asset", backref="metadata")
-
-
-class Medium(db.Model):
-    __tablename__ = 'media'
-    id          = Column(Integer, primary_key=True)
-    name        = Column(String, nullable=False)
-        
-    def __str__(self):
-        return f"{self.name}"
