@@ -88,6 +88,8 @@ def upgrade():
     packaging_objects = {}
     association_objects = []
 
+    old_mediums = session.query(Medium).all()
+
     asset: Asset
     for asset in session.query(Asset):
         old_medium = asset.medium.name if asset.medium else None
@@ -102,9 +104,17 @@ def upgrade():
                 
                 association = AssetMedium(asset_id=asset.id, medium=medium)
                 association_objects.append(association)
-
-            print(mediums, packagings)
+            
+            for count, name in packagings:
+                if name.lower() in packaging_objects:
+                    packaging = packaging_objects[name.lower()]
+                else:
+                    packaging = Packaging(name=name)
+                
+                association = AssetPackaging(asset_id=asset.id, packaging=packaging)
+                association_objects.append(association)
         
+    #session.delete(old_mediums)
     #session.commit()
     
     raise Exception()

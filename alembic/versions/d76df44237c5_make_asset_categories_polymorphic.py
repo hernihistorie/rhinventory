@@ -55,7 +55,10 @@ def upgrade():
     asset: Asset
     for asset in session.query(Asset):
         old_category: Category = session.query(Category).get(asset.category_id)
-        asset.category = old_category.name.replace(" ", "_")
+        category_name = old_category.name.replace(" ", "_").lower()
+        if category_name == "rewriteable_media":
+            category_name = "rewritable_media"
+        asset.category = category_name
         session.add(asset)
 
     session.commit()
