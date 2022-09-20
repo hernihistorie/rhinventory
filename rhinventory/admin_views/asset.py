@@ -1,3 +1,4 @@
+from enum import Enum
 import sys
 from math import ceil
 
@@ -6,6 +7,7 @@ from wtforms import RadioField
 from flask_admin import expose
 from flask_admin.helpers import get_redirect_target
 from flask_admin.model.helpers import get_mdict_item_or_list
+from flask_admin.form import Select2TagsField
 from flask_admin.actions import action
 from flask_login import current_user
 from sqlalchemy import desc
@@ -13,23 +15,22 @@ from sqlalchemy import desc
 from rhinventory.extensions import db
 from rhinventory.admin_views.model_view import CustomModelView
 from rhinventory.db import Medium, Asset, get_next_file_batch_number, LogItem
+from rhinventory.models.asset import AssetCondition
 from rhinventory.forms import FileForm
 from rhinventory.models.asset import AssetCategory
 
 TESTING = "pytest" in sys.modules
 
-RATING_OPTIONS = [(0, 'unknown'), (1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')]
-class RatingField(RadioField):
+CONDITION_OPTIONS = AssetCondition
+class ConditionField(RadioField):
     def __init__(self, **kwargs):
         super().__init__(render_kw={'class': 'rating-field'}, **kwargs)
-        self.choices = RATING_OPTIONS
-        self.coerce = int
-        self.default = 0
+        self.choices = [(value, value.name) for value in AssetCondition]
 
 class AssetView(CustomModelView):
     form_overrides = {
-        'condition': RatingField,
-        'functionality': RatingField,
+        'condition_new': ConditionField,
+#        'product_codes_new': Select2TagsField
     }
     form_excluded_columns = ('metadata', 'logs', 'transactions')
     form_edit_rules = [
@@ -40,19 +41,17 @@ class AssetView(CustomModelView):
         'manufacturer',
 #        'location',
         'hardware_type',
-        'medium',
+#        'medium',
         'model',
-    ]
-    if not TESTING:
-        form_edit_rules.append('product_codes')
-    form_edit_rules += [
+        'product_codes',
+        'product_codes_new',
         'serial',
-#        'condition',
+        'condition_new',
 #        'functionality',
 #        'status',
         'note',
-        'parent',
-        'children',
+#        'parent',
+#        'children',
     ]
     form_create_rules = form_edit_rules
     form_args = {
@@ -61,23 +60,23 @@ class AssetView(CustomModelView):
         #        Category.id.asc()
         #    )
         #},
-        'medium': {
-            'query_factory': lambda: sorted(
-                Medium.query.order_by(Medium.name.asc()).all(),
-                key=lambda m: m.name[0] in "0123456789"
-            )
-        },
+        #'medium': {
+        #    'query_factory': lambda: sorted(
+        #        Medium.query.order_by(Medium.name.asc()).all(),
+        #        key=lambda m: m.name[0] in "0123456789"
+        #    )
+        #},
     }
 
     can_view_details = True
     column_filters = [
         'organization.name',
         'category',
-        'medium.name',
+        #'medium.name',
         'hardware_type.name',
         'name',
         'manufacturer',
-        'parent.id',
+#        'parent.id',
     ]
     column_searchable_list = [
         'name',
@@ -87,17 +86,16 @@ class AssetView(CustomModelView):
         'id',
         'name',
         'manufacturer',
-        'medium',
+        #'medium',
         'serial',
         'condition',
         'functionality',
         'status',
-        'parent',
+#        'parent',
     ]
     column_default_sort = ('id', True)
     column_choices = {
-        'condition': RATING_OPTIONS,
-        'functionality': RATING_OPTIONS,
+#        'condition': AssetCondition,
     }
     can_export = True
 
@@ -370,8 +368,8 @@ class AssetView(CustomModelView):
         if "category" in request.args.keys() and not form.category.data:
             form.category.data = AssetCategory[request.args["category"]]
 
-        if "parent_id" in request.args.keys() and not form.parent.data:
-            form.parent.data = self.session.query(Asset).get(request.args["parent_id"])
+        #if "parent_id" in request.args.keys() and not form.parent.data:
+        #    form.parent.data = self.session.query(Asset).get(request.args["parent_id"])
 
         return form
     

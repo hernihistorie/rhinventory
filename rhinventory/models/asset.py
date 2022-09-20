@@ -5,7 +5,7 @@ from sqlalchemy import Column, Integer, Numeric, String, Text, \
     DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint, \
         ARRAY, desc
 from sqlalchemy.orm import relationship, backref
-from rhinventory.models.asset_attributes import Company, Medium, Packaging, ProductCode, AssetTag, asset_tag_table, asset_platform_table
+from rhinventory.models.asset_attributes import Company, Platform, Medium, Packaging, ProductCode, AssetTag, asset_tag_table, asset_platform_table
 
 from rhinventory.models.file import File, IMAGE_CATEGORIES
 from rhinventory.extensions import db
@@ -88,14 +88,14 @@ class Asset(db.Model):
     organization_id = Column(Integer, ForeignKey('organizations.id'), nullable=True)
     organization = relationship("Organization")
 
-    condition: AssetCondition = Column(Enum(AssetCondition), default=AssetCondition.unknown, nullable=False)  # type: ignore
+    condition_new: AssetCondition = Column(Enum(AssetCondition), default=AssetCondition.unknown, nullable=False)  # type: ignore
     
     #producers = relationship(Company, backref="assets_produced")
     #distributors = relationship(Company, backref="assets_distributed")
 
     product_codes_new = relationship(ProductCode, backref="asset")
 
-    platforms = relationship(ProductCode, secondary=asset_platform_table, backref="assets")
+    platforms = relationship(Platform, secondary=asset_platform_table, backref="assets")
     tags      = relationship(AssetTag, secondary=asset_tag_table, backref="assets")
 
     __mapper_args__ = {
