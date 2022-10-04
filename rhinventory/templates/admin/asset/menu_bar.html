@@ -31,7 +31,8 @@
                 {%- if admin_view.create_modal -%}
                     {{ lib.add_modal_button(url=get_url('.create_view', url=return_url, modal=True), title=_gettext('Create New Record'), content=_gettext('Create')) }}
                 {% else %}
-                    <a href="{{ get_url('.create_view', url=return_url) }}" title="{{ _gettext('Create New Record') }}">
+                    {# {{ get_url('.create_view', url=return_url) }} #}
+                    <a href="{{ get_url('.new_view', url=return_url) }}" title="{{ _gettext('Create New Record') }}">
                         {{ icon("circle-plus") }} {{ _gettext('Create') }}
                     </a>
             {%- endif -%}

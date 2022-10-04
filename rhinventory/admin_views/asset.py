@@ -358,16 +358,28 @@ class AssetView(CustomModelView):
     def create_transaction(self, asset_ids):
         return redirect(url_for('transaction.create_view', asset_id=repr(asset_ids)))
 
+    def make_asset_form(self, category: AssetCategory):
+        form_class = super().scaffold_form()
+
+        #if category != AssetCategory.computer_component:
+        #    del form_class.hardware_type
+        
+        return form_class
 
     def create_form(self, obj=None):
-        form = super(type(self), self).create_form()
+        if "category" in request.args.keys():
+            category = AssetCategory[request.args["category"]]
+        else:
+            category = AssetCategory.unknown
+        
+        form = self.make_asset_form(category)()
+
+        form.category.data = category.name
 
         if not form.organization.data:
             form.organization.data = current_user.organization
 
-        if "category" in request.args.keys() and not form.category.data:
-            form.category.data = AssetCategory[request.args["category"]]
-
+        # FIXME
         #if "parent_id" in request.args.keys() and not form.parent.data:
         #    form.parent.data = self.session.query(Asset).get(request.args["parent_id"])
 
