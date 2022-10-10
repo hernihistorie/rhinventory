@@ -79,6 +79,7 @@ class AssetView(CustomModelView):
         'parent.id',
     ]
     column_searchable_list = [
+        'id',
         'name',
         'serial',
     ]
