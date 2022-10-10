@@ -76,6 +76,7 @@ class AssetView(CustomModelView):
         'hardware_type.name',
         'name',
         'manufacturer',
+        'note',
         'parent.id',
     ]
     column_searchable_list = [
