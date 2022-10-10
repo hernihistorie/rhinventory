@@ -56,6 +56,9 @@
 
         function updateSelected() {
             for (var i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].value == 'on') {
+                    selected.splice(selected.indexOf(checkboxes[i].value), 1);
+                }
                 // if checked and not in array
                 if (
                     checkboxes[i].checked
