@@ -74,7 +74,7 @@
                 {% if model.parent %}
                     <td><strong>Parent</strong></td>
                     <td>
-                        <a href="{{ url_for('asset.details', asset_id=model.parent.id) }}">
+                        <a href="{{ url_for('asset.details_view', asset_id=model.parent.id) }}">
                             {{ model.parent }}
                         </a>
                     </td>
