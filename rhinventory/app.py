@@ -29,8 +29,6 @@ def create_app(config_object='rhinventory.config'):
 
     add_admin_views(app)
 
-    bootstrap = Bootstrap5(app)
-
     from rhinventory.admin_views.magdb import magdb_bp
     app.register_blueprint(magdb_bp)
 

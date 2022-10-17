@@ -1,8 +1,8 @@
 """Add MagDB tables.
 
-Revision ID: c7224d91b666
+Revision ID: 90456af71e66
 Revises: 3dd084df4064
-Create Date: 2022-09-06 19:57:43.697823
+Create Date: 2022-10-17 20:35:13.960227
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'c7224d91b666'
+revision = '90456af71e66'
 down_revision = '3dd084df4064'
 branch_labels = None
 depends_on = None
@@ -91,6 +91,8 @@ def upgrade():
     sa.Column('created_by', sa.Integer(), nullable=True),
     sa.Column('updated_by', sa.Integer(), nullable=True),
     sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('issue_number', sa.Integer(), nullable=True),
+    sa.Column('calendar_id', sa.String(length=64), nullable=True),
     sa.Column('issue_title', sa.String(length=127), nullable=True),
     sa.Column('current_magazine_name', sa.String(length=127), nullable=True),
     sa.Column('is_special_issue', sa.Boolean(), nullable=True),

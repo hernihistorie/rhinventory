@@ -86,8 +86,8 @@ class IssueStatus(enum.Enum):
 class MagazineIssue(HistoryTrait):
     __tablename__ = "magazine_issues"
     id = db.Column(db.Integer(), unique=True, primary_key=True)
-    issue_number: db.Column(db.Integer(), nullable=True)
-    calendar_id: db.Column(db.String(64), nullable=True)
+    issue_number = db.Column(db.Integer(), nullable=True)
+    calendar_id = db.Column(db.String(64), nullable=True)
 
     issue_title = db.Column(db.String(127), default="")
     current_magazine_name = db.Column(db.String(127))
