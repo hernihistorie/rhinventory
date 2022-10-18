@@ -204,15 +204,14 @@ class FileView(CustomModelView):
 
         if model.filename.lower().split('.')[-1] not in ('jpg', 'jpeg'):
             flash("Sorry, rotation is currently only available for JPEG files.", 'error')
-            return redirect(url_for("file.details_view", id=id))
-        
-        rotation = get_mdict_item_or_list(request.args, 'rotation')
+        else:
+            rotation = get_mdict_item_or_list(request.args, 'rotation')
 
-        model.rotate(int(rotation))
-        db.session.add(model)
-        log("Update", model, user=current_user, action="rotate", rotation=rotation)
-        db.session.commit()
-        flash("Image rotated", 'success')
+            model.rotate(int(rotation))
+            db.session.add(model)
+            log("Update", model, user=current_user, action="rotate", rotation=rotation)
+            db.session.commit()
+            flash("Image rotated", 'success')
         
         if request.args.get('refresh', False):
             return 'OK', 200, {'HX-Refresh': 'true'}
