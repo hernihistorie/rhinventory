@@ -1,7 +1,12 @@
 {% extends 'admin/master.html' %}
 
 {% block body %}
-    <h2>Files uploaded</h2>
+    <h2>
+        Files uploaded
+        {% if batch_number %}
+            (batch number {{ batch_number }})
+        {% endif %}
+    </h2>
     <table class="table table-hover table-bordered">
         <thead>
             <tr>

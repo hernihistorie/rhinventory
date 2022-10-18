@@ -172,17 +172,29 @@ class FileView(CustomModelView):
     
     @expose('/upload/result', methods=['GET'])
     def upload_result_view(self):
-        files = []
-        for file_id in simple_eval.eval(request.args['files']):
-            files.append(db.session.query(File).get(file_id))
+        if 'batch_number' in request.args:
+            batch_number = request.args['batch_number']
+            assert 'files' not in request.args
+
+            files = db.session.query(File).filter(File.batch_number == batch_number) \
+                .order_by(File.upload_date).all()
+        else:
+            batch_number = None
+            files = []
+            for file_id in simple_eval.eval(request.args['files']):
+                files.append(db.session.query(File).get(file_id))
         
         duplicate_files = []
-        for f0, f1_id in simple_eval.eval(request.args['duplicate_files']):
-            duplicate_files.append((f0, db.session.query(File).get(f1_id)))
+        if 'duplicate_files' in request.args:
+            for f0, f1_id in simple_eval.eval(request.args['duplicate_files']):
+                duplicate_files.append((f0, db.session.query(File).get(f1_id)))
         
-        auto_assign = simple_eval.eval(request.args['auto_assign'])
+        if 'auto_assign' in request.args:
+            auto_assign = simple_eval.eval(request.args['auto_assign'])
+        else:
+            auto_assign = None
         
-        return self.render('admin/file/upload_result.html', files=files, duplicate_files=duplicate_files, auto_assign=auto_assign)
+        return self.render('admin/file/upload_result.html', files=files, duplicate_files=duplicate_files, auto_assign=auto_assign, batch_number=batch_number)
 
 
     @expose('/make_thumbnail/', methods=['POST'])
