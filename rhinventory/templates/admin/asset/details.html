@@ -74,9 +74,22 @@
                 {% if model.parent %}
                     <td><strong>Parent</strong></td>
                     <td>
-                        <a href="{{ url_for('asset.details_view', asset_id=model.parent.id) }}">
+                        <a href="{{ url_for('asset.details_view', id=model.parent.id) }}">
                             {{ model.parent }}
                         </a>
+                    </td>
+                {% endif %}
+                {% if model.children %}
+                    <td><strong>Children</strong></td>
+                    <td>
+                        <ul>
+                            {% for child in model.children %}
+                                <li>
+                                    <a href="{{ url_for('asset.details_view', id=child.id) }}">
+                                        {{ child }}
+                                    </a>
+                            {% endfor %}
+                        </ul>
                     </td>
                 {% endif %}
                 
