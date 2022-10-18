@@ -8,6 +8,7 @@
                 <th></th>
                 <th>Filename</th>
                 <th>Category</th>
+                <th>Primary</th>
                 <th colspan=2>Thumbnail</th>
                 <th colspan=2>Asset</th>
             </tr>
@@ -32,7 +33,12 @@
                     </a>
                 </td>
                 <td>
-                    {{ file.category }}
+                    {{ file.category.name }}
+                </td>
+                <td>
+                    <button hx-post="{{ url_for('file.set_primary_view', id=file.id, primary=not file.primary, refresh=True) }}" class="btn btn-secondary">
+                        {{ '★' if file.primary else '☆' }}
+                    </button>
                 </td>
                 <td style="padding: 0; min-width: 62px;">
                     {% if file.has_thumbnail %}

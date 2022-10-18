@@ -236,6 +236,20 @@ class FileView(CustomModelView):
         
         return redirect(url_for('.details_view', id=id))
     
+    @expose('/set_primary/', methods=['POST'])
+    def set_primary_view(self):
+        id = get_mdict_item_or_list(request.args, 'id')
+        model = self.get_one(id)
+
+        model.primary = request.args.get('primary') == "True"
+        db.session.add(model)
+        db.session.commit()
+        
+        if request.args.get('refresh', False):
+            return 'OK', 200, {'HX-Refresh': 'true'}
+        
+        return redirect(url_for('.details_view', id=id))
+    
     @expose('/auto_assign/', methods=['POST'])
     def auto_assign_view(self):
         id = get_mdict_item_or_list(request.args, 'id')
