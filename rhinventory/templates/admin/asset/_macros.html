@@ -9,10 +9,19 @@
     {% else %}
         {{ icon("image", faded=True) }}
     {% endif %}
+    {% if asset.get_dumps() %}
+        <a href="{{ url_for('asset.details_view', id=asset.id) }}">
+            {{ icon("save") }}
+        </a>
+    {% else %}
+        {{ icon("save", faded=True) }}
+    {% endif %}
     {% if asset.parent %}
         <a href="{{ url_for('asset.details_view', id=asset.parent.id) }}">
             {{- icon("jar") -}}
         </a>
+    {% else %}
+        {{- icon("jar", faded=True) -}}
     {% endif %}
     {% for transaction in asset.transactions %}
         <a href="{{ url_for('transaction.details_view', id=transaction.id) }}">
