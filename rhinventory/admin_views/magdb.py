@@ -54,24 +54,24 @@ class MagDbMagazineIssueView(MagDbModelView):
 
             date = datetime.datetime(day=last_issue.published_day, month=last_issue.published_month, year=last_issue.published_year)
             value = None
-            match last_issue.periodicity:
-                case Periodicity.weekly:
-                    value = rrule(WEEKLY, dtstart=date.date(), interval=1).after(date)
-                case Periodicity.biweekly:
-                    after_week = rrule(WEEKLY, dtstart=date.date(), interval=1).after(date)
-                    value = rrule(WEEKLY, dtstart=after_week.date(), interval=1).after(after_week)
-                case Periodicity.monthly:
-                    value = rrule(MONTHLY, dtstart=date.date(), interval=1).after(date)
-                case Periodicity.bimonthly:
-                    after_month = rrule(MONTHLY, dtstart=date.date(), interval=1).after(date)
-                    value = rrule(MONTHLY, dtstart=after_month.date(), interval=1).after(after_month)
-                case Periodicity.annually:
-                    value = rrule(YEARLY, dtstart=date.date(), interval=1).after(date)
-                case Periodicity.quarterly:
-                    after_month = rrule(MONTHLY, dtstart=date.date(), interval=1).after(date)
-                    for i in range(3):
-                        after_month = rrule(MONTHLY, dtstart=after_month.date(), interval=1).after(after_month)
-                    value = after_month
+            periodicity = last_issue.periodicity
+            if periodicity == Periodicity.weekly:
+                value = rrule(WEEKLY, dtstart=date.date(), interval=1).after(date)
+            elif periodicity == Periodicity.biweekly:
+                after_week = rrule(WEEKLY, dtstart=date.date(), interval=1).after(date)
+                value = rrule(WEEKLY, dtstart=after_week.date(), interval=1).after(after_week)
+            elif periodicity == Periodicity.monthly:
+                value = rrule(MONTHLY, dtstart=date.date(), interval=1).after(date)
+            elif periodicity == Periodicity.bimonthly:
+                after_month = rrule(MONTHLY, dtstart=date.date(), interval=1).after(date)
+                value = rrule(MONTHLY, dtstart=after_month.date(), interval=1).after(after_month)
+            elif periodicity == Periodicity.annually:
+                value = rrule(YEARLY, dtstart=date.date(), interval=1).after(date)
+            elif periodicity == Periodicity.quarterly:
+                after_month = rrule(MONTHLY, dtstart=date.date(), interval=1).after(date)
+                for i in range(3):
+                    after_month = rrule(MONTHLY, dtstart=after_month.date(), interval=1).after(after_month)
+                value = after_month
 
             prepared_values["periodicity"] = last_issue.periodicity.name
 
