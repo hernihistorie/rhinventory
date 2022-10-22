@@ -79,7 +79,7 @@
                             formData.append('files', file)
                         })
                         formData.append('category', formElem.querySelector('#category').value)
-                        formData.append('auto_assign', formElem.querySelector('#auto_assign').value)
+                        formData.append('auto_assign', formElem.querySelector('#auto_assign').checked)
                         formData.append('batch_number', formElem.querySelector('#batch_number').value)
                         formData.append('xhr', true)
                         
@@ -115,7 +115,7 @@
                         window.location.href='{{ url_for("file.upload_result_view") }}'
                             + '?files=' + JSON.stringify(fileIds)
                             + '&duplicate_files=' + JSON.stringify(duplicateFiles)
-                            + '&auto_assign=' + (formElem.querySelector('#auto_assign').value ? "True" : "False");
+                            + '&auto_assign=' + (formElem.querySelector('#auto_assign').checked ? "True" : "False");
                     }
                 }
 
