@@ -81,11 +81,23 @@ class MagDbMagazineIssueView(MagDbModelView):
                 prepared_values["published_year"] = value.year
 
         form = create_form(flask.request.values, **prepared_values)
+
         if flask.request.method == "POST":
             self.create_model(form)
-            return flask.redirect(self.get_url("magdb_magazine.index_view"))
 
-        return self.render("magdb/magazine_issue/create_wizard.html", form=form)
+            if flask.request.values["submit"] == "Add and go to magazine issue":
+                return flask.redirect(self.get_url("magdb_magazine_issue.index_view"))
+            else:
+                return flask.redirect(self.get_url("magdb_magazine.index_view"))
+
+        return self.render(
+            "magdb/magazine_issue/create_wizard.html",
+            form=form,
+            buttons=[
+                ("Add and go to magazine issue", "submit"),
+                ("Add and go to magazine", "submit"),
+            ]
+        )
 
 
 class MagDbMagazineIssueVersionView(MagDbModelView):
@@ -119,9 +131,19 @@ class MagDbMagazineIssueVersionView(MagDbModelView):
         form = create_form(flask.request.values, **prepared_values)
         if flask.request.method == "POST":
             self.create_model(form)
-            return flask.redirect(self.get_url("magdb_magazine.index_view"))
+            if flask.request.values["submit"] == "Add and go to issue version":
+                return flask.redirect(self.get_url("magdb_magazine_issue_version.index_view"))
+            else:
+                return flask.redirect(self.get_url("magdb_magazine_issue.index_view"))
 
-        return self.render("magdb/magazine_issue_version/create_wizard.html", form=form)
+        return self.render(
+            "magdb/magazine_issue_version/create_wizard.html",
+            form=form,
+            buttons=[
+                ("Add and go to magazine issue", "submit"),
+                ("Add and go to issue version", "submit"),
+            ]
+        )
 
 
 class MagDbMagazineIssueVersionPriceView(MagDbModelView):
@@ -136,9 +158,15 @@ class MagDbMagazineIssueVersionPriceView(MagDbModelView):
         form = create_form(flask.request.values, **prepared_values)
         if flask.request.method == "POST":
             self.create_model(form)
-            return flask.redirect(self.get_url("magdb_magazine.index_view"))
+            return flask.redirect(self.get_url("magdb_magazine_issue_version.index_view"))
 
-        return self.render("magdb/magazine_issue_version_price/create_wizard.html", form=form)
+        return self.render(
+            "magdb/magazine_issue_version_price/create_wizard.html",
+            form=form,
+            buttons=[
+                ("Add and return to issue version ", "submit"),
+            ]
+        )
 
 
 def add_magdb_views(admin, session):

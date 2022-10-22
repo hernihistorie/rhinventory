@@ -1,0 +1,20 @@
+{% import 'admin/lib.html' as lib with context %}
+
+{% macro form_tag(form=None, action=None) %}
+    <form action="{{ action or '' }}" method="POST" class="admin-form form-horizontal" enctype="multipart/form-data">
+        <fieldset>
+            {{ caller() }}
+        </fieldset>
+    </form>
+{% endmacro %}
+
+{% macro render_form(form, cancel_url, buttons, form_opts=None, action=None) -%}
+    {% call form_tag(action=action) %}
+        {{ lib.render_form_fields(form, form_opts=form_opts) }}
+
+        {% for button in buttons %}
+            <input type="submit" name="{{ button[1] }}" value="{{ button[0] }}">
+        {% endfor %}
+    {% endcall %}
+
+{% endmacro %}
