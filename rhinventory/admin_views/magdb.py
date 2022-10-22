@@ -1,5 +1,6 @@
 import datetime
 from dateutil.rrule import rrule, WEEKLY, MONTHLY, YEARLY
+from typing import OrderedDict
 
 import flask
 from flask_admin import BaseView, expose
@@ -8,7 +9,7 @@ from wtforms import SelectField, SubmitField
 from wtforms_alchemy import ModelForm
 
 from rhinventory.admin_views import CustomModelView
-from rhinventory.models.magdb import Issuer, Magazine, Periodicity, MagazineIssue, Format, MagazineIssueVersion, MagazineIssueVersionPrice
+from rhinventory.models.magdb import Issuer, Magazine, Periodicity, MagazineIssue, Format, MagazineIssueVersion, MagazineIssueVersionPrice, IssueStatus
 
 
 class MagDbModelView(CustomModelView):
@@ -156,6 +157,32 @@ def index():
     return render_template("magdb/index.html")
 
 
-@magdb_bp.route("miss-list")
+@magdb_bp.route("/miss-list")
 def miss_list():
-    pass
+    context = {
+        "missing_magazines": {},
+        "magazines": {},
+    }
+
+    for issue in MagazineIssueVersion.query.filter(
+            MagazineIssueVersion.status != IssueStatus.have
+        ).all():
+
+        magazine_id = issue.magazine_issue.magazine_id
+        if magazine_id not in context["missing_magazines"]:
+            context["missing_magazines"][magazine_id] = []
+
+        context["missing_magazines"][magazine_id].append(
+            issue
+        )
+
+        context["magazines"][magazine_id] = issue.magazine_issue.magazine.title
+
+    context["magazines"] = OrderedDict(
+        sorted(
+            context["magazines"].items(),
+            key=lambda x: x[1]
+        )
+    )
+
+    return render_template("magdb/miss-list.html", **context)

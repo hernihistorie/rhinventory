@@ -158,7 +158,7 @@ class MagazineIssueVersion(HistoryTrait):
     status = db.Column(db.Enum(IssueStatus))
 
     def __str__(self):
-        return f"{str(self.magazine_issue)} {self.name_suffix}"
+        return f"{str(self.magazine_issue)} {self.name_suffix if self.name_suffix is not None else ''}"
 
 
 class MagazineIssueVersionPrice(HistoryTrait):
