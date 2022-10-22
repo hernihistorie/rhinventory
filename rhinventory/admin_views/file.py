@@ -3,8 +3,10 @@ import os.path
 import datetime
 import hashlib
 import multiprocessing as mp
+import random
+import string
 
-from flask import request, flash, redirect, url_for, current_app, jsonify
+from flask import get_template_attribute, request, flash, redirect, url_for, current_app, jsonify
 from flask_login import current_user
 from flask_admin import expose
 from flask_admin.helpers import get_redirect_target
@@ -211,11 +213,14 @@ class FileView(CustomModelView):
     
     @expose('/rotate/', methods=['POST'])
     def rotate_view(self):
+        htmx = request.args.get('htmx', False)
         id = get_mdict_item_or_list(request.args, 'id')
         model = self.get_one(id)
 
         if model.filename.lower().split('.')[-1] not in ('jpg', 'jpeg'):
             flash("Sorry, rotation is currently only available for JPEG files.", 'error')
+            if htmx:
+                return 'NG', 200, {'HX-Refresh': 'true'}
         else:
             rotation = get_mdict_item_or_list(request.args, 'rotation')
 
@@ -223,10 +228,12 @@ class FileView(CustomModelView):
             db.session.add(model)
             log("Update", model, user=current_user, action="rotate", rotation=rotation)
             db.session.commit()
-            flash("Image rotated", 'success')
         
-        if request.args.get('refresh', False):
-            return 'OK', 200, {'HX-Refresh': 'true'}
+            if htmx:
+                rnd = ''.join(random.choice(string.ascii_lowercase) for i in range(10))
+                return get_template_attribute('_macros.html', 'render_file_thumbnail')(model, rnd)
+
+            flash("Image rotated", 'success')
 
         return redirect(url_for("file.details_view", id=id))
     

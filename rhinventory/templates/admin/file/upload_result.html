@@ -1,4 +1,5 @@
 {% extends 'admin/master.html' %}
+{% from '_macros.html' import render_file_thumbnail %}
 
 {% block body %}
     <h2>
@@ -46,14 +47,17 @@
                     </button>
                 </td>
                 <td style="padding: 0; min-width: 62px;">
-                    {% if file.has_thumbnail %}
-                        <img src="{{ url_for('files.static', filename=file.filepath_thumbnail) }}" class="upload_result_thumb">
-                    {% endif %}
+                    {{ render_file_thumbnail(file) }}
                 </td>
                 <td style="white-space: nowrap;">
                     {% if file.has_thumbnail %}
                         {% for rotation, icon in [('270', '↶'), ('0', '↓'), ('90', '↷'), ('180', '180°')] -%}
-                            <button hx-post="{{ url_for('file.rotate_view', id=file.id, rotation=rotation, refresh=True) }}" class="btn btn-secondary">
+                            <button
+                                hx-post="{{ url_for('file.rotate_view', id=file.id, rotation=rotation, htmx=True) }}"
+                                class="btn btn-secondary"
+                                hx-swap="outerHTML"
+                                hx-target="#thumb-{{ file.id }}"
+                            >
                                 {{ icon }}
                             </button>
                         {%- endfor %}
