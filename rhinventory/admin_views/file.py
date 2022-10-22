@@ -122,8 +122,11 @@ class FileView(CustomModelView):
                     image_files.append(file_db)
                 
                 files.append(file_db)
-            
-            pool = mp.Pool(mp.cpu_count())
+
+            if current_app.config["MULTIPROCESSING_ENABLED"]:
+                pool = mp.Pool(mp.cpu_count())
+            else:
+                pool = None
 
             if assign_asset:
                 for file in files:
@@ -132,7 +135,11 @@ class FileView(CustomModelView):
                 print("Reading barcodes...")
                 # Read barcodes in parallel
                 if form.auto_assign.data and image_files:
-                    result_objects = [pool.apply_async(File.read_rh_barcode, args=(file,)) for file in image_files]
+                    print("You should not be here.")
+                    if pool is not None:
+                        result_objects = [pool.apply_async(File.read_rh_barcode, args=(file,)) for file in image_files]
+                    else:
+                        result_objects = [File.read_rh_barcode(file) for file in image_files]
                     asset_ids = [r.get() for r in result_objects]
                     for file, asset_id in zip(image_files, asset_ids):
                         file.assign(asset_id)
@@ -140,12 +147,17 @@ class FileView(CustomModelView):
             print("Creating thumbnails...")
             # Create thumbnails in parallel
             if image_files:
-                result_objects = [pool.apply_async(File.make_thumbnail, args=(file,)) for file in image_files]
+                if pool is not None:
+                    result_objects = [pool.apply_async(File.make_thumbnail, args=(file,)) for file in image_files]
+                else:
+                    result_objects = [File.make_thumbnail(file) for file in image_files]
+
                 for file in image_files:
                     file.has_thumbnail = True
-            
-            pool.close()
-            pool.join()
+
+            if pool is not None:
+                pool.close()
+                pool.join()
 
             print("Committing...")
             db.session.add_all(files)

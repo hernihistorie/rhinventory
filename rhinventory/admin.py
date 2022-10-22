@@ -9,6 +9,7 @@ from rhinventory.extensions import db, admin, simple_eval
 from rhinventory.db import LogItem, Category, Medium, Location, Organization, log, LogItem, Asset, User, Transaction, File, Party
 from rhinventory.admin_views import CustomModelView, AdminModelView, AssetView, TransactionView, FileView
 from rhinventory.util import figure_counter
+from rhinventory.admin_views.magdb import add_magdb_views
 
 class CustomIndexView(AdminIndexView):
     @expose('/')
@@ -66,3 +67,5 @@ def add_admin_views(admin):
 
     for table in [LogItem]:
         admin.add_view(AdminModelView(table, db.session, category="Admin"))
+
+    add_magdb_views(admin, db.session)
