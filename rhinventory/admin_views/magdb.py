@@ -24,34 +24,32 @@ class MagDbModelView(CustomModelView):
     column_exclude_list = ["created_at", "created_by", "updated_at", "updated_by"]
 
 
-class IssueForm(ModelForm):
-    class Meta:
-        model = MagazineIssue
-        exclude = ["created_at", "created_by", "updated_at", "updated_by"]
-
-    periodicity = SelectField(choices=Periodicity.choices(), coerce=Periodicity.coerce)
-
-
 class MagDbMagazineView(MagDbModelView):
     list_template = "magdb/magazine/list_view.html"
 
 
 class MagDbMagazineIssueView(MagDbModelView):
+    list_template = "magdb/magazine_issue/list_view.html"
+
     @expose("/create_wizard", methods=["GET", "POST"])
     def create_wizard(self):
         create_form = self.get_create_form()
-
         prepared_values = {
             "magazine": Magazine.query.get(flask.request.args.get("magazine_id"))
         }
 
         last_issue = MagazineIssue.query.order_by(MagazineIssue.created_at.desc()).first()
 
-        if last_issue.is_special_issue:
-            prepared_values["note"] = "previous was special"
-        else:
-            prepared_values["issue_number"] = last_issue.issue_number + 1
+        if last_issue is not None:
+            if last_issue.is_special_issue:
+                prepared_values["note"] = "previous was special"
+            else:
+                pass
 
+            prepared_values["issuer"] = last_issue.issuer
+            prepared_values["current_magazine_name"] = last_issue.current_magazine_name
+
+            prepared_values["issue_number"] = last_issue.issue_number + 1
 
             date = datetime.datetime(day=last_issue.published_day, month=last_issue.published_month, year=last_issue.published_year)
             value = None
@@ -81,20 +79,74 @@ class MagDbMagazineIssueView(MagDbModelView):
                 prepared_values["published_month"] = value.month
                 prepared_values["published_year"] = value.year
 
-            form = create_form(flask.request.values, **prepared_values)
-            if flask.request.method == "POST":
-                self.create_model(form)
+        form = create_form(flask.request.values, **prepared_values)
+        if flask.request.method == "POST":
+            self.create_model(form)
+            return flask.redirect(self.get_url("magdb_magazine.index_view"))
 
         return self.render("magdb/magazine_issue/create_wizard.html", form=form)
 
 
+class MagDbMagazineIssueVersionView(MagDbModelView):
+    list_template = "magdb/magazine_issue_version/list_view.html"
+
+    @expose("/create_wizard", methods=["GET", "POST"])
+    def create_wizard(self):
+        create_form = self.get_create_form()
+
+        last_issue = MagazineIssue.query.get(flask.request.args.get("magazine_issue_id"))
+
+        previous_to_last_issue = MagazineIssue.query.filter(MagazineIssue.created_at < last_issue.created_at)\
+            .filter(MagazineIssue.magazine_id == last_issue.magazine_id)\
+            .order_by(MagazineIssue.created_at.desc()).first()
+
+        prepared_values = {
+            "magazine_issue": last_issue
+        }
+
+        last_issue_version = None
+        if previous_to_last_issue is not None:
+            last_issue_version = MagazineIssueVersion.query.order_by(
+                MagazineIssueVersion.created_at.desc()
+            ).filter(MagazineIssueVersion.magazine_issue_id == previous_to_last_issue.id).first()
+
+        if last_issue_version is not None:
+            prepared_values["format"] = last_issue_version.format
+            prepared_values["name_suffix"] = last_issue_version.name_suffix
+            prepared_values["form"] = last_issue_version.form.name
+
+        form = create_form(flask.request.values, **prepared_values)
+        if flask.request.method == "POST":
+            self.create_model(form)
+            return flask.redirect(self.get_url("magdb_magazine.index_view"))
+
+        return self.render("magdb/magazine_issue_version/create_wizard.html", form=form)
+
+
+class MagDbMagazineIssueVersionPriceView(MagDbModelView):
+    @expose("/create_wizard", methods=["GET", "POST"])
+    def create_wizard(self):
+        create_form = self.get_create_form()
+
+        prepared_values = {
+            "issue_version": MagazineIssueVersion.query.get(flask.request.args.get("magazine_issue_version_id"))
+        }
+
+        form = create_form(flask.request.values, **prepared_values)
+        if flask.request.method == "POST":
+            self.create_model(form)
+            return flask.redirect(self.get_url("magdb_magazine.index_view"))
+
+        return self.render("magdb/magazine_issue_version_price/create_wizard.html", form=form)
+
+
 def add_magdb_views(admin, session):
     admin.add_view(MagDbModelView(Issuer, session, category="MagDB"))
-    admin.add_view(MagDbMagazineView(Magazine, session, category="MagDB"))
+    admin.add_view(MagDbMagazineView(Magazine, session, category="MagDB", endpoint="magdb_magazine"))
     admin.add_view(MagDbMagazineIssueView(MagazineIssue, session, category="MagDB", endpoint="magdb_magazine_issue"))
     admin.add_view(MagDbModelView(Format, session, category="MagDB"))
-    admin.add_view(MagDbModelView(MagazineIssueVersion, session, category="MagDB"))
-    admin.add_view(MagDbModelView(MagazineIssueVersionPrice, session, category="MagDB"))
+    admin.add_view(MagDbMagazineIssueVersionView(MagazineIssueVersion, session, category="MagDB", endpoint="magdb_magazine_issue_version"))
+    admin.add_view(MagDbMagazineIssueVersionPriceView(MagazineIssueVersionPrice, session, category="MagDB", endpoint="magdb_magazine_issue_version_price"))
 
 
 magdb_bp = Blueprint("magdb", __name__, url_prefix="/public-magdb")

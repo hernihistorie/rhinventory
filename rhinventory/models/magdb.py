@@ -110,13 +110,13 @@ class MagazineIssue(HistoryTrait):
     issuer_id = db.Column(db.Integer(), db.ForeignKey("issuers.id"))
     issuer = db.relationship("Issuer")
 
-    magazine_id = db.Column(db.Integer(), db.ForeignKey("magazines.id"))
+    magazine_id = db.Column(db.Integer(), db.ForeignKey("magazines.id"), nullable=False)
     magazine = db.relationship("Magazine")
 
     note = db.Column(db.Text())
 
     def __str__(self):
-        return self.issue_title
+        return f"{str(self.magazine)}: { self.calendar_id if not self.is_special_issue else self.issue_title}"
 
 
 class Currency(enum.Enum):
@@ -143,6 +143,8 @@ class Format(HistoryTrait):
 class MagazineIssueVersion(HistoryTrait):
     __tablename__ = "magazine_issue_versions"
     id = db.Column(db.Integer(), unique=True, primary_key=True)
+    magazine_issue_id = db.Column(db.Integer(), db.ForeignKey("magazine_issues.id"), nullable=False)
+    magazine_issue = db.relationship("MagazineIssue")
     name_suffix = db.Column(db.String(127))
     # TODO: cover page
     form = db.Column(db.Enum(MagazineForm))
@@ -156,7 +158,7 @@ class MagazineIssueVersion(HistoryTrait):
     status = db.Column(db.Enum(IssueStatus))
 
     def __str__(self):
-        return self.name_suffix
+        return f"{str(self.magazine_issue)} {self.name_suffix}"
 
 
 class MagazineIssueVersionPrice(HistoryTrait):
