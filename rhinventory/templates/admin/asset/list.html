@@ -93,12 +93,11 @@
         rowtoggleEl.addEventListener("click", function(){
             if (rowtoggleEl.checked) {
                 for (var i = 0; i < checkboxes.length; i++) {
-                    if (checkboxes[i].value == "on") continue;
+                    console.log(checkboxes[i]);
                     selected.push(checkboxes[i].value);
                 }
             } else {
                 for (var i = 0; i < checkboxes.length; i++) {
-                    if (checkboxes[i].value == "on") continue;
                     // remove checkbox value from selected list
                     selected.splice(selected.indexOf(checkboxes[i].value), 1);
                 }
@@ -126,7 +125,6 @@
 
         /* Select multiple checkboxes with shift */
 
-        var checkboxes = Array.from(document.querySelectorAll('input[type=checkbox]'));
         var lastChecked = null;
 
         checkboxes.forEach(function(checkbox) {
