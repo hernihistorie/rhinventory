@@ -3,8 +3,10 @@ import os.path
 import datetime
 import hashlib
 import multiprocessing as mp
+import random
+import string
 
-from flask import request, flash, redirect, url_for, current_app, jsonify
+from flask import get_template_attribute, request, flash, redirect, url_for, current_app, jsonify
 from flask_login import current_user
 from flask_admin import expose
 from flask_admin.helpers import get_redirect_target
@@ -120,8 +122,11 @@ class FileView(CustomModelView):
                     image_files.append(file_db)
                 
                 files.append(file_db)
-            
-            pool = mp.Pool(mp.cpu_count())
+
+            if current_app.config["MULTIPROCESSING_ENABLED"]:
+                pool = mp.Pool(mp.cpu_count())
+            else:
+                pool = None
 
             if assign_asset:
                 for file in files:
@@ -130,7 +135,11 @@ class FileView(CustomModelView):
                 print("Reading barcodes...")
                 # Read barcodes in parallel
                 if form.auto_assign.data and image_files:
-                    result_objects = [pool.apply_async(File.read_rh_barcode, args=(file,)) for file in image_files]
+                    print("You should not be here.")
+                    if pool is not None:
+                        result_objects = [pool.apply_async(File.read_rh_barcode, args=(file,)) for file in image_files]
+                    else:
+                        result_objects = [File.read_rh_barcode(file) for file in image_files]
                     asset_ids = [r.get() for r in result_objects]
                     for file, asset_id in zip(image_files, asset_ids):
                         file.assign(asset_id)
@@ -138,12 +147,17 @@ class FileView(CustomModelView):
             print("Creating thumbnails...")
             # Create thumbnails in parallel
             if image_files:
-                result_objects = [pool.apply_async(File.make_thumbnail, args=(file,)) for file in image_files]
+                if pool is not None:
+                    result_objects = [pool.apply_async(File.make_thumbnail, args=(file,)) for file in image_files]
+                else:
+                    result_objects = [File.make_thumbnail(file) for file in image_files]
+
                 for file in image_files:
                     file.has_thumbnail = True
-            
-            pool.close()
-            pool.join()
+
+            if pool is not None:
+                pool.close()
+                pool.join()
 
             print("Committing...")
             db.session.add_all(files)
@@ -172,17 +186,29 @@ class FileView(CustomModelView):
     
     @expose('/upload/result', methods=['GET'])
     def upload_result_view(self):
-        files = []
-        for file_id in simple_eval.eval(request.args['files']):
-            files.append(db.session.query(File).get(file_id))
+        if 'batch_number' in request.args:
+            batch_number = request.args['batch_number']
+            assert 'files' not in request.args
+
+            files = db.session.query(File).filter(File.batch_number == batch_number) \
+                .order_by(File.upload_date).all()
+        else:
+            batch_number = None
+            files = []
+            for file_id in simple_eval.eval(request.args['files']):
+                files.append(db.session.query(File).get(file_id))
         
         duplicate_files = []
-        for f0, f1_id in simple_eval.eval(request.args['duplicate_files']):
-            duplicate_files.append((f0, db.session.query(File).get(f1_id)))
+        if 'duplicate_files' in request.args:
+            for f0, f1_id in simple_eval.eval(request.args['duplicate_files']):
+                duplicate_files.append((f0, db.session.query(File).get(f1_id)))
         
-        auto_assign = simple_eval.eval(request.args['auto_assign'])
+        if 'auto_assign' in request.args:
+            auto_assign = simple_eval.eval(request.args['auto_assign'])
+        else:
+            auto_assign = None
         
-        return self.render('admin/file/upload_result.html', files=files, duplicate_files=duplicate_files, auto_assign=auto_assign)
+        return self.render('admin/file/upload_result.html', files=files, duplicate_files=duplicate_files, auto_assign=auto_assign, batch_number=batch_number)
 
 
     @expose('/make_thumbnail/', methods=['POST'])
@@ -199,23 +225,27 @@ class FileView(CustomModelView):
     
     @expose('/rotate/', methods=['POST'])
     def rotate_view(self):
+        htmx = request.args.get('htmx', False)
         id = get_mdict_item_or_list(request.args, 'id')
         model = self.get_one(id)
 
         if model.filename.lower().split('.')[-1] not in ('jpg', 'jpeg'):
             flash("Sorry, rotation is currently only available for JPEG files.", 'error')
-            return redirect(url_for("file.details_view", id=id))
-        
-        rotation = get_mdict_item_or_list(request.args, 'rotation')
+            if htmx:
+                return 'NG', 200, {'HX-Refresh': 'true'}
+        else:
+            rotation = get_mdict_item_or_list(request.args, 'rotation')
 
-        model.rotate(int(rotation))
-        db.session.add(model)
-        log("Update", model, user=current_user, action="rotate", rotation=rotation)
-        db.session.commit()
-        flash("Image rotated", 'success')
+            model.rotate(int(rotation))
+            db.session.add(model)
+            log("Update", model, user=current_user, action="rotate", rotation=rotation)
+            db.session.commit()
         
-        if request.args.get('refresh', False):
-            return 'OK', 200, {'HX-Refresh': 'true'}
+            if htmx:
+                rnd = ''.join(random.choice(string.ascii_lowercase) for i in range(10))
+                return get_template_attribute('_macros.html', 'render_file_thumbnail')(model, rnd)
+
+            flash("Image rotated", 'success')
 
         return redirect(url_for("file.details_view", id=id))
     
@@ -232,6 +262,20 @@ class FileView(CustomModelView):
         db.session.commit()
 
         flash(f"File assigned to asset #{asset_id}", 'success')
+        if request.args.get('refresh', False):
+            return 'OK', 200, {'HX-Refresh': 'true'}
+        
+        return redirect(url_for('.details_view', id=id))
+    
+    @expose('/set_primary/', methods=['POST'])
+    def set_primary_view(self):
+        id = get_mdict_item_or_list(request.args, 'id')
+        model = self.get_one(id)
+
+        model.primary = request.args.get('primary') == "True"
+        db.session.add(model)
+        db.session.commit()
+        
         if request.args.get('refresh', False):
             return 'OK', 200, {'HX-Refresh': 'true'}
         

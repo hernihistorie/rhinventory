@@ -1,0 +1,7 @@
+{% extends "admin/model/create.html" %}
+
+{% import 'magdb/lib.html' as internal_lib with context %}
+
+{% block create_form %}
+    {{ internal_lib.render_form(form, return_url, buttons, form_opts) }}
+{% endblock %}

@@ -14,6 +14,7 @@ from rhinventory.models.transaction import TransactionType, Transaction
 from rhinventory.models.file import FileCategory, File, IMAGE_CATEGORIES, get_next_file_batch_number
 from rhinventory.models.log import log, LogEvent, LogItem
 from rhinventory.models.entities import Organization, Party, Country
+from rhinventory.models.magdb import Issuer, Magazine, MagazineIssue, Format, MagazineIssueVersion, MagazineIssueVersionPrice
 
 
 class Location(db.Model):

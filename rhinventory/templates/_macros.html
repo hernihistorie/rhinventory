@@ -1,3 +1,13 @@
 {% macro icon(name, faded=False) -%}
     <i class="fa-solid fa-{{name}} {% if faded %}faded{% endif %}"></i>
 {%- endmacro %}
+
+{% macro render_file_thumbnail(file, rnd=None) %}
+    {% if file.has_thumbnail %}
+        <img
+            id="thumb-{{ file.id }}"
+            src="{{ url_for('files.static', filename=file.filepath_thumbnail, rnd=rnd) }}"
+            class="upload_result_thumb"
+        >
+    {% endif %}
+{% endmacro %}

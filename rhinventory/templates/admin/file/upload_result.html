@@ -1,13 +1,20 @@
 {% extends 'admin/master.html' %}
+{% from '_macros.html' import render_file_thumbnail %}
 
 {% block body %}
-    <h2>Files uploaded</h2>
+    <h2>
+        Files uploaded
+        {% if batch_number %}
+            (batch number {{ batch_number }})
+        {% endif %}
+    </h2>
     <table class="table table-hover table-bordered">
         <thead>
             <tr>
                 <th></th>
                 <th>Filename</th>
                 <th>Category</th>
+                <th>Primary</th>
                 <th colspan=2>Thumbnail</th>
                 <th colspan=2>Asset</th>
             </tr>
@@ -32,17 +39,25 @@
                     </a>
                 </td>
                 <td>
-                    {{ file.category }}
+                    {{ file.category.name }}
+                </td>
+                <td>
+                    <button hx-post="{{ url_for('file.set_primary_view', id=file.id, primary=not file.primary, refresh=True) }}" class="btn btn-secondary">
+                        {{ '★' if file.primary else '☆' }}
+                    </button>
                 </td>
                 <td style="padding: 0; min-width: 62px;">
-                    {% if file.has_thumbnail %}
-                        <img src="{{ url_for('files.static', filename=file.filepath_thumbnail) }}" class="upload_result_thumb">
-                    {% endif %}
+                    {{ render_file_thumbnail(file) }}
                 </td>
                 <td style="white-space: nowrap;">
                     {% if file.has_thumbnail %}
                         {% for rotation, icon in [('270', '↶'), ('0', '↓'), ('90', '↷'), ('180', '180°')] -%}
-                            <button hx-post="{{ url_for('file.rotate_view', id=file.id, rotation=rotation, refresh=True) }}" class="btn btn-secondary">
+                            <button
+                                hx-post="{{ url_for('file.rotate_view', id=file.id, rotation=rotation, htmx=True) }}"
+                                class="btn btn-secondary"
+                                hx-swap="outerHTML"
+                                hx-target="#thumb-{{ file.id }}"
+                            >
                                 {{ icon }}
                             </button>
                         {%- endfor %}

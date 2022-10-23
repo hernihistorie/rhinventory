@@ -1,6 +1,6 @@
 
 {# XXX https://github.com/flask-admin/flask-admin/blob/master/flask_admin/templates/bootstrap2/admin/model/list.html#L14 #}
-{% macro asset_menu_bar() %}
+{% macro asset_menu_bar(return_url=None) %}
     <style>
         .actions-nav {
             display: flex;
@@ -29,22 +29,21 @@
         {% if admin_view.can_create %}
             <li class="{{ 'active' if request.url_rule.endpoint == 'asset.create_view' else '' }}">
                 {%- if admin_view.create_modal -%}
-                    {{ lib.add_modal_button(url=get_url('.create_view', url=return_url, modal=True), title=_gettext('Create New Record'), content=_gettext('Create')) }}
+                    {{ lib.add_modal_button(url=get_url('.create_view', modal=True), title=_gettext('Create New Record'), content=_gettext('Create')) }}
                 {% else %}
-                    {# {{ get_url('.create_view', url=return_url) }} #}
-                    <a href="{{ get_url('.new_view', url=return_url) }}" title="{{ _gettext('Create New Record') }}">
+                    <a href="{{ get_url('.new_view') }}" title="{{ _gettext('Create New Record') }}">
                         {{ icon("circle-plus") }} {{ _gettext('Create') }}
                     </a>
             {%- endif -%}
             </li>
             {% if model %}
                 <li>
-                    <a href="{{ get_url('.create_view', url=return_url, category=model.category.name) }}">
+                    <a href="{{ get_url('.create_view', category=model.category.name) }}">
                         {{ icon("circle-plus") }} Create <strong>{{ model.category.name }}</strong>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ get_url('.create_view', url=return_url, parent_id=model.id, category=model.category.name) }}">
+                    <a href="{{ get_url('.create_view', parent_id=model.id, category=model.category.name) }}">
                         {{ icon("circle-plus") }} Create child <strong>{{ model.category.name }}</strong>
                     </a>
                 </li>

@@ -71,7 +71,59 @@
     {% endif %}
 
     <h3>Metadata</h3>
-    {{ super() }}
+    {% macro row(key, title=None) %}
+        {% if model[key] %}
+            <tr>
+                <td><strong>{{ title or key.capitalize() }}</strong></td>
+                <td style="white-space: pre-line;">{{ model[key] }}</td>
+            </tr>
+        {% endif %}
+    {% endmacro %}
+
+    <table class="table table-hover table-bordered searchable">
+        <tr>
+            <td><strong>Asset</strong></td>
+            <td>
+                {% if model.asset %}
+                    <a href="{{ url_for('asset.details_view', id=model.asset.id) }}">{{ model.asset }}</a>
+                {% else %} - {% endif %}
+            </td>
+        </tr>
+        {{ row('category') }}
+        {{ row('filepath') }}
+        {{ row('primary') }}
+        {{ row('title') }}
+        {{ row('comment') }}
+        {% if model.md5 %}
+            <tr>
+                <td><strong>MD5</strong></td>
+                <td>
+                    {{ model.md5.hex() }}
+                </td>
+            </tr>
+        {% endif %}
+        {% if model.original_md5 %}
+            <tr>
+                <td><strong>Original MD5</strong></td>
+                <td>
+                    {{ model.original_md5.hex() }}
+                </td>
+            </tr>
+        {% endif %}
+        <tr>
+            <td><strong>Uploader</strong></td>
+            <td>
+                {{ model.user }} on {{ model.upload_date }}
+                {% if model.batch_number %}
+                    -
+                    <a href="{{ url_for('file.upload_result_view', batch_number=model.batch_number) }}">
+                        batch number {{ model.batch_number }}
+                    </a>
+                {% endif %}
+            </td>
+        </tr>
+        
+        </tbody></table>
 
 
 {% endblock %}

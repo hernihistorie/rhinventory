@@ -7,7 +7,7 @@ from sqlalchemy import Column, Integer, Numeric, String, Text, \
 from sqlalchemy.orm import relationship, backref
 from rhinventory.models.asset_attributes import Company, Platform, Medium, Packaging, ProductCode, AssetTag, asset_tag_table, asset_platform_table
 
-from rhinventory.models.file import File, IMAGE_CATEGORIES
+from rhinventory.models.file import File, IMAGE_CATEGORIES, FileCategory
 from rhinventory.extensions import db
 
 TESTING = "pytest" in sys.modules
@@ -143,8 +143,14 @@ class Asset(db.Model):
     def get_sorted_images(self):
         return db.session.query(File) \
             .filter(
-                File.asset_id==self.id and File.category in IMAGE_CATEGORIES
+                File.asset_id==self.id, File.category.in_(IMAGE_CATEGORIES)
             ).order_by(File.primary.desc(), File.has_thumbnail.desc(), File.filepath.asc()).all()
+    
+    def get_dumps(self):
+        return db.session.query(File) \
+            .filter(
+                File.asset_id==self.id, File.category == FileCategory.dump
+            ).order_by(File.primary.desc(), File.filepath.asc()).all()
 
 class AssetGame(Asset):
     CATEGORY_PREFIX = "GM"

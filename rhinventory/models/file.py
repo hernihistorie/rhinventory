@@ -24,6 +24,9 @@ class FileCategory(enum.Enum):
     image       = 10
     photo       = 11
     scan        = 12
+    cover_page  = 13
+    index_page  = 14
+    logo        = 15
 
     dump        = 20
     dump_metadata = 21
@@ -34,7 +37,8 @@ class FileCategory(enum.Enum):
 
     collection  = 90
 
-IMAGE_CATEGORIES = [FileCategory.image, FileCategory.photo, FileCategory.scan]
+IMAGE_CATEGORIES = [FileCategory.image, FileCategory.photo, FileCategory.scan,
+                    FileCategory.cover_page, FileCategory.index_page, FileCategory.logo]
 
 def get_next_file_batch_number():
     largest_batch_file = db.session.query(File).filter(File.batch_number != None) \
@@ -70,6 +74,10 @@ class File(db.Model):
     user        = relationship("User", backref="files")
     asset       = relationship("Asset", backref="files")
     transaction = relationship("Transaction", backref="files")
+
+    magazine_issue_id = Column(Integer, ForeignKey("magazine_issues.id"))
+    magazine_issue = relationship("MagazineIssue", backref="files")
+
     #transaction = relationship("Benchmark", backref="files")
 
     # TODO constraint on only one asset/transaction/benchmark relationship

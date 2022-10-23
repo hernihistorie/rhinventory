@@ -1,0 +1,9 @@
+{% extends 'admin/model/list.html' %}
+
+{% block list_row_actions %}
+    {{ super() }}
+
+    <a href="{{ get_url('magdb_magazine_issue_version_price.create_wizard', magazine_issue_version_id=get_pk_value(row)) }}">
+        {{ icon("circle-plus") }}
+    </a>
+{% endblock %}
