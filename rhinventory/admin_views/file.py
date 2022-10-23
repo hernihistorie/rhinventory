@@ -27,6 +27,12 @@ class FileView(CustomModelView):
     form_excluded_columns = ('user', 'filepath', 'storage', 'has_thumbnail', 'analyzed', 'md5', 'original_md5', 'sha256', 'original_sha256', 'upload_date')
     column_default_sort = ('id', True)
 
+    column_searchable_list = [
+        'filepath',
+        'asset.name',
+        'md5',
+    ]
+
     # Overridden https://flask-admin.readthedocs.io/en/latest/_modules/flask_admin/model/base/#BaseModelView.details_view
     @expose('/details/', methods=['GET', 'POST'])
     def details_view(self):
@@ -135,12 +141,11 @@ class FileView(CustomModelView):
                 print("Reading barcodes...")
                 # Read barcodes in parallel
                 if form.auto_assign.data and image_files:
-                    print("You should not be here.")
                     if pool is not None:
                         result_objects = [pool.apply_async(File.read_rh_barcode, args=(file,)) for file in image_files]
+                        asset_ids = [r.get() for r in result_objects]
                     else:
-                        result_objects = [File.read_rh_barcode(file) for file in image_files]
-                    asset_ids = [r.get() for r in result_objects]
+                        asset_ids = [File.read_rh_barcode(file) for file in image_files]
                     for file, asset_id in zip(image_files, asset_ids):
                         file.assign(asset_id)
 
