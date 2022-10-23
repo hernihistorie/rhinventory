@@ -1,12 +1,8 @@
 import datetime
 from dateutil.rrule import rrule, WEEKLY, MONTHLY, YEARLY
-from typing import OrderedDict
 
 import flask
-from flask_admin import BaseView, expose
-from flask import Blueprint, render_template
-from wtforms import SelectField, SubmitField
-from wtforms_alchemy import ModelForm
+from flask_admin import expose
 
 from rhinventory.admin_views import CustomModelView
 from rhinventory.models.magdb import Issuer, Magazine, Periodicity, MagazineIssue, Format, MagazineIssueVersion, MagazineIssueVersionPrice, IssueStatus
@@ -189,40 +185,3 @@ def add_magdb_views(admin, session):
     admin.add_view(MagDbMagazineIssueVersionView(MagazineIssueVersion, session, category="MagDB", endpoint="magdb_magazine_issue_version"))
     admin.add_view(MagDbMagazineIssueVersionPriceView(MagazineIssueVersionPrice, session, category="MagDB", endpoint="magdb_magazine_issue_version_price"))
 
-
-magdb_bp = Blueprint("magdb", __name__, url_prefix="/public-magdb")
-
-@magdb_bp.route("/")
-def index():
-    return render_template("magdb/index.html")
-
-
-@magdb_bp.route("/miss-list")
-def miss_list():
-    context = {
-        "missing_magazines": {},
-        "magazines": {},
-    }
-
-    for issue in MagazineIssueVersion.query.filter(
-            MagazineIssueVersion.status != IssueStatus.have
-        ).all():
-
-        magazine_id = issue.magazine_issue.magazine_id
-        if magazine_id not in context["missing_magazines"]:
-            context["missing_magazines"][magazine_id] = []
-
-        context["missing_magazines"][magazine_id].append(
-            issue
-        )
-
-        context["magazines"][magazine_id] = issue.magazine_issue.magazine.title
-
-    context["magazines"] = OrderedDict(
-        sorted(
-            context["magazines"].items(),
-            key=lambda x: x[1]
-        )
-    )
-
-    return render_template("magdb/miss-list.html", **context)
