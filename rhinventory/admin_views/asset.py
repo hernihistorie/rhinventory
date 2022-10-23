@@ -9,6 +9,7 @@ from flask_admin.helpers import get_redirect_target
 from flask_admin.model.helpers import get_mdict_item_or_list
 from flask_admin.form import Select2TagsField
 from flask_admin.actions import action
+from flask_admin.contrib.sqla import form
 from flask_login import current_user
 from sqlalchemy import desc
 
@@ -33,7 +34,7 @@ class AssetView(CustomModelView):
 #        'product_codes_new': Select2TagsField
     }
     form_excluded_columns = ('metadata', 'logs', 'transactions')
-    form_edit_rules = [
+    form_columns = [
         'organization',
         'category',
 #        'custom_code',
@@ -49,10 +50,12 @@ class AssetView(CustomModelView):
 #        'functionality',
 #        'status',
         'note',
-#        'parent',
+        'parent',
 #        'children',
     ]
-    form_create_rules = form_edit_rules
+    form_columns_categories = {
+        'hardware_type': AssetCategory.computer_component
+    }
     form_args = {
         #'category': {
         #    'query_factory': lambda: Category.query.order_by(
@@ -359,12 +362,28 @@ class AssetView(CustomModelView):
     def create_transaction(self, asset_ids):
         return redirect(url_for('transaction.create_view', asset_id=repr(asset_ids)))
 
-    def make_asset_form(self, category: AssetCategory):
-        form_class = super().scaffold_form()
+    def get_form(self):
+        return self.make_asset_form(AssetCategory.unknown)
 
-        #if category != AssetCategory.computer_component:
-        #    del form_class.hardware_type
+    def make_asset_form(self, category: AssetCategory):
+        #form_class = super().scaffold_form()
+
+        form_columns = []
+        for var in self.form_columns:
+            if var in self.form_columns_categories:
+                if category != self.form_columns_categories[var]:
+                    continue
+            form_columns.append(var)
         
+        converter = self.model_form_converter(self.session, self)
+        form_class = form.get_form(self.model, converter,
+                                   base_class=self.form_base_class,
+                                   only=form_columns,
+                                   exclude=self.form_excluded_columns,
+                                   field_args=self.form_args,
+                                   ignore_hidden=self.ignore_hidden,
+                                   extra_fields=self.form_extra_fields)
+
         return form_class
 
     def create_form(self, obj=None):
