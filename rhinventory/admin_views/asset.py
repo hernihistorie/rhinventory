@@ -44,7 +44,6 @@ class AssetView(CustomModelView):
 #        'medium',
         'model',
         'product_codes',
-        'product_codes_new',
         'serial',
         'condition_new',
 #        'functionality',

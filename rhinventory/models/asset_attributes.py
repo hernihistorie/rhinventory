@@ -20,12 +20,6 @@ def asset_n_to_n_table(other_table: db.Model) -> Table:
         Column(f"{other_name}_id", ForeignKey(other_table.id)),
     )
 
-class ProductCode(db.Model, SimpleAssetAttribute):
-    __tablename__ = 'product_codes'
-    id: int          = Column(Integer, primary_key=True)  # type: ignore
-    asset_id: int    = Column(Integer, ForeignKey('assets.id'))  # type: ignore
-    name: str        = Column(String, nullable=False)  # type: ignore
-
 class Platform(db.Model, SimpleAssetAttribute):
     __tablename__ = 'platforms'
     id: int          = Column(Integer, primary_key=True)  # type: ignore

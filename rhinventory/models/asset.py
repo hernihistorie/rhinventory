@@ -5,7 +5,7 @@ from sqlalchemy import Column, Integer, Numeric, String, Text, \
     DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint, \
         ARRAY, desc
 from sqlalchemy.orm import relationship, backref
-from rhinventory.models.asset_attributes import Company, Platform, Medium, Packaging, ProductCode, AssetTag, asset_tag_table, asset_platform_table
+from rhinventory.models.asset_attributes import Company, Platform, Medium, Packaging, AssetTag, asset_tag_table, asset_platform_table
 
 from rhinventory.models.file import File, IMAGE_CATEGORIES, FileCategory
 from rhinventory.extensions import db
@@ -92,8 +92,6 @@ class Asset(db.Model):
     
     #producers = relationship(Company, backref="assets_produced")
     #distributors = relationship(Company, backref="assets_distributed")
-
-    product_codes_new = relationship(ProductCode, backref="asset")
 
     platforms = relationship(Platform, secondary=asset_platform_table, backref="assets")
     tags      = relationship(AssetTag, secondary=asset_tag_table, backref="assets")
