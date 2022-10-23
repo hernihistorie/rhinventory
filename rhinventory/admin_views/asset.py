@@ -10,6 +10,7 @@ from flask_admin.model.helpers import get_mdict_item_or_list
 from flask_admin.form import Select2TagsField
 from flask_admin.actions import action
 from flask_admin.contrib.sqla import form
+from flask_admin.helpers import get_form_data
 from flask_login import current_user
 from sqlalchemy import desc
 
@@ -55,6 +56,14 @@ class AssetView(CustomModelView):
     ]
     form_columns_categories = {
         'hardware_type': AssetCategory.computer_component
+    }
+    form_ajax_refs = {
+        'parent': {
+            'fields': ('name',),
+            'placeholder': '...',
+            'page_size': 15,
+            'minimum_input_length': 0,
+        }
     }
     form_args = {
         #'category': {
@@ -363,7 +372,7 @@ class AssetView(CustomModelView):
         return redirect(url_for('transaction.create_view', asset_id=repr(asset_ids)))
 
     def get_form(self):
-        return self.make_asset_form(AssetCategory.unknown)
+        return self.make_asset_form(self.category)
 
     def make_asset_form(self, category: AssetCategory):
         #form_class = super().scaffold_form()
@@ -404,4 +413,6 @@ class AssetView(CustomModelView):
         #    form.parent.data = self.session.query(Asset).get(request.args["parent_id"])
 
         return form
-    
+
+    def edit_form(self, obj=None):
+        return self.make_asset_form(obj.category)(get_form_data(), obj=obj)
