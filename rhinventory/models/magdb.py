@@ -153,7 +153,8 @@ class MagazineIssueVersion(HistoryTrait):
     format = db.relationship("Format")
 
     confirmed = db.Column(db.Boolean())
-    isbn = db.Column(db.String(25), nullable=True)
+    issn_or_isbn = db.Column(db.String(25), nullable=True)
+    register_number_mccr = db.Column(db.String(), nullable=True)
     barcode = db.Column(db.String(15), nullable=True)
     status = db.Column(db.Enum(IssueStatus))
 
