@@ -2,7 +2,8 @@ from typing import OrderedDict
 
 from flask import Blueprint, render_template
 
-from rhinventory.models.magdb import MagazineIssueVersion, IssueStatus
+from rhinventory.models.file import File
+from rhinventory.models.magdb import MagazineIssue, MagazineIssueVersion, IssueStatus
 
 
 magdb_bp = Blueprint("magdb", __name__, url_prefix="/public-magdb")
@@ -31,12 +32,19 @@ def miss_list():
             issue
         )
 
-        context["magazines"][magazine_id] = issue.magazine_issue.magazine.title
+        if magazine_id not in context["magazines"]:
+            context["magazines"][magazine_id] = {
+                "magazine": issue.magazine_issue.magazine,
+                "logos": File.query.filter(
+                    File.magazine_issue_id == MagazineIssue.id,
+                    MagazineIssue.magazine_id == magazine_id
+                ).all()
+            }
 
     context["magazines"] = OrderedDict(
         sorted(
             context["magazines"].items(),
-            key=lambda x: x[1]
+            key=lambda x: x[1]["magazine"].title,
         )
     )
 

@@ -78,6 +78,9 @@ class File(db.Model):
     magazine_issue_id = Column(Integer, ForeignKey("magazine_issues.id"))
     magazine_issue = relationship("MagazineIssue", backref="files")
 
+    magazine_issue_version_id = Column(Integer, ForeignKey("magazine_issue_versions.id"))
+    magazine_issue_version = relationship("MagazineIssueVersion", backref="files")
+
     #transaction = relationship("Benchmark", backref="files")
 
     # TODO constraint on only one asset/transaction/benchmark relationship
