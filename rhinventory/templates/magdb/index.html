@@ -1,7 +1,31 @@
 {% extends "magdb/base.html" %}
 
 {% block content %}
+    <div class="card">
+        <div class="card-body">
+            <h2>Vítejte v databázi Československých časopisů!</h2>
 
-Hello.
+            <p>
+                Tento projekt vám přináší projekt <a href="https://www.herniarchiv.cz">Herní archiv</a> spolku Herní historie.
+                Cílem projektu je vytvořit knihovnu Československých herních časopisů, včetně jejich digitalizace.
+            </p>
 
+            <p>
+                V současné chvíli máme přibližne 95% procent všech časopisů, o kterých víme, že v Česku a Slovensku vycházeli
+                a jsme v procesu plnění této databáze.
+                Proto, pokud zde nenacházíte nějaký časopis, zatím nepanikařte - možná
+                jsme ho ještě nestihli do databáze přepsat.
+            </p>
+
+            <p>
+                Nicméně jsme si jisti, že nemáme úplně vše. Proto zde existuje stránka
+                <a href="{{ url_for(".miss_list") }}">miss list</a>, na které lze najít, která čísla kterého časopisu
+                nám zatím chybí. Pokud nějaký takový časopis máte, prosím neváhejte nás kontaktovat na tomto
+                <a href="mailto:info@hernihistorie.cz">emailu</a>. Budeme velmi vděční, když nám pomůžete
+                zachraňovat Československou herní historii!
+            </a>
+            </p>
+            <img src="/static/magdb/library.jpg" alt="Naše knihovnička.">
+        </div>
+    </div>
 {% endblock %}
