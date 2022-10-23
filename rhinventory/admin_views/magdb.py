@@ -113,9 +113,18 @@ class MagDbMagazineIssueVersionView(MagDbModelView):
             .filter(MagazineIssue.magazine_id == last_issue.magazine_id)\
             .order_by(MagazineIssue.created_at.desc()).first()
 
+        last_issue_version = MagazineIssueVersion.query.order_by(MagazineIssueVersion.created_at.desc()).first()
+
         prepared_values = {
-            "magazine_issue": last_issue
+            "magazine_issue": last_issue,
         }
+
+        if last_issue_version is not None:
+            prepared_values["format"] = last_issue_version.format
+            prepared_values["name_suffix"] = last_issue_version.name_suffix
+            prepared_values["form"] = last_issue_version.form.name
+            prepared_values["issn_or_isbn"] = last_issue_version.issn_or_isbn
+            prepared_values["barcode"] = last_issue_version.barcode
 
         last_issue_version = None
         if previous_to_last_issue is not None:
