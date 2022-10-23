@@ -76,7 +76,8 @@ class MagDbMagazineIssueView(MagDbModelView):
             prepared_values["periodicity"] = last_issue.periodicity.name
 
             if value is not None:
-                prepared_values["published_day"] = value.day
+                if last_issue.published_day is not None:
+                    prepared_values["published_day"] = value.day
                 prepared_values["published_month"] = value.month
                 prepared_values["published_year"] = value.year
 
