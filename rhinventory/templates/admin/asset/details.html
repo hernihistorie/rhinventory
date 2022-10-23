@@ -60,16 +60,26 @@
             {% endmacro %}
 
             <table class="table table-hover table-bordered searchable">
-                {{ row('name') }}
-                {{ row('category') }}
                 {{ row('organization') }}
-                {{ row('location') }}
-                {{ row('medium') }}
+                {{ row('category') }}
+                {{ row('name') }}
+                {% if model.companies %}
+                    <td><strong>Companies</strong></td>
+                    <td>{% for company in model.companies %}
+                            <a href="{{ url_for('company.edit_view', id=company.id) }}">
+                                {{ company.name }}
+                            </a>{% if not loop.last %},{% endif %}
+                    {% endfor %}</td>
+                {% endif %}
+                {{ row('mediums') }}
+                {{ row('packaging') }}
                 {{ row('hardware_type') }}
-                {{ row('manufacturer') }}
+                {{ row('location') }}
                 {{ row('model') }}
                 {{ row('product_codes', 'Product codes') }}
                 {{ row('serial') }}
+                {{ row('condition_new') }}
+                {{ row('tags') }}
                 {{ row('note') }}
                 {% if model.parent %}
                     <td><strong>Parent</strong></td>

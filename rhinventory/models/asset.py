@@ -57,7 +57,7 @@ class Asset(db.Model):
     id          = Column(Integer, primary_key=True)
     parent_id   = Column(Integer, ForeignKey('assets.id'))
     name        = Column(String, nullable=False)
-    manufacturer = Column(String)
+    manufacturer = Column(String) # TODO remove
     model       = Column(String)
     custom_code = Column(Integer)
     note        = Column(Text)
