@@ -52,7 +52,7 @@ class MagDbMagazineIssueView(MagDbModelView):
 
             prepared_values["issue_number"] = last_issue.issue_number + 1
 
-            date = datetime.datetime(day=last_issue.published_day, month=last_issue.published_month, year=last_issue.published_year)
+            date = datetime.datetime(day=last_issue.published_day or 1, month=last_issue.published_month, year=last_issue.published_year)
             value = None
             periodicity = last_issue.periodicity
             if periodicity == Periodicity.weekly:
