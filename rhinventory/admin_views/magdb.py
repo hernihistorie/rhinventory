@@ -22,6 +22,7 @@ class MagDbModelView(CustomModelView):
         "created_by",
         "updated_by",
     ]
+    column_default_sort = ('id', True)
     column_exclude_list = ["created_at", "created_by", "updated_at", "updated_by"]
 
 
