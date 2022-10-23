@@ -27,6 +27,12 @@ class FileView(CustomModelView):
     form_excluded_columns = ('user', 'filepath', 'storage', 'has_thumbnail', 'analyzed', 'md5', 'original_md5', 'sha256', 'original_sha256', 'upload_date')
     column_default_sort = ('id', True)
 
+    column_searchable_list = [
+        'filepath',
+        'asset.name',
+        'md5',
+    ]
+
     # Overridden https://flask-admin.readthedocs.io/en/latest/_modules/flask_admin/model/base/#BaseModelView.details_view
     @expose('/details/', methods=['GET', 'POST'])
     def details_view(self):
