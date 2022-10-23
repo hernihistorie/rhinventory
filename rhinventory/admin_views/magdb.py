@@ -1,12 +1,8 @@
 import datetime
 from dateutil.rrule import rrule, WEEKLY, MONTHLY, YEARLY
-from typing import OrderedDict
 
 import flask
-from flask_admin import BaseView, expose
-from flask import Blueprint, render_template
-from wtforms import SelectField, SubmitField
-from wtforms_alchemy import ModelForm
+from flask_admin import expose
 
 from rhinventory.admin_views import CustomModelView
 from rhinventory.models.magdb import Issuer, Magazine, Periodicity, MagazineIssue, Format, MagazineIssueVersion, MagazineIssueVersionPrice, IssueStatus
@@ -22,6 +18,7 @@ class MagDbModelView(CustomModelView):
         "created_by",
         "updated_by",
     ]
+    column_default_sort = ('id', True)
     column_exclude_list = ["created_at", "created_by", "updated_at", "updated_by"]
 
 
@@ -76,7 +73,8 @@ class MagDbMagazineIssueView(MagDbModelView):
             prepared_values["periodicity"] = last_issue.periodicity.name
 
             if value is not None:
-                prepared_values["published_day"] = value.day
+                if last_issue.published_day is not None:
+                    prepared_values["published_day"] = value.day
                 prepared_values["published_month"] = value.month
                 prepared_values["published_year"] = value.year
 
@@ -123,6 +121,7 @@ class MagDbMagazineIssueVersionView(MagDbModelView):
             prepared_values["format"] = last_issue_version.format
             prepared_values["name_suffix"] = last_issue_version.name_suffix
             prepared_values["form"] = last_issue_version.form.name
+            prepared_values["register_number_mccr"] = last_issue_version.register_number_mccr
             prepared_values["issn_or_isbn"] = last_issue_version.issn_or_isbn
             prepared_values["barcode"] = last_issue_version.barcode
 
@@ -186,40 +185,3 @@ def add_magdb_views(admin, session):
     admin.add_view(MagDbMagazineIssueVersionView(MagazineIssueVersion, session, category="MagDB", endpoint="magdb_magazine_issue_version"))
     admin.add_view(MagDbMagazineIssueVersionPriceView(MagazineIssueVersionPrice, session, category="MagDB", endpoint="magdb_magazine_issue_version_price"))
 
-
-magdb_bp = Blueprint("magdb", __name__, url_prefix="/public-magdb")
-
-@magdb_bp.route("/")
-def index():
-    return render_template("magdb/index.html")
-
-
-@magdb_bp.route("/miss-list")
-def miss_list():
-    context = {
-        "missing_magazines": {},
-        "magazines": {},
-    }
-
-    for issue in MagazineIssueVersion.query.filter(
-            MagazineIssueVersion.status != IssueStatus.have
-        ).all():
-
-        magazine_id = issue.magazine_issue.magazine_id
-        if magazine_id not in context["missing_magazines"]:
-            context["missing_magazines"][magazine_id] = []
-
-        context["missing_magazines"][magazine_id].append(
-            issue
-        )
-
-        context["magazines"][magazine_id] = issue.magazine_issue.magazine.title
-
-    context["magazines"] = OrderedDict(
-        sorted(
-            context["magazines"].items(),
-            key=lambda x: x[1]
-        )
-    )
-
-    return render_template("magdb/miss-list.html", **context)
