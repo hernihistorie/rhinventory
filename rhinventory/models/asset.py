@@ -5,7 +5,7 @@ from sqlalchemy import Column, Integer, Numeric, String, Text, \
     DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint, \
         ARRAY, desc
 from sqlalchemy.orm import relationship, backref
-from rhinventory.models.asset_attributes import AssetMedium, AssetPackaging, Company, Platform, Medium, Packaging, AssetTag, asset_tag_table, asset_platform_table
+from rhinventory.models.asset_attributes import AssetMedium, AssetPackaging, Company, Platform, Medium, Packaging, AssetTag, asset_tag_table, asset_platform_table, asset_company_table
 
 from rhinventory.models.file import File, IMAGE_CATEGORIES, FileCategory
 from rhinventory.extensions import db
@@ -97,6 +97,7 @@ class Asset(db.Model):
     tags      = relationship(AssetTag, secondary=asset_tag_table, backref="assets")
     mediums   = relationship(Medium, secondary='asset_mediums', backref="assets")
     packaging = relationship(Packaging, secondary='asset_packaging', backref="assets")
+    companies = relationship(Company, secondary=asset_company_table, backref="assets")
 
     __mapper_args__ = {
         "polymorphic_on": category

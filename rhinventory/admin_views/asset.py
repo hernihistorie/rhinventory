@@ -41,6 +41,7 @@ class AssetView(CustomModelView):
 #        'custom_code',
         'name',
         'manufacturer',
+        'companies',
 #        'location',
         'hardware_type',
         'mediums',

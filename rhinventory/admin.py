@@ -7,7 +7,7 @@ from flask_admin import Admin, AdminIndexView, expose
 
 from rhinventory.extensions import db, admin, simple_eval
 from rhinventory.db import LogItem, Medium, Location, Organization, log, LogItem, Asset, User, Transaction, File, Party
-from rhinventory.models.asset_attributes import AssetTag, Packaging
+from rhinventory.models.asset_attributes import AssetTag, Company, CompanyAlias, Packaging
 from rhinventory.admin_views import CustomModelView, AdminModelView, AssetView, TransactionView, FileView
 from rhinventory.util import figure_counter
 from rhinventory.admin_views.magdb import add_magdb_views
@@ -49,6 +49,10 @@ def add_admin_views(admin):
     admin.add_view(FileView(File, db.session))
 
     admin.add_view(CustomModelView(Location, db.session, category="Misc"))
+
+    admin.add_view(CustomModelView(Company, db.session, category="Misc"))
+    
+    admin.add_view(CustomModelView(CompanyAlias, db.session, category="Misc"))
 
     admin.add_view(MediumView(Medium, db.session, category="Misc"))
 

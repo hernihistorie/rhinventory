@@ -75,3 +75,5 @@ class CompanyAlias(db.Model):
     alias: str       = Column(String, nullable=False)  # type: ignore
     company_id = Column(Integer, ForeignKey(Company.id), nullable=False)
     company = relationship(Company, backref="aliases")
+
+asset_company_table = asset_n_to_n_table(Company)
