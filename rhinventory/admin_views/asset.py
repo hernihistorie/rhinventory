@@ -51,6 +51,7 @@ class AssetView(CustomModelView):
 #        'functionality',
 #        'status',
         'note',
+        'tags',
         'parent',
 #        'children',
     ]
