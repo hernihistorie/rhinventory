@@ -5,6 +5,13 @@ Revises: dab4e5bb9f5a
 Create Date: 2022-09-13 21:12:56.181603
 
 """
+
+# ! =======
+# ! WARNING
+# ! =======
+# This code is buggy.  It creates duplicate rows for the same medium and packagings.
+# A later migration has to fix it.
+
 from alembic import op
 import sqlalchemy as sa
 
