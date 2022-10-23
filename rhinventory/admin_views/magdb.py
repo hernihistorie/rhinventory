@@ -124,6 +124,7 @@ class MagDbMagazineIssueVersionView(MagDbModelView):
             prepared_values["format"] = last_issue_version.format
             prepared_values["name_suffix"] = last_issue_version.name_suffix
             prepared_values["form"] = last_issue_version.form.name
+            prepared_values["register_number_mccr"] = last_issue_version.register_number_mccr
             prepared_values["issn_or_isbn"] = last_issue_version.issn_or_isbn
             prepared_values["barcode"] = last_issue_version.barcode
 
