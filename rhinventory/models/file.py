@@ -114,6 +114,8 @@ class File(db.Model):
     def open_image(self):
         if not self.is_image:
             return
+        if self.filepath.endswith('.svg'):
+            return
         files_dir = current_app.config['FILES_DIR']
         im = Image.open(os.path.join(files_dir, self.filepath))
         return im
@@ -121,13 +123,16 @@ class File(db.Model):
     # Make sure to save the model after calling this method...
     def make_thumbnail(self):
         if not self.is_image:
-            return
+            return False
         files_dir = current_app.config['FILES_DIR']
         im = self.open_image()
+        if not im:
+            return False
         im = ImageOps.exif_transpose(im)
         im.thumbnail(self.THUMBNAIL_SIZE)
         im.save(os.path.join(files_dir, self.filepath_thumbnail))
         self.has_thumbnail = True
+        return True
     
     def rotate(self, rotation=None, make_thumbnail=True):
         if not self.is_image:
@@ -164,6 +169,8 @@ class File(db.Model):
         if not self.is_image:
             return
         im = self.open_image()
+        if not im:
+            return
         try:
             im = ImageEnhance.Color(im).enhance(0)
             im = ImageEnhance.Contrast(im).enhance(2)

@@ -154,11 +154,11 @@ class FileView(CustomModelView):
             if image_files:
                 if pool is not None:
                     result_objects = [pool.apply_async(File.make_thumbnail, args=(file,)) for file in image_files]
+                    for file, result in zip(image_files, [r.get() for r in result_objects]):
+                        if result:
+                            file.has_thumbnail = True
                 else:
                     result_objects = [File.make_thumbnail(file) for file in image_files]
-
-                for file in image_files:
-                    file.has_thumbnail = True
 
             if pool is not None:
                 pool.close()
@@ -221,11 +221,13 @@ class FileView(CustomModelView):
         id = get_mdict_item_or_list(request.args, 'id')
         model = self.get_one(id)
 
-        model.make_thumbnail()
-        db.session.add(model)
-        log("Update", model, user=current_user)
-        db.session.commit()
-        flash("Thumbnail created", 'success')
+        if model.make_thumbnail():
+            db.session.add(model)
+            log("Update", model, user=current_user)
+            db.session.commit()
+            flash("Thumbnail created", 'success')
+        else:
+            flash("Thumbnail creation failed", 'danger')
         return redirect(url_for("file.details_view", id=id))
     
     @expose('/rotate/', methods=['POST'])
