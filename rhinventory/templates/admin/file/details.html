@@ -32,11 +32,13 @@
             </form>
         </div>
         <div>
-            {% for rotation, icon in [('270', '↶'), ('0', '↓'), ('90', '↷'), ('180', '180°')] %}
-                <form method="POST" action="{{ url_for('file.rotate_view', id=model.id, rotation=rotation) }}" style="display: inline;">
-                    <input type="submit" value="{{ icon }}" class="btn btn-primary">
-                </form>
-            {% endfor %}
+            {% if model.is_image %}
+                {% for rotation, icon in [('270', '↶'), ('0', '↓'), ('90', '↷'), ('180', '180°')] %}
+                    <form method="POST" action="{{ url_for('file.rotate_view', id=model.id, rotation=rotation) }}" style="display: inline;">
+                        <input type="submit" value="{{ icon }}" class="btn btn-primary">
+                    </form>
+                {% endfor %}
+            {% endif %}
         </div>
     </div>
     {% if model.is_image %}
