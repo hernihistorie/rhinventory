@@ -19,16 +19,6 @@ def catalog():
         "logos": {},
     }
 
-
-    # for issue in MagazineIssue.query.order(MagazineIssue.issue_number).all():
-    #     magazine_id = issue.magazine_issue.magazine_id
-    #     year = issue.published_year
-    #
-    #     if year not in context["magazine_issues_by_year"]:
-    #         context["magazine_issues_by_year"][year] = []
-    #
-    #     context["magazine_issues_by_year"][year].append(issue)
-
     for logo in File.query.filter(File.category == FileCategory.logo).all():
         if logo.magazine_issue is not None:
             magazine_id = logo.magazine_issue.magazine_id
@@ -43,7 +33,44 @@ def catalog():
 
 @magdb_bp.route("/catalog/magazine-detail/<int:magazine_id>")
 def magazine_detail(magazine_id):
-    return magazine_id
+    context = {
+        "magazine": Magazine.query.get(magazine_id),
+        "issues_by_year": {},
+        "files": {
+            "cover_pages": {}
+        }
+    }
+
+    special_issues = []
+
+    for file in File.query.filter(File.category == FileCategory.cover_page).all():
+        issue_version_id = file.magazine_issue_version_id
+
+        if issue_version_id is None:
+            continue
+
+        if issue_version_id not in context["files"]["cover_pages"]:
+            context["files"]["cover_pages"][issue_version_id] = []
+
+        context["files"]["cover_pages"][issue_version_id].append(file)
+
+    for issue in MagazineIssue.query.filter(
+            MagazineIssue.magazine_id == magazine_id
+    ).order_by(MagazineIssue.published_year, MagazineIssue.published_month, MagazineIssue.published_day).all():
+
+        if issue.is_special_issue:
+            special_issues.append(issue)
+            continue
+
+        if issue.published_year not in context["issues_by_year"]:
+            context["issues_by_year"][issue.published_year] = []
+
+        context["issues_by_year"][issue.published_year].append(issue)
+
+    if len(special_issues):
+        context["issues_by_year"]["Speciály"] = special_issues
+
+    return render_template("magdb/magazine_detail.html", **context)
 
 
 @magdb_bp.route("/miss-list")

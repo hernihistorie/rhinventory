@@ -147,7 +147,7 @@ class MagazineIssueVersion(HistoryTrait):
     __tablename__ = "magazine_issue_versions"
     id = db.Column(db.Integer(), unique=True, primary_key=True)
     magazine_issue_id = db.Column(db.Integer(), db.ForeignKey("magazine_issues.id"), nullable=False)
-    magazine_issue = db.relationship("MagazineIssue")
+    magazine_issue = db.relationship("MagazineIssue", backref="versions")
     name_suffix = db.Column(db.String(127))
 
     form = db.Column(db.Enum(MagazineForm))

@@ -1,0 +1,23 @@
+{% extends "magdb/base.html" %}
+
+{% block content %}
+    <h1>{{ magazine.title }}</h1>
+
+    {% for year, data in issues_by_year.items() %}
+        <div>
+            <h2>{{ year }}</h2>
+        </div>
+
+        {% for issue in data %}
+            {{ issue }}
+
+            {% for version in issue.versions %}
+                {{ version }}
+                {% if version.id in files.cover_pages  %}
+                    <img src="{{ url_for('files.static', filename=files.cover_pages[version.id][0].filepath) }}" class="card-img">
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+    {% endfor %}
+
+{% endblock %}
