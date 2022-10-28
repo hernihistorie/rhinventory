@@ -18,6 +18,7 @@ depends_on = None
 
 def upgrade():
     for new_category in ['cover_page', 'index_page', 'logo']:
+        op.execute("COMMIT")
         op.execute(f"ALTER TYPE filecategory ADD VALUE '{new_category}' BEFORE 'dump'")
 
 
