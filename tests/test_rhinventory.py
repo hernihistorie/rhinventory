@@ -4,8 +4,8 @@ from flask_login import login_user
 
 from rhinventory.app import create_app
 from rhinventory.extensions import db
-from rhinventory.db import User, Organization, Category
-from rhinventory.models.asset import Asset
+from rhinventory.db import User, Organization
+from rhinventory.models.asset import Asset, AssetCategory
 
 class TestAppConfig:
     TESTING = True
@@ -28,9 +28,6 @@ def app():
 
         org = Organization(name="Testing z.s.")
         db.session.add(org)
-
-        category = Category(name="game")
-        db.session.add(category)
 
         db.session.commit()
 
@@ -73,7 +70,7 @@ def test_asset_new(client):
     client.get(url)
     response = client.post(url, data={
         "organization": "1",
-        "category": "1",
+        "category": AssetCategory.game.name,
         "name": asset_name,
     })
     assert response.status_code == 302

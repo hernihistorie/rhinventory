@@ -21,10 +21,10 @@
     <h2>New asset</h2>
 
     {% set layout = [
-            ['game', 'software', 'media', 'literature'],
+            ['game', 'software', 'multimedia', 'rewritable media', 'literature'],
             ['console', 'console accessory'],
             ['computer', 'computer accessory', 'computer component'],
-            ['keyboard', 'mouse', 'television', 'monitor'],
+            ['keyboard', 'computer mouse', 'television', 'monitor'],
             ['location', 'other']
         ]
     %}
@@ -39,7 +39,7 @@
                     {% for category in row %}
                         <a
                             class="btn category-btn"
-                            href="{{ get_url('.create_view', category=category) }}"
+                            href="{{ get_url('.create_view', category=category.replace(' ', '_')) }}"
                         >
                             {{ category.split()[-1].capitalize() }}
                         </a>

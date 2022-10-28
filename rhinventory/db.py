@@ -9,7 +9,7 @@ from sqlalchemy.sql.expression import text
 from rhinventory.extensions import db
 
 from rhinventory.models.user import User
-from rhinventory.models.asset import Asset, AssetStatus, Category, CategoryTemplate, AssetMeta, Medium
+from rhinventory.models.asset import Asset, AssetStatus, AssetMeta, Medium
 from rhinventory.models.transaction import TransactionType, Transaction
 from rhinventory.models.file import FileCategory, File, IMAGE_CATEGORIES, get_next_file_batch_number
 from rhinventory.models.log import log, LogEvent, LogItem

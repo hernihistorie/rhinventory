@@ -31,20 +31,20 @@
                 {%- if admin_view.create_modal -%}
                     {{ lib.add_modal_button(url=get_url('.create_view', modal=True), title=_gettext('Create New Record'), content=_gettext('Create')) }}
                 {% else %}
-                    <a href="{{ get_url('.create_view') }}" title="{{ _gettext('Create New Record') }}">
+                    <a href="{{ get_url('.new_view') }}" title="{{ _gettext('Create New Record') }}">
                         {{ icon("circle-plus") }} {{ _gettext('Create') }}
                     </a>
             {%- endif -%}
             </li>
             {% if model %}
                 <li>
-                    <a href="{{ get_url('.create_view', category_id=model.category.id) }}">
-                        {{ icon("circle-plus") }} Create <strong>{{ model.category }}</strong>
+                    <a href="{{ get_url('.create_view', category=model.category.name) }}">
+                        {{ icon("circle-plus") }} Create <strong>{{ model.category.name }}</strong>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ get_url('.create_view', parent_id=model.id, category_id=model.category.id) }}">
-                        {{ icon("circle-plus") }} Create child <strong>{{ model.category }}</strong>
+                    <a href="{{ get_url('.create_view', parent_id=model.id, category=model.category.name) }}">
+                        {{ icon("circle-plus") }} Create child <strong>{{ model.category.name }}</strong>
                     </a>
                 </li>
             {% endif %}

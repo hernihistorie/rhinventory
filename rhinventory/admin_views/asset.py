@@ -1,3 +1,4 @@
+from enum import Enum
 import sys
 from math import ceil
 
@@ -6,73 +7,86 @@ from wtforms import RadioField
 from flask_admin import expose
 from flask_admin.helpers import get_redirect_target
 from flask_admin.model.helpers import get_mdict_item_or_list
+from flask_admin.form import Select2TagsField
 from flask_admin.actions import action
+from flask_admin.contrib.sqla import form
+from flask_admin.helpers import get_form_data
 from flask_login import current_user
 from sqlalchemy import desc
 
 from rhinventory.extensions import db
 from rhinventory.admin_views.model_view import CustomModelView
-from rhinventory.db import Category, Medium, Asset, get_next_file_batch_number, LogItem
+from rhinventory.db import Medium, Asset, get_next_file_batch_number, LogItem
+from rhinventory.models.asset import AssetCondition
 from rhinventory.forms import FileForm
+from rhinventory.models.asset import AssetCategory
 
 TESTING = "pytest" in sys.modules
 
-RATING_OPTIONS = [(0, 'unknown'), (1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')]
-class RatingField(RadioField):
+CONDITION_OPTIONS = AssetCondition
+class ConditionField(RadioField):
     def __init__(self, **kwargs):
         super().__init__(render_kw={'class': 'rating-field'}, **kwargs)
-        self.choices = RATING_OPTIONS
-        self.coerce = int
-        self.default = 0
+        self.choices = [(value, value.name) for value in AssetCondition]
 
 class AssetView(CustomModelView):
     form_overrides = {
-        'condition': RatingField,
-        'functionality': RatingField,
+        'condition_new': ConditionField,
+#        'product_codes_new': Select2TagsField
     }
     form_excluded_columns = ('metadata', 'logs', 'transactions')
-    form_edit_rules = [
+    form_columns = [
         'organization',
         'category',
 #        'custom_code',
         'name',
         'manufacturer',
+        'companies',
 #        'location',
         'hardware_type',
-        'medium',
+        'mediums',
+        'packaging',
         'model',
-    ]
-    if not TESTING:
-        form_edit_rules.append('product_codes')
-    form_edit_rules += [
+        'product_codes',
         'serial',
-#        'condition',
+        'condition_new',
 #        'functionality',
 #        'status',
         'note',
+        'tags',
         'parent',
-        'children',
+#        'children',
     ]
-    form_create_rules = form_edit_rules
+    form_columns_categories = {
+        'hardware_type': AssetCategory.computer_component
+    }
+    form_ajax_refs = {
+        'parent': {
+            'fields': ('name',),
+            'placeholder': '...',
+            'page_size': 15,
+            'minimum_input_length': 0,
+        }
+    }
     form_args = {
-        'category': {
-            'query_factory': lambda: Category.query.order_by(
-                Category.id.asc()
-            )
-        },
-        'medium': {
-            'query_factory': lambda: sorted(
-                Medium.query.order_by(Medium.name.asc()).all(),
-                key=lambda m: m.name[0] in "0123456789"
-            )
-        },
+        #'category': {
+        #    'query_factory': lambda: Category.query.order_by(
+        #        Category.id.asc()
+        #    )
+        #},
+        #'medium': {
+        #    'query_factory': lambda: sorted(
+        #        Medium.query.order_by(Medium.name.asc()).all(),
+        #        key=lambda m: m.name[0] in "0123456789"
+        #    )
+        #},
     }
 
     can_view_details = True
     column_filters = [
         'organization.name',
-        'category.name',
-        'medium.name',
+        'category',
+        #'medium.name',
         'hardware_type.name',
         'name',
         'manufacturer',
@@ -88,17 +102,16 @@ class AssetView(CustomModelView):
         'id',
         'name',
         'manufacturer',
-        'medium',
+        #'medium',
         'serial',
         'condition',
         'functionality',
         'status',
-        'parent',
+#        'parent',
     ]
     column_default_sort = ('id', True)
     column_choices = {
-        'condition': RATING_OPTIONS,
-        'functionality': RATING_OPTIONS,
+#        'condition': AssetCondition,
     }
     can_export = True
 
@@ -110,7 +123,7 @@ class AssetView(CustomModelView):
     def on_model_change(self, form, instance: Asset, is_created):
         if is_created:
             if not instance.custom_code:
-                instance.custom_code = instance.category.get_free_custom_code()
+                instance.custom_code = Asset.get_free_custom_code(instance.category)
         
         super().on_model_change(form, instance, is_created)
     
@@ -129,7 +142,7 @@ class AssetView(CustomModelView):
             new_category: Category = form.category.data
 
             if new_category != old_category:
-                model.custom_code = new_category.get_free_custom_code()
+                model.custom_code = Asset.get_free_custom_code(new_category)
             
             # continue processing the form
 
@@ -361,18 +374,48 @@ class AssetView(CustomModelView):
     def create_transaction(self, asset_ids):
         return redirect(url_for('transaction.create_view', asset_id=repr(asset_ids)))
 
+    def get_form(self):
+        return self.make_asset_form(self.category)
+
+    def make_asset_form(self, category: AssetCategory):
+        #form_class = super().scaffold_form()
+
+        form_columns = []
+        for var in self.form_columns:
+            if var in self.form_columns_categories:
+                if category != self.form_columns_categories[var]:
+                    continue
+            form_columns.append(var)
+        
+        converter = self.model_form_converter(self.session, self)
+        form_class = form.get_form(self.model, converter,
+                                   base_class=self.form_base_class,
+                                   only=form_columns,
+                                   exclude=self.form_excluded_columns,
+                                   field_args=self.form_args,
+                                   ignore_hidden=self.ignore_hidden,
+                                   extra_fields=self.form_extra_fields)
+
+        return form_class
 
     def create_form(self, obj=None):
-        form = super(type(self), self).create_form()
+        if "category" in request.args.keys():
+            category = AssetCategory[request.args["category"]]
+        else:
+            category = AssetCategory.unknown
+        
+        form = self.make_asset_form(category)()
+
+        form.category.data = category.name
 
         if not form.organization.data:
             form.organization.data = current_user.organization
 
-        if "category_id" in request.args.keys() and not form.category.data:
-            form.category.data = self.session.query(Category).get(request.args["category_id"])
-
-        if "parent_id" in request.args.keys() and not form.parent.data:
-            form.parent.data = self.session.query(Asset).get(request.args["parent_id"])
+        # FIXME
+        #if "parent_id" in request.args.keys() and not form.parent.data:
+        #    form.parent.data = self.session.query(Asset).get(request.args["parent_id"])
 
         return form
-    
+
+    def edit_form(self, obj=None):
+        return self.make_asset_form(obj.category)(get_form_data(), obj=obj)
