@@ -1,7 +1,7 @@
 import sys
 import enum
 
-from sqlalchemy import Column, Integer, String, ForeignKey, Table
+from sqlalchemy import Column, DateTime, Integer, String, ForeignKey, Table
 from sqlalchemy.orm import relationship, backref
 
 from rhinventory.extensions import db
@@ -68,6 +68,7 @@ class Company(db.Model, SimpleAssetAttribute):
     __tablename__ = 'companies'
     id: int          = Column(Integer, primary_key=True)  # type: ignore
     name: str        = Column(String, nullable=False)  # type: ignore
+    last_used        = Column(DateTime, nullable=True)
 
 class CompanyAlias(db.Model):
     __tablename__ = 'company_aliases'

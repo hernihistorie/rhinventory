@@ -1,9 +1,11 @@
+from datetime import datetime
 from enum import Enum
 import sys
 from math import ceil
 
 from flask import redirect, request, flash, url_for, get_template_attribute
 from wtforms import RadioField
+import wtforms.validators
 from flask_admin import expose
 from flask_admin.helpers import get_redirect_target
 from flask_admin.model.helpers import get_mdict_item_or_list
@@ -12,7 +14,7 @@ from flask_admin.actions import action
 from flask_admin.contrib.sqla import form
 from flask_admin.helpers import get_form_data
 from flask_login import current_user
-from sqlalchemy import desc
+from sqlalchemy import desc, nulls_last
 
 from rhinventory.extensions import db
 from rhinventory.admin_views.model_view import CustomModelView
@@ -20,6 +22,7 @@ from rhinventory.db import Medium, Asset, get_next_file_batch_number, LogItem
 from rhinventory.models.asset import AssetCondition
 from rhinventory.forms import FileForm
 from rhinventory.models.asset import AssetCategory
+from rhinventory.models.asset_attributes import Company
 
 TESTING = "pytest" in sys.modules
 
@@ -27,7 +30,9 @@ CONDITION_OPTIONS = AssetCondition
 class ConditionField(RadioField):
     def __init__(self, **kwargs):
         super().__init__(render_kw={'class': 'rating-field'}, **kwargs)
-        self.choices = [(value, value.name) for value in AssetCondition]
+        self.choices = [(value.name, value.name) for value in AssetCondition]
+        self.coerce = lambda x: x.split('.')[-1] if isinstance(x, str) else x
+        self.validators = [wtforms.validators.Optional()]
 
 class AssetView(CustomModelView):
     form_overrides = {
@@ -40,7 +45,7 @@ class AssetView(CustomModelView):
         'category',
 #        'custom_code',
         'name',
-        'manufacturer',
+#        'manufacturer',
         'companies',
 #        'location',
         'hardware_type',
@@ -69,6 +74,11 @@ class AssetView(CustomModelView):
         }
     }
     form_args = {
+        'companies': {
+            'query_factory': lambda: Company.query.order_by(
+                nulls_last(Company.last_used.desc())
+            )
+        },
         #'category': {
         #    'query_factory': lambda: Category.query.order_by(
         #        Category.id.asc()
@@ -138,8 +148,8 @@ class AssetView(CustomModelView):
         """
         try:
 
-            old_category: Category = model.category
-            new_category: Category = form.category.data
+            old_category: AssetCategory = model.category
+            new_category: AssetCategory = AssetCategory[form.category.data]
 
             if new_category != old_category:
                 model.custom_code = Asset.get_free_custom_code(new_category)
@@ -161,6 +171,12 @@ class AssetView(CustomModelView):
             if new_category != old_category:
                 flash(f"Category of asset updated - {model}", 'success')
             
+            company: Company
+            for company in model.companies:
+                company.last_used = datetime.now()
+                self.session.add(company)
+            self.session.commit()
+
             self.after_model_change(form, model, False)
 
     def get_save_return_url(self, model=None, is_created=False):
