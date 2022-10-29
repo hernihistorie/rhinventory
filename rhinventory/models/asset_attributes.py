@@ -47,8 +47,8 @@ class AssetPackaging(db.Model):
     asset_id: int     = Column(Integer, ForeignKey('assets.id'))  # type: ignore
     packaging_id: int = Column(Integer, ForeignKey(Packaging.id))  # type: ignore
 
-    asset = relationship("Asset")
-    packaging = relationship(Packaging)
+    #asset = relationship("Asset")
+    #packaging = relationship(Packaging)
 
 class Medium(db.Model, SimpleAssetAttribute):
     __tablename__ = 'media'
@@ -61,8 +61,8 @@ class AssetMedium(db.Model):
     asset_id: int     = Column(Integer, ForeignKey('assets.id'))  # type: ignore
     medium_id: int    = Column(Integer, ForeignKey(Medium.id))  # type: ignore
 
-    asset = relationship("Asset")
-    medium = relationship(Medium)
+    #asset = relationship("Asset")
+    #medium = relationship(Medium)
 
 class Company(db.Model, SimpleAssetAttribute):
     __tablename__ = 'companies'
