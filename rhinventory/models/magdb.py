@@ -170,7 +170,7 @@ class MagazineIssueVersionPrice(HistoryTrait):
     id = db.Column(db.Integer(), unique=True, primary_key=True)
 
     issue_version_id = db.Column(db.Integer(), db.ForeignKey("magazine_issue_versions.id"))
-    issue_version = db.relationship("MagazineIssueVersion")
+    issue_version = db.relationship("MagazineIssueVersion", backref="prices")
 
     value = db.Column(db.Float())
     currency = db.Column(db.Enum(Currency))

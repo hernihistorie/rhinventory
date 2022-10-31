@@ -1,23 +1,108 @@
 {% extends "magdb/base.html" %}
 
 {% block content %}
-    <h1>{{ magazine.title }}</h1>
+    <div class="card card-sm">
+        <div class="card-body">
+            <h1>{{ magazine.title }}</h1>
+        </div>
+    </div>
 
     {% for year, data in issues_by_year.items() %}
-        <div>
-            <h2>{{ year }}</h2>
+        <div class="card card-sm">
+            <div class="card-body">
+                <div>
+                    <h2>{{ year }}</h2>
+                </div>
+
+                <div class="table-resposive">
+                    <table class="table table-vcenter">
+                        <tr>
+                            <th>Číslo</th>
+                            <th>Datum vydání</th>
+                            <th>Verze</th>
+                        </tr>
+                        {% for issue in data %}
+                            <tr id="issue-{{ issue.id }}">
+                                {% if issue.is_special_issue %}
+                                    <td>{{ issue.current_magazine_name }}: {{ issue.issue_title }}</td>
+                                {% else %}
+                                    <td>{{ issue.current_magazine_name }}: {{ issue.calendar_id }}</td>
+                                {% endif %}
+                                <td>
+                                    {% if issue.published_day is not none %}
+                                        {{ issue.published_day }}.
+                                    {% else %}
+                                        X.
+                                    {% endif %}
+
+                                    {% if issue.published_month is not none %}
+                                        {{ issue.published_month }}.
+                                    {% else %}
+                                        X.
+                                    {% endif %}
+
+                                    {% if issue.published_year is not none %}
+                                        {{ issue.published_year }}
+                                    {% else %}
+                                        X
+                                    {% endif %}
+                                </td>
+                                <td>
+
+                                    <div class="table-resposive">
+                                        <table class="table table-vcenter">
+                                        <tr>
+                                            <th>Název verze</th>
+                                            <th>Titulní stránka</th>
+                                            <th>Původní cena</th>
+                                            <th>Stav</th>
+                                        </tr>
+                                            {% for version in issue.versions %}
+                                                <tr id="version-{{ version.id }}">
+                                                    <td>
+                                                        {{ version.name_suffix }}
+                                                    </td>
+                                                <td>
+                                                        {% if version.id in files.cover_pages %}
+                                                            <img src="{{ url_for('files.static', filename=files.cover_pages[version.id][0].filepath) }}"
+                                                                 class="img-rounded">
+                                                            {% else %}
+                                                            Chybí!
+                                                        {% endif %}
+                                                    </td>
+                                                <td>
+                                                    <table class="table table-vcenter">
+                                                        {% for price in version.prices %}
+                                                            <tr>
+                                                                <td>{{ price.value }}</td>
+                                                                <td>{{ price.currency.name}}</td>
+                                                            </tr>
+                                                        {% else %}
+                                                            Cenu neznáme.
+                                                        {% endfor %}
+                                                    </table>
+                                                </td>
+                                                <td>
+                                                    {% if version.status.name == "have" %}
+                                                        <span style="height: 25px; width: 25px; background-color: green; border-radius: 50%; display: inline-block;" title="Máme!"></span>
+                                                    {% elif version.status.name == "dont_have" %}
+                                                        <span style="height: 25px; width: 25px; background-color: red; border-radius: 50%; display: inline-block;" title="Chybí!"></span>
+                                                    {% elif version.status.name == "problems" %}
+                                                        <span style="height: 25px; width: 25px; background-color: yellow; border-radius: 50%; display: inline-block;" title="Máme s problémy!"></span>
+                                                    {% endif %}
+                                                </td>
+                                                </tr>
+                                            {% endfor %}
+
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
         </div>
-
-        {% for issue in data %}
-            {{ issue }}
-
-            {% for version in issue.versions %}
-                {{ version }}
-                {% if version.id in files.cover_pages  %}
-                    <img src="{{ url_for('files.static', filename=files.cover_pages[version.id][0].filepath) }}" class="card-img">
-                {% endif %}
-            {% endfor %}
-        {% endfor %}
     {% endfor %}
 
 {% endblock %}

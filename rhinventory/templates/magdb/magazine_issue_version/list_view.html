@@ -6,4 +6,8 @@
     <a href="{{ get_url('magdb_magazine_issue_version_price.create_wizard', magazine_issue_version_id=get_pk_value(row)) }}">
         {{ icon("circle-plus") }}
     </a>
+
+    <a href="{{ get_url('magdb.magazine_detail', _anchor="version-{}".format(row.id), magazine_id=get_pk_value(row.magazine_issue.magazine)) }}">
+        {{ icon("eye") }}
+    </a>
 {% endblock %}
