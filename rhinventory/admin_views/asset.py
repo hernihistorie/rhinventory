@@ -420,7 +420,7 @@ class AssetView(CustomModelView):
         else:
             category = AssetCategory.unknown
         
-        form = self.make_asset_form(category)()
+        form = self.make_asset_form(category)(get_form_data(), obj=obj)
 
         form.category.data = category.name
 
