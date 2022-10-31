@@ -68,12 +68,16 @@ def make_label(id, custom_code, name, subtitle="", medium="", small=False, logo_
 
 def make_asset_label(asset: Asset, small=False, logo_ha=False):
     id = f"RH{asset.id:05}"
-    if asset.custom_code and asset.CATEGORY_EXPOSE_NUMBER:
-        code = f"{asset.CATEGORY_PREFIX} {asset.custom_code}"
+    if asset.CATEGORY_EXPOSE_NUMBER:
+        if asset.custom_code:
+            code = f"{asset.CATEGORY_PREFIX} {asset.custom_code}"
+        else:
+            code = f"{asset.CATEGORY_PREFIX} ???"
     else:
-        code = f"{asset.CATEGORY_PREFIX} ???"
+        code = asset.CATEGORY_PREFIX
     
     return make_label(id, code, asset.name,
-        subtitle=asset.manufacturer, medium=asset.medium.name if asset.medium else '',
+        subtitle=", ".join([c.name for c in asset.companies]),
+        medium="; ".join([m.name for m in asset.mediums]),
         small=small, logo_ha=logo_ha)
     
