@@ -137,6 +137,13 @@ class AssetView(CustomModelView):
         
         super().on_model_change(form, instance, is_created)
     
+    def after_model_change(self, form, model, is_created):
+        company: Company
+        for company in model.companies:
+            company.last_used = datetime.now()
+            self.session.add(company)
+        self.session.commit()
+
     # From https://stackoverflow.com/a/60829958
     def update_model(self, form, model: Asset):
         """
@@ -170,12 +177,6 @@ class AssetView(CustomModelView):
         else:
             if new_category != old_category:
                 flash(f"Category of asset updated - {model}", 'success')
-            
-            company: Company
-            for company in model.companies:
-                company.last_used = datetime.now()
-                self.session.add(company)
-            self.session.commit()
 
             self.after_model_change(form, model, False)
 
