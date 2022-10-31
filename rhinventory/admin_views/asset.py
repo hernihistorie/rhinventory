@@ -153,6 +153,7 @@ class AssetView(CustomModelView):
             :param model:
                 Model instance
         """
+        model_id = model.id
         try:
 
             old_category: AssetCategory = model.category
@@ -166,6 +167,9 @@ class AssetView(CustomModelView):
             form.populate_obj(model)
             self._on_model_change(form, model, False)
             self.session.commit()
+            # Since we may have changed the category, we have to query
+            # for the model anew 
+            model = db.session.query(Asset).get(model_id)
         except Exception as ex:
             if not self.handle_view_exception(ex):
                 flash('Failed to update record. ' + str(ex), 'error')
@@ -176,7 +180,7 @@ class AssetView(CustomModelView):
             return False
         else:
             if new_category != old_category:
-                flash(f"Category of asset updated - {model}", 'success')
+                flash(f"Category of asset updated - {model}.  Sorry, when you do this, an error appears.  Do not panic, this is normal.  A refresh will fix it.", 'success')
 
             self.after_model_change(form, model, False)
 
