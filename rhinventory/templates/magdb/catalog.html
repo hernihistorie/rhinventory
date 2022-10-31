@@ -1,0 +1,21 @@
+{% extends "magdb/base.html" %}
+
+{% block content %}
+    <div class="row row-deck row-cards">
+        {% for magazine in magazines %}
+            <div class="col-sm-6 col-lg-3">
+                <div class="card" style="height: 20x0px;">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <a href="{{ url_for(".magazine_detail", magazine_id=magazine.id) }}">
+                                <div class="subheader">{{ magazine.title }}</div>
+                                {% if magazine.id in logos %}
+                                    <img src="{{ url_for('files.static', filename=logos[magazine.id][0].filepath) }}" class="card-img">
+                                {% endif %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+{% endblock %}

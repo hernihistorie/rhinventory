@@ -39,6 +39,9 @@ class Magazine(HistoryTrait):
     def __str__(self):
         return self.title
 
+    def get_logos(self):
+        return self.files
+
 
 class BindingType(enum.Enum):
     glued = "GL"
@@ -144,9 +147,9 @@ class MagazineIssueVersion(HistoryTrait):
     __tablename__ = "magazine_issue_versions"
     id = db.Column(db.Integer(), unique=True, primary_key=True)
     magazine_issue_id = db.Column(db.Integer(), db.ForeignKey("magazine_issues.id"), nullable=False)
-    magazine_issue = db.relationship("MagazineIssue")
+    magazine_issue = db.relationship("MagazineIssue", backref="versions")
     name_suffix = db.Column(db.String(127))
-    # TODO: cover page
+
     form = db.Column(db.Enum(MagazineForm))
 
     format_id = db.Column(db.Integer(), db.ForeignKey("formats.id"))
@@ -167,7 +170,7 @@ class MagazineIssueVersionPrice(HistoryTrait):
     id = db.Column(db.Integer(), unique=True, primary_key=True)
 
     issue_version_id = db.Column(db.Integer(), db.ForeignKey("magazine_issue_versions.id"))
-    issue_version = db.relationship("MagazineIssueVersion")
+    issue_version = db.relationship("MagazineIssueVersion", backref="prices")
 
     value = db.Column(db.Float())
     currency = db.Column(db.Enum(Currency))

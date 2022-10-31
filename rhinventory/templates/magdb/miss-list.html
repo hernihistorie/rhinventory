@@ -6,10 +6,18 @@
         <div class="card-body">
             <div class="accordion" id="accordion-example">
                 <div class="accordion-item">
-                    {% for magazine_id, title in magazines.items() %}
+                    {% for magazine_id, data in magazines.items() %}
                         <h2 class="accordion-header" id="heading-{{ loop.index0 }}">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ loop.index0 }}" aria-expanded="false">
-                                {{ title }}
+                                {% if not data.logos %}
+                                    <h3>{{ data.magazine.title }}</h3>
+                                {% endif %}
+
+                                {% for image in data.logos %}
+                                    <span style="width: 200px; margin-right: 25px;">
+                                        <img src="{{ url_for('files.static', filename=image.filepath) }}">
+                                    </span>
+                                {% endfor %}
                             </button>
                         </h2>
                         <div id="collapse-{{ loop.index0 }}" class="accordion-collapse collapse" data-bs-parent="#accordion-example" style="">
@@ -25,6 +33,7 @@
                                 {% endfor %}
                             </div>
                         </div>
+                        <hr>
                     {% else %}
                         It seems, that we have everything, that we know about right now.
                     {% endfor %}
