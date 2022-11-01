@@ -1,13 +1,10 @@
 {% extends 'admin/model/details.html' %}
 
 {% block details_table %}
+    <link href="/admin/static/vendor/select2/select2.css?v=3.5.2" rel="stylesheet">
+    
+    
     <h2>File: {{ model.filepath }}</h2>
-    <strong>Asset:</strong>
-    {% if model.asset %}
-        <a href="{{ url_for('asset.details_view', id=model.asset.id) }}">{{ model.asset }}</a>
-    {% else %}
-        None
-    {% endif %}
 
     <div style="margin: 8px 0 8px 0; display: flex; justify-content: space-between;">
         <div>
@@ -27,8 +24,14 @@
                 {% endif %}
             {% endif %}
             <form method="POST" action="" style="display: inline;">
-                {{ file_assign_form.asset(style='margin-bottom: 0px;') }}
-                <input type="submit" value="Assign" class="btn btn-primary">
+                {{ file_assign_form.asset(style='margin-bottom: 0px; width: 400px;') }}
+                <input type="submit" value="
+                    {%- if not model.asset -%}
+                        Assign
+                    {%- else -%}
+                        Re-assign
+                    {%- endif -%}
+                " class="btn btn-primary">
             </form>
         </div>
         <div>
@@ -128,4 +131,9 @@
         </tbody></table>
 
 
+{% endblock %}
+
+{% block tail %}
+  {{ super() }}
+  {{ lib.form_js() }}
 {% endblock %}
