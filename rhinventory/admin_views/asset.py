@@ -375,7 +375,7 @@ class AssetView(CustomModelView):
         file_form = FileForm(batch_number=batch_number)
 
         logs = db.session.query(LogItem).filter(
-            LogItem.table == "Asset",
+            LogItem.table.startswith("Asset"), # XXX imperfect! This will also get "AssetTag" and similar
             LogItem.object_id == model.id
         ).order_by(LogItem.datetime.desc()).all()
 
