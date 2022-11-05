@@ -21,12 +21,22 @@
     <h2>New asset</h2>
 
     {% set layout = [
-            ['game', 'software', 'multimedia', 'rewritable media', 'literature'],
+            ['game', 'software', 'multimedia', 'rewritable media'],
+            ['literature', 'packaging'],
             ['console', 'console accessory'],
             ['computer', 'computer accessory', 'computer component'],
             ['keyboard', 'computer mouse', 'television', 'monitor'],
             ['location', 'other']
         ]
+    %}
+
+    {% set shortnames = {
+            'rewritable media': 'rw. media',
+            'console accessory': 'con. accessory',
+            'computer accessory': 'pc accessory',
+            'computer component': 'pc component',
+            'computer mouse': 'mouse'
+        }
     %}
 
     <div class="category-select">
@@ -37,11 +47,12 @@
             {% for row in layout %}
                 <div class="category-row">
                     {% for category in row %}
+                        {% set shortname = shortnames.get(category, category) %}
                         <a
                             class="btn category-btn"
                             href="{{ get_url('.create_view', category=category.replace(' ', '_')) }}"
                         >
-                            {{ category.split()[-1].capitalize() }}
+                            {{ shortname.capitalize() }}
                         </a>
                     {% endfor %}
                 </div>

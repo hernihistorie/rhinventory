@@ -48,6 +48,8 @@ class AssetCategory(enum.Enum):
     literature = 14
     other = 15
     rewritable_media = 16
+    packaging = 17
+    location = 18
 
 ASSET_CATEGORY_PREFIXES: dict[AssetCategory, str] = {
     AssetCategory.unknown: "UNK",
@@ -66,7 +68,9 @@ ASSET_CATEGORY_PREFIXES: dict[AssetCategory, str] = {
     AssetCategory.receipt : "Receipt",
     AssetCategory.literature : "Lit",
     AssetCategory.other : "X",
-    AssetCategory.rewritable_media: "RWM"
+    AssetCategory.rewritable_media: "RWM",
+    AssetCategory.packaging: "PKG",
+    AssetCategory.location: "Loc"
 }
 EXPOSED_CATEGORY_NUMBERS = {
     AssetCategory.console, AssetCategory.computer,
