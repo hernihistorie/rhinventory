@@ -109,8 +109,12 @@ class AssetView(CustomModelView):
     column_filters = [
         'organization.name',
         'category',
-        #'medium.name',
+        'mediums.name',
+        'packaging.name',
+        'companies.name',
         'hardware_type.name',
+        'files.category',
+        'tags.name',
         'name',
         'manufacturer',
         'note',
