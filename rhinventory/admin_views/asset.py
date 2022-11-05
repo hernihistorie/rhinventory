@@ -2,6 +2,7 @@ from datetime import datetime
 from enum import Enum
 import sys
 from math import ceil
+from typing import Union
 
 from flask import redirect, request, flash, url_for, get_template_attribute
 from wtforms import RadioField
@@ -34,6 +35,13 @@ class ConditionField(RadioField):
         self.coerce = lambda x: x.split('.')[-1] if isinstance(x, str) else x
         self.validators = [wtforms.validators.Optional()]
 
+PRODUCT_ASSETS = [AssetCategory.game, AssetCategory.software, AssetCategory.multimedia,
+            AssetCategory.rewritable_media, AssetCategory.console,
+            AssetCategory.console_accesory, AssetCategory.computer,
+            AssetCategory.computer_accessory, AssetCategory.computer_component,
+            AssetCategory.keyboard, AssetCategory.computer_mouse, AssetCategory.television,
+            AssetCategory.monitor]
+
 class AssetView(CustomModelView):
     form_overrides = {
         'condition_new': ConditionField,
@@ -62,8 +70,13 @@ class AssetView(CustomModelView):
         'parent',
 #        'children',
     ]
-    form_columns_categories = {
-        'hardware_type': AssetCategory.computer_component
+    form_columns_categories: dict[str, Union[AssetCategory, list[AssetCategory]]] = {
+        'hardware_type': AssetCategory.computer_component,
+        'mediums': [AssetCategory.game, AssetCategory.software, AssetCategory.multimedia,
+            AssetCategory.rewritable_media],
+        'model': PRODUCT_ASSETS,
+        'product_codes': PRODUCT_ASSETS,
+        'serial': PRODUCT_ASSETS
     }
     form_ajax_refs = {
         'parent': {
