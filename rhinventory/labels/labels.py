@@ -26,8 +26,8 @@ def make_barcode(text):
 
     return fp
 
-def make_label(id, custom_code, name, subtitle="", medium="", small=False, logo_ha=False):
-    PNG_WIDTH = 696
+def make_label(id, custom_code, name, subtitle="", medium="", small=False, logo_ha=False, big=False):
+    png_width = 2147 if big else 696
     
     fp = make_barcode(id)
     soup = BS(fp, 'lxml')
@@ -54,19 +54,24 @@ def make_label(id, custom_code, name, subtitle="", medium="", small=False, logo_
     filename = f'rhinventory/labels/out/{id}'
     if small:
         filename += "-small"
+    if big:
+        filename += "-big"
     if logo_ha:
         filename += "-ha"
     open(filename+'.svg', 'w').write(label_svg)
 
     inkscape_version = subprocess.check_output(['inkscape', '--version']).decode('utf-8').split('\n')[0].split(' ')[1]
     if inkscape_version.startswith('0.'):
-        system(f'inkscape -z {filename}.svg -e {filename}.png -w {PNG_WIDTH}')
+        system(f'inkscape -z {filename}.svg -e {filename}.png -w {png_width}')
     else:
-        system(f'inkscape -p {filename}.svg -o {filename}.png -w {PNG_WIDTH}')
+        system(f'inkscape -p {filename}.svg -o {filename}.png -w {png_width}')
+    
+    if big:
+        system(f'mogrify -rotate 270 {filename}.png')
 
     return filename+'.png'
 
-def make_asset_label(asset: Asset, small=False, logo_ha=False):
+def make_asset_label(asset: Asset, small=False, logo_ha=False, big=False):
     id = f"RH{asset.id:05}"
     if asset.CATEGORY_EXPOSE_NUMBER:
         if asset.custom_code:
@@ -79,5 +84,5 @@ def make_asset_label(asset: Asset, small=False, logo_ha=False):
     return make_label(id, code, asset.name,
         subtitle=", ".join([c.name for c in asset.companies]),
         medium="; ".join([m.name for m in asset.mediums]),
-        small=small, logo_ha=logo_ha)
+        small=small, logo_ha=logo_ha, big=big)
     

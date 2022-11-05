@@ -119,11 +119,13 @@ def create_app(config_object='rhinventory.config'):
     @app.route('/label/asset/<int:asset_id>-small', defaults={'small': True})
     @app.route('/label/asset/<int:asset_id>-ha', defaults={'logo_ha': True})
     @app.route('/label/asset/<int:asset_id>-small-ha', defaults={'small': True, 'logo_ha': True})
-    def label_asset(asset_id, small=False, logo_ha=False):
+    @app.route('/label/asset/<int:asset_id>-big', defaults={'big': True})
+    @app.route('/label/asset/<int:asset_id>-big-ha', defaults={'big': True, 'logo_ha': True})
+    def label_asset(asset_id, small=False, logo_ha=False, big=False):
         asset = Asset.query.get(asset_id)
         if not asset: abort(404)
 
-        label_filename = make_asset_label(asset, small=small, logo_ha=logo_ha)
+        label_filename = make_asset_label(asset, small=small, logo_ha=logo_ha, big=big)
 
         return send_file(open(label_filename, 'rb'), mimetype='image/png')
     
