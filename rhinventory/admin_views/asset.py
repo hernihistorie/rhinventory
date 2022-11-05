@@ -180,7 +180,7 @@ class AssetView(CustomModelView):
             return False
         else:
             if new_category != old_category:
-                flash(f"Category of asset updated - {model}.  Sorry, when you do this, an error appears.  Do not panic, this is normal.  A refresh will fix it.", 'success')
+                flash(f"Category of asset updated - {model}.", 'success')
 
             self.after_model_change(form, model, False)
 

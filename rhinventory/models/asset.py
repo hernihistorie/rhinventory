@@ -49,11 +49,33 @@ class AssetCategory(enum.Enum):
     other = 15
     rewritable_media = 16
 
+ASSET_CATEGORY_PREFIXES: dict[AssetCategory, str] = {
+    AssetCategory.unknown: "UNK",
+    AssetCategory.game: "GM",
+    AssetCategory.console: "HK",
+    AssetCategory.computer: "PC",
+    AssetCategory.console_accesory: "HP",
+    AssetCategory.computer_accessory: "PP",
+    AssetCategory.computer_component: "PK",
+    AssetCategory.computer_mouse: "Myš",
+    AssetCategory.keyboard: "K",
+    AssetCategory.television: "TV",
+    AssetCategory.monitor : "M",
+    AssetCategory.software : "SW",
+    AssetCategory.multimedia : "MM",
+    AssetCategory.receipt : "Receipt",
+    AssetCategory.literature : "Lit",
+    AssetCategory.other : "X",
+    AssetCategory.rewritable_media: "RWM"
+}
+EXPOSED_CATEGORY_NUMBERS = {
+    AssetCategory.console, AssetCategory.computer,
+    AssetCategory.computer_mouse, AssetCategory.keyboard,
+    AssetCategory.television, AssetCategory.monitor,
+}
 
 class Asset(db.Model):
     __tablename__ = 'assets'
-    CATEGORY_PREFIX = "ZZ"
-    CATEGORY_EXPOSE_NUMBER = False
     id          = Column(Integer, primary_key=True)
     parent_id   = Column(Integer, ForeignKey('assets.id'))
     name        = Column(String, nullable=False)
@@ -99,12 +121,16 @@ class Asset(db.Model):
     packaging = relationship(Packaging, secondary='asset_packaging', backref="assets")
     companies = relationship(Company, secondary=asset_company_table, backref="assets")
 
-    __mapper_args__ = {
-        "polymorphic_on": category
-    }
-
     def __str__(self):
         return f"{self.code} {self.name}"
+
+    @property
+    def CATEGORY_PREFIX(self):
+        return ASSET_CATEGORY_PREFIXES[self.category]
+
+    @property
+    def CATEGORY_EXPOSE_NUMBER(self):
+        return self.category in EXPOSED_CATEGORY_NUMBERS
     
     @classmethod
     def get_free_custom_code(cls, category: AssetCategory):
@@ -153,106 +179,6 @@ class Asset(db.Model):
                 File.asset_id==self.id, File.category == FileCategory.dump
             ).order_by(File.primary.desc(), File.filepath.asc()).all()
 
-class AssetGame(Asset):
-    CATEGORY_PREFIX = "GM"
-
-    __mapper_args__ = {"polymorphic_identity": AssetCategory.game}
-
-class AssetConsole(Asset):
-    CATEGORY_PREFIX = "HK"
-    CATEGORY_EXPOSE_NUMBER = True
-
-    __mapper_args__ = {"polymorphic_identity": AssetCategory.console}
-    
-
-class AssetComputer(Asset):
-    CATEGORY_PREFIX = "PC"
-    CATEGORY_EXPOSE_NUMBER = True
-
-    __mapper_args__ = {"polymorphic_identity": AssetCategory.computer}
-
-
-class AssetConsoleAccesory(Asset):
-    CATEGORY_PREFIX = "HP"
-
-    __mapper_args__ = {"polymorphic_identity": AssetCategory.console_accesory}
-
-
-class AssetComputerAccessory(Asset):
-    CATEGORY_PREFIX = "PP"
-
-    __mapper_args__ = {"polymorphic_identity": AssetCategory.computer_accessory}
-
-
-class AssetComputerComponent(Asset):
-    CATEGORY_PREFIX = "PK"
-    CATEGORY_EXPOSE_NUMBER = True
-
-    __mapper_args__ = {"polymorphic_identity": AssetCategory.computer_component}
-
-
-class AssetComputerMouse(Asset):
-    CATEGORY_PREFIX = "Myš"
-    CATEGORY_EXPOSE_NUMBER = True
-
-    __mapper_args__ = {"polymorphic_identity": AssetCategory.computer_mouse}
-
-
-class AssetKeyboard(Asset):
-    CATEGORY_PREFIX = "K"
-    CATEGORY_EXPOSE_NUMBER = True
-
-    __mapper_args__ = {"polymorphic_identity": AssetCategory.keyboard}
-
-
-class AssetTelevision(Asset):
-    CATEGORY_PREFIX = "TV"
-    CATEGORY_EXPOSE_NUMBER = True
-
-    __mapper_args__ = {"polymorphic_identity": AssetCategory.television}
-
-
-class AssetMonitor(Asset):
-    CATEGORY_PREFIX = "M"
-    CATEGORY_EXPOSE_NUMBER = True
-
-    __mapper_args__ = {"polymorphic_identity": AssetCategory.monitor}
-
-
-class AssetSoftware(Asset):
-    CATEGORY_PREFIX = "SW"
-
-    __mapper_args__ = {"polymorphic_identity": AssetCategory.software}
-
-
-class AssetMultimedia(Asset):
-    CATEGORY_PREFIX = "MM"
-
-    __mapper_args__ = {"polymorphic_identity": AssetCategory.multimedia}
-
-
-class AssetReceipt(Asset):
-    CATEGORY_PREFIX = "Receipt"
-
-    __mapper_args__ = {"polymorphic_identity": AssetCategory.receipt}
-
-
-class AssetLiterature(Asset):
-    CATEGORY_PREFIX = "Lit"
-
-    __mapper_args__ = {"polymorphic_identity": AssetCategory.literature}
-
-
-class AssetOther(Asset):
-    CATEGORY_PREFIX = "X"
-
-    __mapper_args__ = {"polymorphic_identity": AssetCategory.other}
-
-
-class AssetRewritableMedia(Asset):
-    CATEGORY_PREFIX = "RWM"
-
-    __mapper_args__ = {"polymorphic_identity": AssetCategory.rewritable_media}
 
 
 class AssetMeta(db.Model):
