@@ -39,8 +39,8 @@ class LogItem(db.Model):
 
 def log(event, object, log_object=True, user=None, **kwargs):
     log_item = LogItem(table=type(object).__name__, object_id=object.id,
-        event=event, object_json=json.dumps(object.asdict(), default=repr) if log_object else None,
+        event=event, object_json=json.dumps(object.asdict(), default=repr, ensure_ascii=False) if log_object else None,
         user_id=user.id if user else None,
         datetime=datetime.datetime.now(),
-        extra_json=json.dumps(kwargs))
+        extra_json=json.dumps(kwargs, ensure_ascii=False))
     db.session.add(log_item)
