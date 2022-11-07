@@ -81,7 +81,7 @@ class AssetView(CustomModelView):
         'product_codes': PRODUCT_ASSET_CATEGORIES,
         'serial': PRODUCT_ASSET_CATEGORIES,
         'contains': AssetCategory.location,
-        'parent': ALL_CATEGORIES - {AssetCategory.location}
+#        'parent': ALL_CATEGORIES - {AssetCategory.location}
     }
     form_ajax_refs = {
         'parent': {
