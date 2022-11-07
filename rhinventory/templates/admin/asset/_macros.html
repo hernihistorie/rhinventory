@@ -29,3 +29,64 @@
         </a>
     {% endfor %}
 {% endmacro %}
+
+{% macro new_asset_form(show_category_text=True, parent_id=None) %}
+    {# XXX refactor the style out #}
+    <style>
+        .category-select {
+            display: flex;
+            margin-left: 12px;
+            margin-right: 12px;
+        }
+
+        .category-row {
+            margin-bottom: 8px;
+            display: flex;
+        }
+        .category-btn {
+            width: 100px;
+        }
+    </style>
+
+    {% set layout = [
+            ['game', 'software', 'multimedia', 'rewritable media'],
+            ['literature', 'packaging'],
+            ['console', 'console accesory'],
+            ['computer', 'computer accessory', 'computer component'],
+            ['keyboard', 'computer mouse', 'television', 'monitor'],
+            ['location', 'other']
+        ]
+    %}
+
+    {% set shortnames = {
+            'rewritable media': 'rw. media',
+            'console accesory': 'con. accessory',
+            'computer accessory': 'pc accessory',
+            'computer component': 'pc component',
+            'computer mouse': 'mouse'
+        }
+    %}
+
+    <div class="category-select">
+        {% if show_category_text %}
+            <div style="width: 120px; font-weight: bold;">
+                Category
+            </div>
+        {% endif %}
+        <div>
+            {% for row in layout %}
+                <div class="category-row">
+                    {% for category in row %}
+                        {% set shortname = shortnames.get(category, category) %}
+                        <a
+                            class="btn category-btn"
+                            href="{{ url_for('.create_view', category=category.replace(' ', '_'), parent_id=parent_id) }}"
+                        >
+                            {{ shortname.capitalize() }}
+                        </a>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endmacro %}

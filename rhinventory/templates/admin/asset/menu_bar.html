@@ -1,3 +1,4 @@
+{% from 'admin/asset/_macros.html' import new_asset_form %}
 
 {# XXX https://github.com/flask-admin/flask-admin/blob/master/flask_admin/templates/bootstrap2/admin/model/list.html#L14 #}
 {% macro asset_menu_bar(return_url=None) %}
@@ -27,14 +28,21 @@
         </li>
 
         {% if admin_view.can_create %}
-            <li class="{{ 'active' if request.url_rule.endpoint == 'asset.create_view' else '' }}">
-                {%- if admin_view.create_modal -%}
+            <li class="{{ 'active' if request.url_rule.endpoint == 'asset.create_view' else '' }} dropdown">
+                {#{%- if admin_view.create_modal -%}
                     {{ lib.add_modal_button(url=get_url('.create_view', modal=True), title=_gettext('Create New Record'), content=_gettext('Create')) }}
-                {% else %}
-                    <a href="{{ get_url('.new_view') }}" title="{{ _gettext('Create New Record') }}">
+                {% else %}#}
+                    <a  {#href="{{ get_url('.new_view') }}"#} href="javascript:void(0)"
+                        class="dropdown-toggle"
+                        data-toggle="dropdown"
+                    >
                         {{ icon("circle-plus") }} {{ _gettext('Create') }}
+                        <b class="caret"></b>
                     </a>
-            {%- endif -%}
+                {#{%- endif -%}#}
+                    <ul class="dropdown-menu field-filters">
+                        {{ new_asset_form(show_category_text=False) }}
+                    </ul>
             </li>
             {% if model %}
                 <li>
@@ -42,10 +50,18 @@
                         {{ icon("circle-plus") }} Create <strong>{{ model.category.name }}</strong>
                     </a>
                 </li>
-                <li>
-                    <a href="{{ get_url('.create_view', parent_id=model.id, category=model.category.name) }}">
-                        {{ icon("circle-plus") }} Create child <strong>{{ model.category.name }}</strong>
+                <li class="dropdown">
+                    <a  {#href="{{ get_url('.new_view') }}"#} href="javascript:void(0)"
+                        class="dropdown-toggle"
+                        data-toggle="dropdown"
+                    >
+                        {{ icon("circle-plus") }} Create child
+                        <b class="caret"></b>
                     </a>
+                {#{%- endif -%}#}
+                    <ul class="dropdown-menu field-filters">
+                        {{ new_asset_form(show_category_text=False, parent_id=model.id) }}
+                    </ul>
                 </li>
             {% endif %}
         {% endif %}
