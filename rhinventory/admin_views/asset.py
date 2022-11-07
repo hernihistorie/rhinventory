@@ -81,7 +81,7 @@ class AssetView(CustomModelView):
         'product_codes': PRODUCT_ASSET_CATEGORIES,
         'serial': PRODUCT_ASSET_CATEGORIES,
         'contains': AssetCategory.location,
-#        'parent': ALL_CATEGORIES - {AssetCategory.location}
+        'parent': ALL_CATEGORIES - {AssetCategory.location}
     }
     form_ajax_refs = {
         'parent': {
@@ -431,7 +431,10 @@ class AssetView(CustomModelView):
         form_columns = []
         for var in self.form_columns:
             if var in self.form_columns_categories:
-                if category != self.form_columns_categories[var]:
+                form_column_categories = self.form_columns_categories[var]
+                if not isinstance(form_column_categories, Iterable):
+                    form_column_categories = [form_column_categories]
+                if category not in form_column_categories:
                     continue
             form_columns.append(var)
         
