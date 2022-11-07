@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 import sys
 from math import ceil
-from typing import Union
+from typing import Union, Iterable
 
 from flask import redirect, request, flash, url_for, get_template_attribute
 from wtforms import RadioField
@@ -35,12 +35,13 @@ class ConditionField(RadioField):
         self.coerce = lambda x: x.split('.')[-1] if isinstance(x, str) else x
         self.validators = [wtforms.validators.Optional()]
 
-PRODUCT_ASSETS = [AssetCategory.game, AssetCategory.software, AssetCategory.multimedia,
+ALL_CATEGORIES = set(AssetCategory)
+PRODUCT_ASSET_CATEGORIES = set([AssetCategory.game, AssetCategory.software, AssetCategory.multimedia,
             AssetCategory.rewritable_media, AssetCategory.console,
             AssetCategory.console_accesory, AssetCategory.computer,
             AssetCategory.computer_accessory, AssetCategory.computer_component,
             AssetCategory.keyboard, AssetCategory.computer_mouse, AssetCategory.television,
-            AssetCategory.monitor]
+            AssetCategory.monitor])
 
 class AssetView(CustomModelView):
     form_overrides = {
@@ -68,15 +69,19 @@ class AssetView(CustomModelView):
         'note',
         'tags',
         'parent',
+        'location',
+        'contains',
 #        'children',
     ]
-    form_columns_categories: dict[str, Union[AssetCategory, list[AssetCategory]]] = {
+    form_columns_categories: dict[str, Union[AssetCategory, Iterable[AssetCategory]]] = {
         'hardware_type': AssetCategory.computer_component,
         'mediums': [AssetCategory.game, AssetCategory.software, AssetCategory.multimedia,
             AssetCategory.rewritable_media],
-        'model': PRODUCT_ASSETS,
-        'product_codes': PRODUCT_ASSETS,
-        'serial': PRODUCT_ASSETS
+        'model': PRODUCT_ASSET_CATEGORIES,
+        'product_codes': PRODUCT_ASSET_CATEGORIES,
+        'serial': PRODUCT_ASSET_CATEGORIES,
+        'contains': AssetCategory.location,
+        'parent': ALL_CATEGORIES - {AssetCategory.location}
     }
     form_ajax_refs = {
         'parent': {
@@ -90,6 +95,11 @@ class AssetView(CustomModelView):
         'companies': {
             'query_factory': lambda: Company.query.order_by(
                 nulls_last(Company.last_used.desc())
+            )
+        },
+        'location': {
+            'query_factory': lambda: Asset.query.filter(Asset.category == AssetCategory.location).order_by(
+                Asset.name.asc()
             )
         },
         #'category': {

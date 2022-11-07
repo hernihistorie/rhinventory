@@ -101,11 +101,12 @@ class Asset(db.Model):
     category = Column(Enum(AssetCategory), default=AssetCategory.unknown, nullable=False)
 
     location_id = Column(Integer, ForeignKey('locations.id'))
+    location_id_new = Column(Integer, ForeignKey('assets.id'))
     #medium_id   = Column(Integer, ForeignKey('media.id'))
     hardware_type_id  = Column(Integer, ForeignKey('hardware_type.id'))
 
-    children    = relationship("Asset", backref=backref("parent", remote_side=id))
-    location    = relationship("Location", backref="assets")
+    children    = relationship("Asset", foreign_keys=[parent_id], backref=backref("parent", remote_side=id))
+    contains    = relationship("Asset", foreign_keys=[location_id_new], backref=backref("location", remote_side=id))
     #medium      = relationship("Medium", backref="assets")
     hardware_type = relationship("HardwareType", backref="assets")
 
