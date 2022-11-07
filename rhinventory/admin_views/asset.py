@@ -412,7 +412,8 @@ class AssetView(CustomModelView):
                             get_value=self.get_detail_value,
                             return_url=return_url,
                             file_form=file_form,
-                            logs=logs)
+                            logs=logs,
+                            AssetCategory=AssetCategory)
     @expose('/new2/', methods=['GET'])
     def new_view(self):
         return self.render('admin/asset/new.html')
@@ -469,3 +470,39 @@ class AssetView(CustomModelView):
 
     def edit_form(self, obj=None):
         return self.make_asset_form(obj.category)(get_form_data(), obj=obj)
+
+    @expose('/add_contents/', methods=['POST'])
+    def add_contents_view(self):
+        asset_id = int(request.form['asset_id'])
+        asset: Asset
+        asset = db.session.query(Asset).get(asset_id)
+        assert asset
+
+        num_assets = 0
+        response = redirect(url_for('asset.details_view', id=asset_id))
+        for rh_id in request.form['id_list'].lower().split():
+            if not rh_id.strip():
+                continue
+            if not rh_id.startswith('rh'):
+                flash(f"Error: Some ID doesn't start with 'rh': {rh_id}", 'error')
+                return response
+            
+            try:
+                contained_asset_id = int(rh_id[2:])
+            except ValueError:
+                flash(f"Error: Some ID not a number: {rh_id}", 'error')
+                return response
+                
+            contained_asset: Asset
+            contained_asset = db.session.query(Asset).get(contained_asset_id)
+            if not contained_asset:
+                flash(f"Error: Some ID doesn't correspond to an asset: {rh_id}", 'error')
+                return response
+            
+            contained_asset.location_id_new = asset.id
+            db.session.add(contained_asset)
+            num_assets += 1
+        
+        db.session.commit()
+        flash(f"Added {num_assets} assets as contents.", "success")
+        return response

@@ -67,12 +67,12 @@
                 {{ row('category') }}
                 {{ row('name') }}
                 {% if model.companies %}
-                    <td><strong>Companies</strong></td>
+                    <tr><td><strong>Companies</strong></td>
                     <td>{% for company in model.companies %}
                             <a href="{{ url_for('company.edit_view', id=company.id) }}">
                                 {{ company.name }}
                             </a>{% if not loop.last %},{% endif %}
-                    {% endfor %}</td>
+                    {% endfor %}</td></tr>
                 {% endif %}
                 {{ row('mediums') }}
                 {{ row('packaging') }}
@@ -85,15 +85,15 @@
                 {{ row('tags') }}
                 {{ row('note') }}
                 {% if model.parent %}
-                    <td><strong>Parent</strong></td>
+                    <tr><td><strong>Parent</strong></td>
                     <td>
                         <a href="{{ url_for('asset.details_view', id=model.parent.id) }}">
                             {{ model.parent }}
                         </a>
-                    </td>
+                    </td></tr>
                 {% endif %}
                 {% if model.children %}
-                    <td><strong>Children</strong></td>
+                    <tr><td><strong>Children</strong></td>
                     <td>
                         <ul>
                             {% for child in model.children %}
@@ -103,7 +103,42 @@
                                     </a>
                             {% endfor %}
                         </ul>
-                    </td>
+                    </td></tr>
+                {% endif %}
+                {% if model.location %}
+                    <tr><td><strong>Location</strong></td>
+                    <td>
+                        <a href="{{ url_for('asset.details_view', id=model.parent.id) }}">
+                            {{ model.location }}
+                        </a>
+                    </td></tr>
+                {% endif %}
+                {% if model.category == AssetCategory.location %}
+                    <tr><td><strong>Contains</strong></td>
+                    <td>
+                        <ul>
+                            {% for child in model.contains %}
+                                <li>
+                                    <a href="{{ url_for('asset.details_view', id=child.id) }}">
+                                        {{ child }}
+                                    </a>
+                            {% endfor %}
+                        </ul>
+                        <details>
+                            <summary class="btn-link" style="text-align: center;">
+                                Add contents
+                            </summary>
+                            <form method="POST" action="{{ url_for('asset.add_contents_view') }}">
+                                <input type="hidden" name="asset_id" value="{{ model.id }}">
+                                <textarea style="width: 80%; height: 80px;" name="id_list">
+                                    {#- -#}
+                                </textarea>
+                                <div>
+                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                </div>
+                            </form>
+                        </details>
+                    </td></tr>
                 {% endif %}
                 
                 </tbody></table>
