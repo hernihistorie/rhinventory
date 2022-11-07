@@ -37,7 +37,7 @@ class LogItem(db.Model):
         return class_.query.get(self.object_id)
 
 
-def log(event, object, log_object=True, user=None, **kwargs):
+def log(event: LogEvent, object: any, log_object=True, user=None, **kwargs):
     log_item = LogItem(table=type(object).__name__, object_id=object.id,
         event=event, object_json=json.dumps(object.asdict(), default=repr, ensure_ascii=False) if log_object else None,
         user_id=user.id if user else None,

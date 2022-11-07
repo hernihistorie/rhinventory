@@ -21,6 +21,7 @@ from rhinventory.extensions import db
 from rhinventory.admin_views.model_view import CustomModelView
 from rhinventory.db import Medium, Asset, get_next_file_batch_number, LogItem
 from rhinventory.models.asset import AssetCondition
+from rhinventory.models.log import log
 from rhinventory.forms import FileForm
 from rhinventory.models.asset import AssetCategory
 from rhinventory.models.asset_attributes import Company
@@ -501,6 +502,7 @@ class AssetView(CustomModelView):
             
             contained_asset.location_id_new = asset.id
             db.session.add(contained_asset)
+            log("Update", contained_asset, user=current_user, assigned_location_asset_id=asset.id)
             num_assets += 1
         
         db.session.commit()
