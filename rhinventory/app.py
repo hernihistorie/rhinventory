@@ -34,6 +34,10 @@ def create_app(config_object='rhinventory.config'):
     from rhinventory.public_blueprints.magdb import magdb_bp
     app.register_blueprint(magdb_bp)
 
+    @app.context_processor
+    def inject_variables():
+        return dict(isinstance=isinstance, list=list)
+
     @app.before_request
     def before_request():
         g.debug = app.debug

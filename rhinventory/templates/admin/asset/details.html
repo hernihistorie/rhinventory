@@ -53,11 +53,23 @@
                 {{ model.organization.shortname }}{{ model.id }}<br>
             {% endif %}
 
-            {% macro row(key, title=None) %}
+            {% macro row(key, title=None, pre_line=False) %}
                 {% if model[key] %}
                     <tr>
                         <td><strong>{{ title or key.capitalize() }}</strong></td>
-                        <td style="white-space: pre-line;">{{ model[key] }}</td>
+                        <td
+                            {% if pre_line %}style="white-space: pre-line;"{% endif %}
+                        >
+                            {% set value = model[key] %}
+                            {% if isinstance(value, list) %}
+                                {% for subval in value %}
+                                    {{ subval -}}
+                                    {%- if not loop.last %},{% endif %}
+                                {% endfor %}
+                            {% else %}
+                                {{ model[key] }}
+                            {% endif %}
+                        </td>
                     </tr>
                 {% endif %}
             {% endmacro %}
@@ -83,7 +95,7 @@
                 {{ row('serial') }}
                 {{ row('condition_new') }}
                 {{ row('tags') }}
-                {{ row('note') }}
+                {{ row('note', pre_line=True) }}
                 {% if model.parent %}
                     <tr><td><strong>Parent</strong></td>
                     <td>
