@@ -116,10 +116,12 @@
         }
 
         document.getElementById("selected-show-sheet").onclick = function() {
+            localStorage.setItem("selected", "[]");
             document.location.href = "{{ get_url('label_assets') }}?asset_ids=" + selected;
         }
 
         document.getElementById("selected-create-transaction").onclick = function() {
+            localStorage.setItem("selected", "[]");
             document.location.href = "{{ get_url('transaction.create_view') }}?asset_id=[" + selected + "]";
         }
 

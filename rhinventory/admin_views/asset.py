@@ -38,7 +38,7 @@ class ConditionField(RadioField):
 
 ALL_CATEGORIES = set(AssetCategory)
 PRODUCT_ASSET_CATEGORIES = set([AssetCategory.game, AssetCategory.software, AssetCategory.multimedia,
-            AssetCategory.rewritable_media, AssetCategory.console,
+            AssetCategory.rewritable_media, AssetCategory.literature, AssetCategory.console,
             AssetCategory.console_accesory, AssetCategory.computer,
             AssetCategory.computer_accessory, AssetCategory.computer_component,
             AssetCategory.keyboard, AssetCategory.computer_mouse, AssetCategory.television,

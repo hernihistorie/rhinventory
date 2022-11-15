@@ -57,9 +57,7 @@
                 {% if model[key] %}
                     <tr>
                         <td><strong>{{ title or key.capitalize() }}</strong></td>
-                        <td
-                            {% if pre_line %}style="white-space: pre-line;"{% endif %}
-                        >
+                        <td>
                             {% set value = model[key] %}
                             {% if isinstance(value, list) %}
                                 {% for subval in value %}
@@ -67,7 +65,9 @@
                                     {%- if not loop.last %},{% endif %}
                                 {% endfor %}
                             {% else %}
-                                {{ model[key] }}
+                                <div {% if pre_line %}style="white-space: pre-line;"{% endif %}>
+                                    {{ model[key] }}
+                                </div>
                             {% endif %}
                         </td>
                     </tr>
