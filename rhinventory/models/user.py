@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, Numeric, String, Text, \
-    DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint
+    DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint, func
 from sqlalchemy.orm import relationship, backref
 
 from rhinventory.extensions import db
@@ -40,3 +40,21 @@ class User(db.Model):
     
     def __str__(self):
         return self.username or self.github_login
+
+
+class UserBookmark(db.Model):
+    __tablename__ = 'user_bookmarks'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    user: User = relationship(User)
+
+    created_at = Column(DateTime, server_default=func.now())
+    asset_id = Column(Integer, ForeignKey('assets.id'))
+    asset = relationship("Asset")
+
+    is_bookmarked = Column(Boolean)
+    bookmarked_at = Column(DateTime)
+
+    user_note = Column(Text)
+    
