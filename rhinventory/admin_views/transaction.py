@@ -14,6 +14,7 @@ class TransactionView(CustomModelView):
         'counterparty_new',
         'transaction_type',
         'cost',
+        'assets',
         'date',
         'url',
         'note',
