@@ -1,0 +1,39 @@
+{% extends "admin/master.html" %}
+
+
+{% block body %}
+    <h1>Associated files</h1>
+    <h2>Version: {{ version_str }}</h2>
+    <h3>Current associated files</h3>
+
+    <table class="table table-striped table-bordered table-hover">
+
+    {% for file in files %}
+        <tr>
+            <td>
+                {{ file.file.filepath }}
+            </td>
+            <td>
+                {% if file.file_type == MagDBFileType.logo %}
+                    <img src="{{ url_for('files.static', filename=file.file.filepath) }}">
+                {% else %}
+                    <a href="{{ url_for("file.details_view", id=file.file_id) }}">{{ file.file }}</a>
+                {% endif %}
+            </td>
+            <td>
+                {{ file.file_type.name }}
+            </td>
+            <td>
+                <a href="">
+                    {{ icon("minus") }} Remove
+                </a>
+            </td>
+        </tr>
+    {% endfor %}
+
+    </table>
+
+    <hr>
+    <a href="#">Add new file</a>
+
+{% endblock %}

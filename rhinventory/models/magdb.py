@@ -40,8 +40,7 @@ class Magazine(HistoryTrait):
         return self.title
 
     def get_logos(self):
-        return self.files
-
+        return [file for file in MagazineIssueVersionFiles.query.all() if file.magazine_issue_version.magazine_issue.magazine_id == self.id]
 
 class BindingType(enum.Enum):
     glued = "GL"
@@ -96,10 +95,7 @@ class MagazineIssue(HistoryTrait):
     current_magazine_name = db.Column(db.String(127))
     is_special_issue = db.Column(db.Boolean())
 
-    # TODO: logo
     periodicity = db.Column(db.Enum(Periodicity))
-
-    # TODO: index page
 
     published_day = db.Column(db.Integer(), nullable=True)
     published_month = db.Column(db.Integer(), nullable=True)
@@ -114,7 +110,7 @@ class MagazineIssue(HistoryTrait):
     issuer = db.relationship("Issuer")
 
     magazine_id = db.Column(db.Integer(), db.ForeignKey("magazines.id"), nullable=False)
-    magazine = db.relationship("Magazine")
+    magazine = db.relationship("Magazine", backref="issues")
 
     note = db.Column(db.Text())
 
@@ -142,6 +138,12 @@ class Format(HistoryTrait):
     def __str__(self):
         return self.name
 
+class MagDBFileType(enum.Enum):
+    logo        = 10
+    scan        = 11
+    cover_page  = 12
+    index_page  = 13
+
 
 class MagazineIssueVersion(HistoryTrait):
     __tablename__ = "magazine_issue_versions"
@@ -164,6 +166,9 @@ class MagazineIssueVersion(HistoryTrait):
     def __str__(self):
         return f"{str(self.magazine_issue)} {self.name_suffix if self.name_suffix is not None else ''}"
 
+    def get_logos(self):
+        return [file for file in self.files if file.file_type == MagDBFileType.logo]
+
 
 class MagazineIssueVersionPrice(HistoryTrait):
     __tablename__ = "magazine_issue_version_prices"
@@ -176,3 +181,14 @@ class MagazineIssueVersionPrice(HistoryTrait):
     currency = db.Column(db.Enum(Currency))
 
 
+class MagazineIssueVersionFiles(HistoryTrait):
+    __tablename__ = "magazine_issue_files"
+    id = db.Column(db.Integer(), unique=True, primary_key=True)
+
+    magazine_issue_version_id = db.Column(db.Integer(), db.ForeignKey("magazine_issue_versions.id"), nullable=False)
+    magazine_issue_version = db.relationship("MagazineIssueVersion", backref="files")
+
+    file_id = db.Column(db.Integer(), db.ForeignKey("files.id"), nullable=False)
+    file = db.relationship("File", backref="magazine_issue_files")
+
+    file_type = db.Column(db.Enum(MagDBFileType))

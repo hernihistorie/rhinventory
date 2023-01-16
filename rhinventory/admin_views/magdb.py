@@ -5,7 +5,7 @@ import flask
 from flask_admin import expose
 
 from rhinventory.admin_views import CustomModelView
-from rhinventory.models.magdb import Issuer, Magazine, Periodicity, MagazineIssue, Format, MagazineIssueVersion, MagazineIssueVersionPrice, IssueStatus
+from rhinventory.models.magdb import Issuer, Magazine, Periodicity, MagazineIssue, Format, MagazineIssueVersion, MagazineIssueVersionPrice, MagazineIssueVersionFiles, MagDBFileType
 
 
 class MagDbModelView(CustomModelView):
@@ -153,6 +153,19 @@ class MagDbMagazineIssueVersionView(MagDbModelView):
             ]
         )
 
+    @expose("/manage_files", methods=["GET", "POST"])
+    def manage_files(self):
+        magazine_version_id = flask.request.args.get("magazine_version_id")
+        context = {}
+
+        version = MagazineIssueVersion.query.get(magazine_version_id)
+
+        context["files"] = MagazineIssueVersionFiles.query.filter(MagazineIssueVersionFiles.magazine_issue_version_id == magazine_version_id)
+
+        context["MagDBFileType"] = MagDBFileType
+        context["version_str"] = str(version)
+        return self.render("magdb/magazine_issue_version/manage_files.html", **context)
+
 
 class MagDbMagazineIssueVersionPriceView(MagDbModelView):
     @expose("/create_wizard", methods=["GET", "POST"])
@@ -177,6 +190,10 @@ class MagDbMagazineIssueVersionPriceView(MagDbModelView):
         )
 
 
+class MagazineIssueFileView(MagDbModelView):
+    pass
+
+
 def add_magdb_views(admin, session):
     admin.add_view(MagDbModelView(Issuer, session, category="MagDB"))
     admin.add_view(MagDbMagazineView(Magazine, session, category="MagDB", endpoint="magdb_magazine"))
@@ -184,4 +201,5 @@ def add_magdb_views(admin, session):
     admin.add_view(MagDbModelView(Format, session, category="MagDB"))
     admin.add_view(MagDbMagazineIssueVersionView(MagazineIssueVersion, session, category="MagDB", endpoint="magdb_magazine_issue_version"))
     admin.add_view(MagDbMagazineIssueVersionPriceView(MagazineIssueVersionPrice, session, category="MagDB", endpoint="magdb_magazine_issue_version_price"))
+    admin.add_view(MagazineIssueFileView(MagazineIssueVersionFiles, session, category="MagDB", endpoint="magdb_file"))
 

@@ -15,7 +15,7 @@
 
                                 {% for image in data.logos %}
                                     <span style="width: 200px; margin-right: 25px;">
-                                        <img src="{{ url_for('files.static', filename=image.filepath) }}">
+                                        <img src="{{ url_for('files.static', filename=image.file.filepath) }}">
                                     </span>
                                 {% endfor %}
                             </button>

@@ -1,9 +1,10 @@
 from typing import OrderedDict
 
+import flask.templating
 from flask import Blueprint, render_template
 
 from rhinventory.models.file import File, FileCategory
-from rhinventory.models.magdb import Magazine, MagazineIssue, MagazineIssueVersion, IssueStatus
+from rhinventory.models.magdb import Magazine, MagazineIssue, MagazineIssueVersion, IssueStatus, MagazineIssueVersionFiles, MagDBFileType
 
 
 magdb_bp = Blueprint("magdb", __name__, url_prefix="/public-magdb")
@@ -18,15 +19,6 @@ def catalog():
         "magazines": Magazine.query.order_by(Magazine.title).all(),
         "logos": {},
     }
-
-    for logo in File.query.filter(File.category == FileCategory.logo).all():
-        if logo.magazine_issue is not None:
-            magazine_id = logo.magazine_issue.magazine_id
-
-            if magazine_id not in context["logos"]:
-                context["logos"][magazine_id] = []
-
-            context["logos"][magazine_id].append(logo)
 
     return render_template("magdb/catalog.html", **context)
 
@@ -80,6 +72,14 @@ def miss_list():
         "magazines": {},
     }
 
+    logos = {}
+    for logo in MagazineIssueVersionFiles.query.filter(MagazineIssueVersionFiles.file_type==MagDBFileType.logo).all():
+        magazine_id = logo.magazine_issue_version.magazine_issue.magazine_id
+        if not magazine_id in logos:
+            logos[magazine_id] = [logo]
+        else:
+            logos[magazine_id].append(logo)
+
     for issue in MagazineIssueVersion.query.filter(
             MagazineIssueVersion.status != IssueStatus.have
     ).all():
@@ -95,10 +95,7 @@ def miss_list():
         if magazine_id not in context["magazines"]:
             context["magazines"][magazine_id] = {
                 "magazine": issue.magazine_issue.magazine,
-                "logos": File.query.filter(
-                    File.magazine_issue_id == MagazineIssue.id,
-                    MagazineIssue.magazine_id == magazine_id
-                ).all()
+                "logos": logos[issue.magazine_issue.magazine_id] if issue.magazine_issue.magazine_id in logos else [],
             }
 
     context["magazines"] = OrderedDict(
