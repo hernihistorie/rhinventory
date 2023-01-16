@@ -144,6 +144,17 @@ class MagDBFileType(enum.Enum):
     cover_page  = 12
     index_page  = 13
 
+    @classmethod
+    def choices(cls):
+        return [(choice, choice.name) for choice in cls]
+
+    @classmethod
+    def coerce(cls, item):
+        return cls(int(item)) if not isinstance(item, cls) else item
+
+    def __str__(self):
+        return str(self.value)
+
 
 class MagazineIssueVersion(HistoryTrait):
     __tablename__ = "magazine_issue_versions"

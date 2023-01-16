@@ -34,6 +34,16 @@
     </table>
 
     <hr>
-    <a href="#">Add new file</a>
+    <h3>Upload new file</h3>
 
+    <form action="{{ get_url('magdb_magazine_issue_version.manage_files', magazine_version_id=magazine_version.id) }}" method="POST" enctype='multipart/form-data'>
+        <table>
+            {% for field in upload_form %}
+                <tr>
+                    <td>{{ field.label }}</td>
+                    <td>{{ field }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </form>
 {% endblock %}

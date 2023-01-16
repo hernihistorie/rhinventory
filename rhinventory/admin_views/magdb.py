@@ -3,8 +3,11 @@ from dateutil.rrule import rrule, WEEKLY, MONTHLY, YEARLY
 
 import flask
 from flask_admin import expose
+from wtforms import Form, FileField, SelectField, SubmitField
 
 from rhinventory.admin_views import CustomModelView
+from rhinventory.admin_views.file import upload_file
+from rhinventory.extensions import db
 from rhinventory.models.magdb import Issuer, Magazine, Periodicity, MagazineIssue, Format, MagazineIssueVersion, MagazineIssueVersionPrice, MagazineIssueVersionFiles, MagDBFileType
 
 
@@ -97,6 +100,11 @@ class MagDbMagazineIssueView(MagDbModelView):
             ]
         )
 
+class UploadForm(Form):
+    file = FileField(label="File to upload")
+    file_type = SelectField(label="File type", choices=MagDBFileType.choices())
+    submit = SubmitField(label="Upload file")
+
 
 class MagDbMagazineIssueVersionView(MagDbModelView):
     list_template = "magdb/magazine_issue_version/list_view.html"
@@ -157,13 +165,32 @@ class MagDbMagazineIssueVersionView(MagDbModelView):
     def manage_files(self):
         magazine_version_id = flask.request.args.get("magazine_version_id")
         context = {}
-
         version = MagazineIssueVersion.query.get(magazine_version_id)
 
+        context["magazine_version"] = version
         context["files"] = MagazineIssueVersionFiles.query.filter(MagazineIssueVersionFiles.magazine_issue_version_id == magazine_version_id)
 
         context["MagDBFileType"] = MagDBFileType
         context["version_str"] = str(version)
+        form = UploadForm(data=flask.request.values or {})
+        context["upload_form"] = form
+
+        if flask.request.method == "POST":
+            file = flask.request.files.get("file")
+            file_entry, _ = upload_file(file)
+
+            db.session.add(file_entry)
+            db.session.commit()
+
+            magdb_file_entry = MagazineIssueVersionFiles(
+                magazine_issue_version_id=magazine_version_id,
+                file_id=file_entry.id,
+                file_type=MagDBFileType.coerce(form.file_type.data)
+            )
+
+            db.session.add(magdb_file_entry)
+            db.session.commit()
+
         return self.render("magdb/magazine_issue_version/manage_files.html", **context)
 
 
@@ -192,6 +219,7 @@ class MagDbMagazineIssueVersionPriceView(MagDbModelView):
 
 class MagazineIssueFileView(MagDbModelView):
     pass
+
 
 
 def add_magdb_views(admin, session):
