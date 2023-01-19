@@ -5,6 +5,10 @@
         <div class="card-body">
             <h1>{{ magazine.title }}</h1>
         </div>
+
+        {% for logo in files.logos[magazine.id] %}
+            <img class="img-thumbnail" src="{{ url_for('files.static', filename=logo.filepath) }}" style="width: 200px;">
+        {% endfor %}
     </div>
 
     {% for year, data in issues_by_year.items() %}

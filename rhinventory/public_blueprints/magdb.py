@@ -20,6 +20,13 @@ def catalog():
         "logos": {},
     }
 
+    for logo in MagazineIssueVersionFiles.query.filter(MagazineIssueVersionFiles.file_type==MagDBFileType.logo).all():
+        local_magazine_id = logo.magazine_issue_version.magazine_issue.magazine_id
+        if local_magazine_id not in context["logos"]:
+            context["logos"][local_magazine_id] = set()
+
+        context["logos"][local_magazine_id].add(logo.file)
+
     return render_template("magdb/catalog.html", **context)
 
 
@@ -29,22 +36,19 @@ def magazine_detail(magazine_id):
         "magazine": Magazine.query.get(magazine_id),
         "issues_by_year": {},
         "files": {
-            "cover_pages": {}
+            "cover_pages": {},
+            "logos": {},
         }
     }
 
     special_issues = []
 
-    for file in File.query.filter(File.category == FileCategory.cover_page).all():
-        issue_version_id = file.magazine_issue_version_id
+    for logo in MagazineIssueVersionFiles.query.filter(MagazineIssueVersionFiles.file_type==MagDBFileType.logo).all():
+        local_magazine_id = logo.magazine_issue_version.magazine_issue.magazine_id
+        if local_magazine_id not in context["files"]["logos"]:
+            context["files"]["logos"][local_magazine_id] = set()
 
-        if issue_version_id is None:
-            continue
-
-        if issue_version_id not in context["files"]["cover_pages"]:
-            context["files"]["cover_pages"][issue_version_id] = []
-
-        context["files"]["cover_pages"][issue_version_id].append(file)
+        context["files"]["logos"][local_magazine_id].add(logo.file)
 
     for issue in MagazineIssue.query.filter(
             MagazineIssue.magazine_id == magazine_id
@@ -76,9 +80,8 @@ def miss_list():
     for logo in MagazineIssueVersionFiles.query.filter(MagazineIssueVersionFiles.file_type==MagDBFileType.logo).all():
         magazine_id = logo.magazine_issue_version.magazine_issue.magazine_id
         if not magazine_id in logos:
-            logos[magazine_id] = [logo]
-        else:
-            logos[magazine_id].append(logo)
+            logos[magazine_id] = set()
+        logos[magazine_id].add(logo.file)
 
     for issue in MagazineIssueVersion.query.filter(
             MagazineIssueVersion.status != IssueStatus.have

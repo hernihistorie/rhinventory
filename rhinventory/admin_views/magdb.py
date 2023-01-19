@@ -3,7 +3,7 @@ from dateutil.rrule import rrule, WEEKLY, MONTHLY, YEARLY
 
 import flask
 from flask_admin import expose
-from wtforms import Form, FileField, SelectField, SubmitField
+from wtforms import Form, FileField, SelectField, SubmitField, BooleanField
 
 from rhinventory.admin_views import CustomModelView
 from rhinventory.admin_views.file import upload_file
@@ -35,11 +35,14 @@ class MagDbMagazineIssueView(MagDbModelView):
     @expose("/create_wizard", methods=["GET", "POST"])
     def create_wizard(self):
         create_form = self.get_create_form()
+
+        magazine = Magazine.query.get(flask.request.args.get("magazine_id"))
+
         prepared_values = {
-            "magazine": Magazine.query.get(flask.request.args.get("magazine_id"))
+            "magazine": magazine
         }
 
-        last_issue = MagazineIssue.query.order_by(MagazineIssue.created_at.desc()).first()
+        last_issue = MagazineIssue.query.order_by(MagazineIssue.created_at.desc()).filter(MagazineIssue.magazine_id==magazine.id).first()
 
         if last_issue is not None:
             if last_issue.is_special_issue:
@@ -50,7 +53,7 @@ class MagDbMagazineIssueView(MagDbModelView):
             prepared_values["issuer"] = last_issue.issuer
             prepared_values["current_magazine_name"] = last_issue.current_magazine_name
 
-            prepared_values["issue_number"] = last_issue.issue_number + 1
+            prepared_values["issue_number"] = last_issue.issue_number or 0 + 1
 
             date = datetime.datetime(day=last_issue.published_day or 1, month=last_issue.published_month, year=last_issue.published_year)
             value = None
@@ -109,6 +112,10 @@ class UploadForm(Form):
 class MagDbMagazineIssueVersionView(MagDbModelView):
     list_template = "magdb/magazine_issue_version/list_view.html"
 
+    form_extra_fields = {
+        "copy_logos": BooleanField(),
+    }
+
     @expose("/create_wizard", methods=["GET", "POST"])
     def create_wizard(self):
         create_form = self.get_create_form()
@@ -132,21 +139,32 @@ class MagDbMagazineIssueVersionView(MagDbModelView):
             prepared_values["register_number_mccr"] = last_issue_version.register_number_mccr
             prepared_values["issn_or_isbn"] = last_issue_version.issn_or_isbn
             prepared_values["barcode"] = last_issue_version.barcode
-
-        last_issue_version = None
-        if previous_to_last_issue is not None:
-            last_issue_version = MagazineIssueVersion.query.order_by(
-                MagazineIssueVersion.created_at.desc()
-            ).filter(MagazineIssueVersion.magazine_issue_id == previous_to_last_issue.id).first()
-
-        if last_issue_version is not None:
+        # last_issue_version = None
+        # if previous_to_last_issue is not None:
+        #     last_issue_version = MagazineIssueVersion.query.order_by(
+        #         MagazineIssueVersion.created_at.desc()
+        #     ).filter(MagazineIssueVersion.magazine_issue_id == previous_to_last_issue.id).first()
+        #
+        # if last_issue_version is not None:
             prepared_values["format"] = last_issue_version.format
             prepared_values["name_suffix"] = last_issue_version.name_suffix
             prepared_values["form"] = last_issue_version.form.name
 
         form = create_form(flask.request.values, **prepared_values)
         if flask.request.method == "POST":
-            self.create_model(form)
+            new_version = self.create_model(form)
+
+            if form.copy_logos.data:
+                for file in last_issue_version.files:
+                    if file.file_type == MagDBFileType.logo:
+                        new_logo = MagazineIssueVersionFiles(
+                            magazine_issue_version_id=new_version.id,
+                            file_id=file.file_id,
+                            file_type=MagDBFileType.logo,
+                        )
+                        db.session.add(new_logo)
+                        db.session.commit()
+
             if flask.request.values["submit"] == "Add and go to issue version":
                 return flask.redirect(self.get_url("magdb_magazine_issue_version.index_view"))
             else:
