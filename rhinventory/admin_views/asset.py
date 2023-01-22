@@ -86,7 +86,7 @@ class AssetView(CustomModelView):
     }
     form_ajax_refs = {
         'parent': {
-            'fields': ('name',),
+            'fields': ('name', 'id'),
             'placeholder': '...',
             'page_size': 15,
             'minimum_input_length': 0,
