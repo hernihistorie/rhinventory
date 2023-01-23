@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import OrderedDict
 
 import flask.templating
@@ -76,11 +77,9 @@ def miss_list():
         "magazines": {},
     }
 
-    logos = {}
+    logos = defaultdict(set)
     for logo in MagazineIssueVersionFiles.query.filter(MagazineIssueVersionFiles.file_type==MagDBFileType.logo).all():
         magazine_id = logo.magazine_issue_version.magazine_issue.magazine_id
-        if not magazine_id in logos:
-            logos[magazine_id] = set()
         logos[magazine_id].add(logo.file)
 
     for issue in MagazineIssueVersion.query.filter(
