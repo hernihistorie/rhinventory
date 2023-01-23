@@ -4,4 +4,36 @@
 
 {% block create_form %}
     {{ internal_lib.render_form(form, return_url, buttons, form_opts) }}
+
+    <h3>Previously inserted prices</h3>
+
+    {% if suggested_prices %}
+        Previous magazine: {{ previous_issue_version }}
+
+        <table>
+        {% for price in suggested_prices %}
+            <tr>
+                <td>{{ price.value }}</td>
+                <td>{{ price.currency.name }}</td>
+            </tr>
+        {% endfor %}
+        </table>
+
+        <form method="POST">
+            <button name="submit" class="btn btn-primary" value="Copy">Copy prices</button>
+        </form>
+    {% else %}
+        Cannot suggest
+    {% endif %}
+
+    <hr>
+
+    <h3>Already assigned:</h3>
+    <table>
+        {% for price in assigned_prices %}
+        <tr>
+            <td>{{ price.value }} {{ price.currency.name }}</td>
+        </tr>
+        {% endfor %}
+    </table>
 {% endblock %}

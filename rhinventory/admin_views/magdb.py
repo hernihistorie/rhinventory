@@ -222,13 +222,35 @@ class MagDbMagazineIssueVersionPriceView(MagDbModelView):
     def create_wizard(self):
         create_form = self.get_create_form()
 
+        magazine_issue_version_id = flask.request.args.get("magazine_issue_version_id")
+
+        last_issue_versions = MagazineIssueVersion.query.order_by(MagazineIssueVersion.created_at.desc()).all()
+
+        last_issue_version = None
+        if len(last_issue_versions) >= 2:
+            last_issue_version = last_issue_versions[1]
+
+        already_assigned_prices = MagazineIssueVersionPrice.query.filter(MagazineIssueVersionPrice.issue_version_id == magazine_issue_version_id).all()
+
+        suggested_prices = MagazineIssueVersionPrice.query.filter(MagazineIssueVersionPrice.issue_version_id == last_issue_version.id).all() if last_issue_version is not None else []
+
         prepared_values = {
-            "issue_version": MagazineIssueVersion.query.get(flask.request.args.get("magazine_issue_version_id"))
+            "issue_version": MagazineIssueVersion.query.get(magazine_issue_version_id)
         }
 
         form = create_form(flask.request.values, **prepared_values)
         if flask.request.method == "POST":
-            self.create_model(form)
+            if flask.request.values.get("submit") == "Copy":
+                for suggested_price in suggested_prices:
+                    new_price = MagazineIssueVersionPrice(
+                        issue_version_id=magazine_issue_version_id,
+                        value=suggested_price.value,
+                        currency=suggested_price.currency,
+                    )
+                    db.session.add(new_price)
+                db.session.commit()
+            else:
+                self.create_model(form)
             return flask.redirect(self.get_url("magdb_magazine_issue_version.index_view"))
 
         return self.render(
@@ -236,7 +258,10 @@ class MagDbMagazineIssueVersionPriceView(MagDbModelView):
             form=form,
             buttons=[
                 ("Add and return to issue version ", "submit"),
-            ]
+            ],
+            previous_issue_version=last_issue_version,
+            assigned_prices=already_assigned_prices,
+            suggested_prices=suggested_prices,
         )
 
 
