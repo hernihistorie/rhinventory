@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 import sys
 from math import ceil
-from typing import Union, Iterable
+from typing import Optional, Union, Iterable
 
 from flask import redirect, request, flash, url_for, get_template_attribute
 from wtforms import RadioField
@@ -33,7 +33,7 @@ class ConditionField(RadioField):
     def __init__(self, **kwargs):
         super().__init__(render_kw={'class': 'rating-field'}, **kwargs)
         self.choices = [(value.name, value.name) for value in AssetCondition]
-        self.coerce = lambda x: x.split('.')[-1] if isinstance(x, str) else x
+        self.coerce = lambda x: x.split('.')[-1] if isinstance(x, str) else x.name
         self.validators = [wtforms.validators.Optional()]
 
 ALL_CATEGORIES = set(AssetCategory)
@@ -469,8 +469,9 @@ class AssetView(CustomModelView):
 
         return form
 
-    def edit_form(self, obj=None):
-        return self.make_asset_form(obj.category)(get_form_data(), obj=obj)
+    def edit_form(self, obj: Asset):
+        form = self.make_asset_form(obj.category)(get_form_data(), obj=obj)
+        return form
 
     @expose('/add_contents/', methods=['POST'])
     def add_contents_view(self):
