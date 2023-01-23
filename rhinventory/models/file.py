@@ -157,6 +157,10 @@ class File(db.Model):
             self.make_thumbnail()
     
     def read_barcodes(self, symbols=None):
+        if pyzbar is None:
+            print("Warning: pyzbar was not found, thus no barcode detection was done.")
+            return None
+
         if not self.is_image:
             return
         im = self.open_image()
@@ -168,10 +172,6 @@ class File(db.Model):
             return None
         
         im.thumbnail((1200, 1200))
-
-        if pyzbar is None:
-            print("Warning: pyzbar was not found, thus no barcode detection was done.")
-            return None
 
         if symbols:
             return pyzbar.decode(im, symbols=symbols)
