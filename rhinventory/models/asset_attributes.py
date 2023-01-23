@@ -32,6 +32,7 @@ class AssetTag(db.Model, SimpleAssetAttribute):
     __tablename__ = 'tags'
     id: int          = Column(Integer, primary_key=True)  # type: ignore
     name: str        = Column(String, nullable=False)  # type: ignore
+    description: str = Column(String, nullable=False)  # type: ignore
 
 asset_tag_table = asset_n_to_n_table(AssetTag)
 
