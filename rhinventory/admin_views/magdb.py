@@ -53,7 +53,7 @@ class MagDbMagazineIssueView(MagDbModelView):
             prepared_values["issuer"] = last_issue.issuer
             prepared_values["current_magazine_name"] = last_issue.current_magazine_name
 
-            prepared_values["issue_number"] = last_issue.issue_number or 0 + 1
+            prepared_values["issue_number"] = (last_issue.issue_number or 0) + 1
 
             date = datetime.datetime(day=last_issue.published_day or 1, month=last_issue.published_month, year=last_issue.published_year)
             value = None
