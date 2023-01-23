@@ -20,7 +20,9 @@ from rhinventory.admin_views.model_view import CustomModelView
 
 
 class DuplicateFile(RuntimeError):
-    pass
+    def __init__(self, message: str, matching_file: File):
+        super().__init__(message)
+        self.matching_file = matching_file
 
 
 def upload_file(file, category=0, batch_number=None):
@@ -36,7 +38,7 @@ def upload_file(file, category=0, batch_number=None):
     file.seek(0)
     matching_file = db.session.query(File).filter((File.md5 == md5) | (File.original_md5 == md5)).first()
     if matching_file:
-        raise DuplicateFile()
+        raise DuplicateFile("Duplicate file", matching_file)
 
     # Save the file, partially accounting for filename collisions
     files_dir = current_app.config['FILES_DIR']
@@ -139,7 +141,7 @@ class FileView(CustomModelView):
                 try:
                     file_db  = upload_file(file, form.category.data, form.batch_number.data)
                 except DuplicateFile as e:
-                    duplicate_files.append((file.filename, matching_file))
+                    duplicate_files.append((file.filename, e.matching_file))
                     continue
 
                 if file_db.is_image:
