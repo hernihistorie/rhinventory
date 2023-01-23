@@ -60,7 +60,7 @@ def add_admin_views(admin):
 
     admin.add_view(CustomModelView(AssetTag, db.session, category="Misc"))
 
-    admin.add_view(AdminModelView(Party, db.session, category="People"))
+    admin.add_view(CustomModelView(Party, db.session, category="People"))
 
     admin.add_view(AdminModelView(Organization, db.session, category="People"))
 
