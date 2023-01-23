@@ -19,9 +19,24 @@ from rhinventory.forms import FileForm, FileAssignForm
 from rhinventory.admin_views.model_view import CustomModelView
 
 
+class DuplicateFile(RuntimeError):
+    pass
+
+
 def upload_file(file, category=0, batch_number=None):
+    """
+    Handles file upload, check for duplicacy and save the file, but doesn't commit File object data to database.
+
+    :param file: File handler.
+    :param category: category of file, int from FileCategory
+    :param batch_number:
+    :return: object of type File, not committed to database.
+    """
     md5 = hashlib.md5(file.read()).digest()
     file.seek(0)
+    matching_file = db.session.query(File).filter((File.md5 == md5) | (File.original_md5 == md5)).first()
+    if matching_file:
+        raise DuplicateFile()
 
     # Save the file, partially accounting for filename collisions
     files_dir = current_app.config['FILES_DIR']
@@ -41,7 +56,7 @@ def upload_file(file, category=0, batch_number=None):
 
     return File(filepath=filepath, storage='files', primary=False, category=category,
                    md5=md5, batch_number=batch_number,
-                   upload_date=datetime.datetime.now(), user_id=current_user.id), md5
+                   upload_date=datetime.datetime.now(), user_id=current_user.id)
 
 class FileView(CustomModelView):
     can_view_details = True
@@ -115,10 +130,9 @@ class FileView(CustomModelView):
 
             for i, file in enumerate(file_list):
 
-                file_db, md5 = upload_file(file, form.category.data, form.batch_number.data)
-
-                matching_file = db.session.query(File).filter((File.md5 == md5) | (File.original_md5 == md5)).first()
-                if matching_file:
+                try:
+                    file_db  = upload_file(file, form.category.data, form.batch_number.data)
+                except DuplicateFile as e:
                     duplicate_files.append((file.filename, matching_file))
                     continue
 
