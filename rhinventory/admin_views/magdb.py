@@ -2,10 +2,14 @@ import datetime
 from dateutil.rrule import rrule, WEEKLY, MONTHLY, YEARLY
 
 import flask
+from flask import flash
 from flask_admin import expose
+from wtforms import Form, FileField, SelectField, SubmitField, BooleanField
 
 from rhinventory.admin_views import CustomModelView
-from rhinventory.models.magdb import Issuer, Magazine, Periodicity, MagazineIssue, Format, MagazineIssueVersion, MagazineIssueVersionPrice, IssueStatus
+from rhinventory.admin_views.file import upload_file, DuplicateFile
+from rhinventory.extensions import db
+from rhinventory.models.magdb import Issuer, Magazine, Periodicity, MagazineIssue, Format, MagazineIssueVersion, MagazineIssueVersionPrice, MagazineIssueVersionFiles, MagDBFileType
 
 
 class MagDbModelView(CustomModelView):
@@ -32,11 +36,14 @@ class MagDbMagazineIssueView(MagDbModelView):
     @expose("/create_wizard", methods=["GET", "POST"])
     def create_wizard(self):
         create_form = self.get_create_form()
+
+        magazine = Magazine.query.get(flask.request.args.get("magazine_id"))
+
         prepared_values = {
-            "magazine": Magazine.query.get(flask.request.args.get("magazine_id"))
+            "magazine": magazine
         }
 
-        last_issue = MagazineIssue.query.order_by(MagazineIssue.created_at.desc()).first()
+        last_issue = MagazineIssue.query.order_by(MagazineIssue.created_at.desc()).filter(MagazineIssue.magazine_id==magazine.id).first()
 
         if last_issue is not None:
             if last_issue.is_special_issue:
@@ -47,7 +54,7 @@ class MagDbMagazineIssueView(MagDbModelView):
             prepared_values["issuer"] = last_issue.issuer
             prepared_values["current_magazine_name"] = last_issue.current_magazine_name
 
-            prepared_values["issue_number"] = last_issue.issue_number + 1
+            prepared_values["issue_number"] = (last_issue.issue_number or 0) + 1
 
             date = datetime.datetime(day=last_issue.published_day or 1, month=last_issue.published_month, year=last_issue.published_year)
             value = None
@@ -97,9 +104,18 @@ class MagDbMagazineIssueView(MagDbModelView):
             ]
         )
 
+class UploadForm(Form):
+    file = FileField(label="File to upload")
+    file_type = SelectField(label="File type", choices=MagDBFileType.choices())
+    submit = SubmitField(label="Upload file")
+
 
 class MagDbMagazineIssueVersionView(MagDbModelView):
     list_template = "magdb/magazine_issue_version/list_view.html"
+
+    form_extra_fields = {
+        "copy_logos": BooleanField(),
+    }
 
     @expose("/create_wizard", methods=["GET", "POST"])
     def create_wizard(self):
@@ -124,21 +140,32 @@ class MagDbMagazineIssueVersionView(MagDbModelView):
             prepared_values["register_number_mccr"] = last_issue_version.register_number_mccr
             prepared_values["issn_or_isbn"] = last_issue_version.issn_or_isbn
             prepared_values["barcode"] = last_issue_version.barcode
-
-        last_issue_version = None
-        if previous_to_last_issue is not None:
-            last_issue_version = MagazineIssueVersion.query.order_by(
-                MagazineIssueVersion.created_at.desc()
-            ).filter(MagazineIssueVersion.magazine_issue_id == previous_to_last_issue.id).first()
-
-        if last_issue_version is not None:
+        # last_issue_version = None
+        # if previous_to_last_issue is not None:
+        #     last_issue_version = MagazineIssueVersion.query.order_by(
+        #         MagazineIssueVersion.created_at.desc()
+        #     ).filter(MagazineIssueVersion.magazine_issue_id == previous_to_last_issue.id).first()
+        #
+        # if last_issue_version is not None:
             prepared_values["format"] = last_issue_version.format
             prepared_values["name_suffix"] = last_issue_version.name_suffix
             prepared_values["form"] = last_issue_version.form.name
 
         form = create_form(flask.request.values, **prepared_values)
         if flask.request.method == "POST":
-            self.create_model(form)
+            new_version = self.create_model(form)
+
+            if form.copy_logos.data:
+                for file in last_issue_version.files:
+                    if file.file_type == MagDBFileType.logo:
+                        new_logo = MagazineIssueVersionFiles(
+                            magazine_issue_version_id=new_version.id,
+                            file_id=file.file_id,
+                            file_type=MagDBFileType.logo,
+                        )
+                        db.session.add(new_logo)
+                        db.session.commit()
+
             if flask.request.values["submit"] == "Add and go to issue version":
                 return flask.redirect(self.get_url("magdb_magazine_issue_version.index_view"))
             else:
@@ -152,6 +179,42 @@ class MagDbMagazineIssueVersionView(MagDbModelView):
                 ("Add and go to issue version", "submit"),
             ]
         )
+
+    @expose("/manage_files", methods=["GET", "POST"])
+    def manage_files(self):
+        magazine_version_id = flask.request.args.get("magazine_version_id")
+        context = {}
+        version = MagazineIssueVersion.query.get(magazine_version_id)
+
+        context["magazine_version"] = version
+        context["files"] = MagazineIssueVersionFiles.query.filter(MagazineIssueVersionFiles.magazine_issue_version_id == magazine_version_id)
+
+        context["MagDBFileType"] = MagDBFileType
+        context["version_str"] = str(version)
+        form = UploadForm(data=flask.request.values or {})
+        context["upload_form"] = form
+
+        if flask.request.method == "POST":
+            file = flask.request.files.get("file")
+            try:
+                file_entry = upload_file(file)
+            except DuplicateFile as e:
+                flash("Uploaded file is a duplicate -> logo not added.", "error")
+                return self.render("magdb/magazine_issue_version/manage_files.html", **context)
+
+            db.session.add(file_entry)
+            db.session.commit()
+
+            magdb_file_entry = MagazineIssueVersionFiles(
+                magazine_issue_version_id=magazine_version_id,
+                file_id=file_entry.id,
+                file_type=MagDBFileType.coerce(form.file_type.data)
+            )
+
+            db.session.add(magdb_file_entry)
+            db.session.commit()
+
+        return self.render("magdb/magazine_issue_version/manage_files.html", **context)
 
 
 class MagDbMagazineIssueVersionPriceView(MagDbModelView):
@@ -177,6 +240,11 @@ class MagDbMagazineIssueVersionPriceView(MagDbModelView):
         )
 
 
+class MagazineIssueFileView(MagDbModelView):
+    pass
+
+
+
 def add_magdb_views(admin, session):
     admin.add_view(MagDbModelView(Issuer, session, category="MagDB"))
     admin.add_view(MagDbMagazineView(Magazine, session, category="MagDB", endpoint="magdb_magazine"))
@@ -184,4 +252,5 @@ def add_magdb_views(admin, session):
     admin.add_view(MagDbModelView(Format, session, category="MagDB"))
     admin.add_view(MagDbMagazineIssueVersionView(MagazineIssueVersion, session, category="MagDB", endpoint="magdb_magazine_issue_version"))
     admin.add_view(MagDbMagazineIssueVersionPriceView(MagazineIssueVersionPrice, session, category="MagDB", endpoint="magdb_magazine_issue_version_price"))
+    admin.add_view(MagazineIssueFileView(MagazineIssueVersionFiles, session, category="MagDB", endpoint="magdb_file"))
 

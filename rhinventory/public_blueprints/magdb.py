@@ -1,9 +1,11 @@
+from collections import defaultdict
 from typing import OrderedDict
 
+import flask.templating
 from flask import Blueprint, render_template
 
 from rhinventory.models.file import File, FileCategory
-from rhinventory.models.magdb import Magazine, MagazineIssue, MagazineIssueVersion, IssueStatus
+from rhinventory.models.magdb import Magazine, MagazineIssue, MagazineIssueVersion, IssueStatus, MagazineIssueVersionFiles, MagDBFileType
 
 
 magdb_bp = Blueprint("magdb", __name__, url_prefix="/public-magdb")
@@ -19,14 +21,12 @@ def catalog():
         "logos": {},
     }
 
-    for logo in File.query.filter(File.category == FileCategory.logo).all():
-        if logo.magazine_issue is not None:
-            magazine_id = logo.magazine_issue.magazine_id
+    for logo in MagazineIssueVersionFiles.query.filter(MagazineIssueVersionFiles.file_type==MagDBFileType.logo).all():
+        local_magazine_id = logo.magazine_issue_version.magazine_issue.magazine_id
+        if local_magazine_id not in context["logos"]:
+            context["logos"][local_magazine_id] = set()
 
-            if magazine_id not in context["logos"]:
-                context["logos"][magazine_id] = []
-
-            context["logos"][magazine_id].append(logo)
+        context["logos"][local_magazine_id].add(logo.file)
 
     return render_template("magdb/catalog.html", **context)
 
@@ -37,22 +37,19 @@ def magazine_detail(magazine_id):
         "magazine": Magazine.query.get(magazine_id),
         "issues_by_year": {},
         "files": {
-            "cover_pages": {}
+            "cover_pages": {},
+            "logos": {},
         }
     }
 
     special_issues = []
 
-    for file in File.query.filter(File.category == FileCategory.cover_page).all():
-        issue_version_id = file.magazine_issue_version_id
+    for logo in MagazineIssueVersionFiles.query.filter(MagazineIssueVersionFiles.file_type==MagDBFileType.logo).all():
+        local_magazine_id = logo.magazine_issue_version.magazine_issue.magazine_id
+        if local_magazine_id not in context["files"]["logos"]:
+            context["files"]["logos"][local_magazine_id] = set()
 
-        if issue_version_id is None:
-            continue
-
-        if issue_version_id not in context["files"]["cover_pages"]:
-            context["files"]["cover_pages"][issue_version_id] = []
-
-        context["files"]["cover_pages"][issue_version_id].append(file)
+        context["files"]["logos"][local_magazine_id].add(logo.file)
 
     for issue in MagazineIssue.query.filter(
             MagazineIssue.magazine_id == magazine_id
@@ -80,6 +77,11 @@ def miss_list():
         "magazines": {},
     }
 
+    logos = defaultdict(set)
+    for logo in MagazineIssueVersionFiles.query.filter(MagazineIssueVersionFiles.file_type==MagDBFileType.logo).all():
+        magazine_id = logo.magazine_issue_version.magazine_issue.magazine_id
+        logos[magazine_id].add(logo.file)
+
     for issue in MagazineIssueVersion.query.filter(
             MagazineIssueVersion.status != IssueStatus.have
     ).all():
@@ -95,10 +97,7 @@ def miss_list():
         if magazine_id not in context["magazines"]:
             context["magazines"][magazine_id] = {
                 "magazine": issue.magazine_issue.magazine,
-                "logos": File.query.filter(
-                    File.magazine_issue_id == MagazineIssue.id,
-                    MagazineIssue.magazine_id == magazine_id
-                ).all()
+                "logos": logos[issue.magazine_issue.magazine_id] if issue.magazine_issue.magazine_id in logos else [],
             }
 
     context["magazines"] = OrderedDict(

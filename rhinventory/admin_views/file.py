@@ -18,6 +18,46 @@ from rhinventory.extensions import db, simple_eval
 from rhinventory.forms import FileForm, FileAssignForm
 from rhinventory.admin_views.model_view import CustomModelView
 
+
+class DuplicateFile(RuntimeError):
+    pass
+
+
+def upload_file(file, category=0, batch_number=None):
+    """
+    Handles file upload, check for duplicacy and save the file, but doesn't commit File object data to database.
+
+    :param file: File handler.
+    :param category: category of file, int from FileCategory
+    :param batch_number:
+    :return: object of type File, not committed to database.
+    """
+    md5 = hashlib.md5(file.read()).digest()
+    file.seek(0)
+    matching_file = db.session.query(File).filter((File.md5 == md5) | (File.original_md5 == md5)).first()
+    if matching_file:
+        raise DuplicateFile()
+
+    # Save the file, partially accounting for filename collisions
+    files_dir = current_app.config['FILES_DIR']
+    filename = secure_filename(file.filename)
+    directory = 'uploads'
+    os.makedirs(files_dir + "/" + directory, exist_ok=True)
+    filepath = f'{directory}/{filename}'
+    while os.path.exists(os.path.join(files_dir, filepath)):
+        p = filepath.split('.')
+        p[-2] += '_1'
+        filepath = '.'.join(p)
+    file.save(files_dir + "/" + filepath)
+
+    category = FileCategory(category)
+    if category == FileCategory.unknown and filename.split('.')[-1].lower() in ('jpg', 'jpeg', 'png', 'gif'):
+        category = FileCategory.image
+
+    return File(filepath=filepath, storage='files', primary=False, category=category,
+                   md5=md5, batch_number=batch_number,
+                   upload_date=datetime.datetime.now(), user_id=current_user.id)
+
 class FileView(CustomModelView):
     can_view_details = True
     list_template = "admin/file/list.html"
@@ -95,35 +135,13 @@ class FileView(CustomModelView):
             duplicate_files = []
 
             for i, file in enumerate(file_list):
-                # Calculate MD5 hash first to ensure file is not a dupe
-                md5 = hashlib.md5(file.read()).digest()
-                file.seek(0)
 
-                matching_file = db.session.query(File).filter((File.md5 == md5) | (File.original_md5 == md5)).first()
-                if matching_file:
+                try:
+                    file_db  = upload_file(file, form.category.data, form.batch_number.data)
+                except DuplicateFile as e:
                     duplicate_files.append((file.filename, matching_file))
                     continue
 
-                # Save the file, partially accounting for filename collisions
-                files_dir = current_app.config['FILES_DIR']
-                filename = secure_filename(file.filename)
-                directory = 'uploads'
-                os.makedirs(files_dir + "/" + directory, exist_ok=True)
-                filepath = f'{directory}/{filename}'
-                while os.path.exists(os.path.join(files_dir, filepath)):
-                    p = filepath.split('.')
-                    p[-2] += '_1'
-                    filepath = '.'.join(p)
-                file.save(files_dir + "/" + filepath)
-
-                category = FileCategory(form.category.data)
-                if category == FileCategory.unknown and filename.split('.')[-1].lower() in ('jpg', 'jpeg', 'png', 'gif'):
-                    category = FileCategory.image
-
-                file_db = File(filepath=filepath, storage='files', primary=False, category=category,
-                    md5=md5, batch_number=form.batch_number.data,
-                    upload_date=datetime.datetime.now(), user_id=current_user.id)
-                
                 if file_db.is_image:
                     image_files.append(file_db)
                 

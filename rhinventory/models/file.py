@@ -74,13 +74,6 @@ class File(db.Model):
     user        = relationship("User", backref="files")
     asset       = relationship("Asset", backref="files")
     transaction = relationship("Transaction", backref="files")
-
-    magazine_issue_id = Column(Integer, ForeignKey("magazine_issues.id"))
-    magazine_issue = relationship("MagazineIssue", backref="files")
-
-    magazine_issue_version_id = Column(Integer, ForeignKey("magazine_issue_versions.id"))
-    magazine_issue_version = relationship("MagazineIssueVersion", backref="files")
-
     #transaction = relationship("Benchmark", backref="files")
 
     # TODO constraint on only one asset/transaction/benchmark relationship
@@ -169,6 +162,10 @@ class File(db.Model):
             self.make_thumbnail()
     
     def read_barcodes(self, symbols=None):
+        if pyzbar is None:
+            print("Warning: pyzbar was not found, thus no barcode detection was done.")
+            return None
+
         if not self.is_image:
             return
         im = self.open_image()
@@ -182,6 +179,7 @@ class File(db.Model):
             return None
         
         im.thumbnail((1200, 1200))
+
         if symbols:
             return pyzbar.decode(im, symbols=symbols)
         else:

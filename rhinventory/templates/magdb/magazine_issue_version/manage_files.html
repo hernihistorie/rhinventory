@@ -1,0 +1,49 @@
+{% extends "admin/master.html" %}
+
+
+{% block body %}
+    <h1>Associated files</h1>
+    <h2>Version: {{ version_str }}</h2>
+    <h3>Current associated files</h3>
+
+    <table class="table table-striped table-bordered table-hover">
+
+    {% for file in files %}
+        <tr>
+            <td>
+                {{ file.file.filepath }}
+            </td>
+            <td>
+                {% if file.file_type == MagDBFileType.logo %}
+                    <img src="{{ url_for('files.static', filename=file.file.filepath) }}">
+                {% else %}
+                    <a href="{{ url_for("file.details_view", id=file.file_id) }}">{{ file.file }}</a>
+                {% endif %}
+            </td>
+            <td>
+                {{ file.file_type.name }}
+            </td>
+            <td>
+                <a href="">
+                    {{ icon("minus") }} Remove
+                </a>
+            </td>
+        </tr>
+    {% endfor %}
+
+    </table>
+
+    <hr>
+    <h3>Upload new file</h3>
+
+    <form action="{{ get_url('magdb_magazine_issue_version.manage_files', magazine_version_id=magazine_version.id) }}" method="POST" enctype='multipart/form-data'>
+        <table>
+            {% for field in upload_form %}
+                <tr>
+                    <td>{{ field.label }}</td>
+                    <td>{{ field }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </form>
+{% endblock %}
