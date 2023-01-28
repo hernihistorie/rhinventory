@@ -1,5 +1,25 @@
 # rhinventory
-RH inventory 
+Kód pro inventář spolku Herní historie.
+
+## Nasazení
+Dependencies:
+
+- PostgreSQL database
+- Copy `.env_example` to `.env` and fill in variables
+- Copy `alembic.ini_example` to `alembic.ini` and fill in PostgreSQL database URL
+- Run:
+```
+    poetry init
+    poetry run python dbseed.py
+    alembic heads
+    alembic stamp <revision>
+```
+
+Where `<revision>` is the latest Alembic revision shown from `alembic heads`.
+
+The first registered user should be given admin permissions.
+
+Run with `poetry run flask run`.
 
 ## Jak se Alembic?
 
