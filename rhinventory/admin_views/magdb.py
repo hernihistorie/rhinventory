@@ -56,26 +56,27 @@ class MagDbMagazineIssueView(MagDbModelView):
 
             prepared_values["issue_number"] = (last_issue.issue_number or 0) + 1
 
-            date = datetime.datetime(day=last_issue.published_day or 1, month=last_issue.published_month, year=last_issue.published_year)
-            value = None
-            periodicity = last_issue.periodicity
-            if periodicity == Periodicity.weekly:
-                value = rrule(WEEKLY, dtstart=date.date(), interval=1).after(date)
-            elif periodicity == Periodicity.biweekly:
-                after_week = rrule(WEEKLY, dtstart=date.date(), interval=1).after(date)
-                value = rrule(WEEKLY, dtstart=after_week.date(), interval=1).after(after_week)
-            elif periodicity == Periodicity.monthly:
-                value = rrule(MONTHLY, dtstart=date.date(), interval=1).after(date)
-            elif periodicity == Periodicity.bimonthly:
-                after_month = rrule(MONTHLY, dtstart=date.date(), interval=1).after(date)
-                value = rrule(MONTHLY, dtstart=after_month.date(), interval=1).after(after_month)
-            elif periodicity == Periodicity.annually:
-                value = rrule(YEARLY, dtstart=date.date(), interval=1).after(date)
-            elif periodicity == Periodicity.quarterly:
-                after_month = rrule(MONTHLY, dtstart=date.date(), interval=1).after(date)
-                for i in range(3):
-                    after_month = rrule(MONTHLY, dtstart=after_month.date(), interval=1).after(after_month)
-                value = after_month
+            if last_issue.published_year is not None:
+                date = datetime.datetime(day=last_issue.published_day or 1, month=last_issue.published_month or 1, year=last_issue.published_year)
+                value = None
+                periodicity = last_issue.periodicity
+                if periodicity == Periodicity.weekly:
+                    value = rrule(WEEKLY, dtstart=date.date(), interval=1).after(date)
+                elif periodicity == Periodicity.biweekly:
+                    after_week = rrule(WEEKLY, dtstart=date.date(), interval=1).after(date)
+                    value = rrule(WEEKLY, dtstart=after_week.date(), interval=1).after(after_week)
+                elif periodicity == Periodicity.monthly:
+                    value = rrule(MONTHLY, dtstart=date.date(), interval=1).after(date)
+                elif periodicity == Periodicity.bimonthly:
+                    after_month = rrule(MONTHLY, dtstart=date.date(), interval=1).after(date)
+                    value = rrule(MONTHLY, dtstart=after_month.date(), interval=1).after(after_month)
+                elif periodicity == Periodicity.annually:
+                    value = rrule(YEARLY, dtstart=date.date(), interval=1).after(date)
+                elif periodicity == Periodicity.quarterly:
+                    after_month = rrule(MONTHLY, dtstart=date.date(), interval=1).after(date)
+                    for i in range(3):
+                        after_month = rrule(MONTHLY, dtstart=after_month.date(), interval=1).after(after_month)
+                    value = after_month
 
             prepared_values["periodicity"] = last_issue.periodicity.name
 
@@ -175,8 +176,8 @@ class MagDbMagazineIssueVersionView(MagDbModelView):
             "magdb/magazine_issue_version/create_wizard.html",
             form=form,
             buttons=[
-                ("Add and go to magazine issue", "submit"),
                 ("Add and go to issue version", "submit"),
+                ("Add and go to magazine issue", "submit"),
             ]
         )
 

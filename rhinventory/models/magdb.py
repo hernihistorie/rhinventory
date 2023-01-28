@@ -115,7 +115,7 @@ class MagazineIssue(HistoryTrait):
     note = db.Column(db.Text())
 
     def __str__(self):
-        return f"{str(self.magazine)}: { self.calendar_id if not self.is_special_issue else self.issue_title}"
+        return f"{self.current_magazine_name}: { self.calendar_id if not self.is_special_issue else self.issue_title}"
 
 
 class Currency(enum.Enum):
@@ -173,6 +173,8 @@ class MagazineIssueVersion(HistoryTrait):
     register_number_mccr = db.Column(db.String(), nullable=True)
     barcode = db.Column(db.String(15), nullable=True)
     status = db.Column(db.Enum(IssueStatus))
+
+    note = db.Column(db.Text())
 
     def __str__(self):
         return f"{str(self.magazine_issue)} {self.name_suffix if self.name_suffix is not None else ''}"
