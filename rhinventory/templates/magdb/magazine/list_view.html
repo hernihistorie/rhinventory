@@ -1,12 +1,17 @@
 {% extends 'admin/model/list.html' %}
 
+{% block body %}
+    <h2>Magazines</h2>
+    {{ super() }}
+{% endblock %}
+
 {% block list_row_actions %}
     {{ super() }}
 
     <a href="{{ get_url('magdb_magazine_issue.create_wizard', magazine_id=get_pk_value(row)) }}">
-        {{ icon("circle-plus") }}
+        {{ icon("circle-plus") }} Issue
     </a>
     <a href="{{ get_url('magdb.magazine_detail', magazine_id=get_pk_value(row)) }}">
-        {{ icon("eye") }}
+        {{ icon("eye") }} View it
     </a>
 {% endblock %}

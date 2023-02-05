@@ -1,17 +1,22 @@
 {% extends 'admin/model/list.html' %}
 
+{% block body %}
+    <h2>Magazine issue versions</h2>
+    {{ super() }}
+{% endblock %}
+
 {% block list_row_actions %}
     {{ super() }}
 
     <a href="{{ get_url('magdb_magazine_issue_version_price.create_wizard', magazine_issue_version_id=get_pk_value(row)) }}">
-        {{ icon("circle-plus") }}
+        {{ icon("circle-plus") }} Price
     </a>
 
     <a href="{{ get_url('magdb.magazine_detail', _anchor="version-{}".format(row.id), magazine_id=get_pk_value(row.magazine_issue.magazine)) }}">
-        {{ icon("eye") }}
+        {{ icon("eye") }} View it
     </a>
 
     <a href="{{ get_url('magdb_magazine_issue_version.manage_files', magazine_version_id=get_pk_value(row)) }}">
-        {{ icon("file") }}
+        {{ icon("file") }} Manage files
     </a>
 {% endblock %}
