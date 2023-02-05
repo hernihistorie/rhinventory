@@ -7,7 +7,7 @@
         </div>
 
         {% for logo in files.logos[magazine.id] %}
-            <img class="img-thumbnail" src="{{ url_for('files.static', filename=logo.filepath) }}" style="width: 200px;">
+            <img class="img-thumbnail" src="{{ logo.url }}" style="width: 200px;">
         {% endfor %}
     </div>
 
@@ -68,7 +68,7 @@
                                                     </td>
                                                 <td>
                                                         {% if version.id in files.cover_pages %}
-                                                            <img src="{{ url_for('files.static', filename=files.cover_pages[version.id][0].filepath) }}"
+                                                            <img src="{{ files.cover_pages[version.id][0].url }}"
                                                                  class="img-rounded">
                                                             {% else %}
                                                             Chybí!

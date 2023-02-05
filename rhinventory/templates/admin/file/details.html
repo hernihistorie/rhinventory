@@ -13,10 +13,10 @@
                     File has thumbnail entry in DB, but file is missing!
                 </div>
             {% endif %}
-            <a href="{{ url_for('files.static', filename=model.filepath) }}" class="btn btn-secondary">Download</a>
+            <a href="{{ model.url }}" class="btn btn-secondary">Download</a>
             {% if model.is_image %}
                 {% if model.has_thumbnail and model.thumbnail_file_exists() %}
-                    <a href="{{ url_for('files.static', filename=model.filepath_thumbnail) }}" class="btn btn-secondary">Thumbnail</a>
+                    <a href="{{ model.url_thumbnail }}" class="btn btn-secondary">Thumbnail</a>
                 {% else %}
                     <form method="POST" action="{{ url_for('file.make_thumbnail_view', id=model.id) }}" style="display: inline;">
                         <input type="submit" value="Make thumbnail" class="btn btn-primary">
@@ -45,7 +45,7 @@
         </div>
     </div>
     {% if model.is_image %}
-        <img src="{{ url_for('files.static', filename=model.filepath) }}" style="margin-bottom: 8px;">
+        <img src="{{ model.url}}" style="margin-bottom: 8px;">
         {% set barcodes = model.read_barcodes() %}
         {% if barcodes %}
             <h3>Decoded barcodes</h3>
