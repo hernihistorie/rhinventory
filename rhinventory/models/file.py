@@ -17,6 +17,10 @@ from rhinventory.extensions import db
 from rhinventory.models.computers import Benchmark
 
 
+class FileStore(enum.Enum):
+    local = "local"
+    local_nas = "local_nas"
+
 class FileCategory(enum.Enum):
     unknown     = 0
     other       = 1
@@ -53,7 +57,7 @@ class File(db.Model):
     __tablename__ = 'files'
     id          = Column(Integer, primary_key=True)
     filepath    = Column(String, nullable=False)
-    storage     = Column(String, nullable=False)
+    storage     = Column(Enum(FileStore), nullable=False)
     primary     = Column(Boolean, nullable=False, default=False)
     has_thumbnail = Column(Boolean, nullable=False, default=False) # _thumb
     category    = Column(Enum(FileCategory))
