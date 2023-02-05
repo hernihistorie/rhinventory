@@ -6,6 +6,7 @@ from flask import Blueprint, render_template
 
 from rhinventory.models.file import File, FileCategory
 from rhinventory.models.magdb import Magazine, MagazineIssue, MagazineIssueVersion, IssueStatus, MagazineIssueVersionFiles, MagDBFileType
+from rhinventory.extensions import db
 
 
 magdb_bp = Blueprint("magdb", __name__, url_prefix="/public-magdb")
@@ -35,37 +36,43 @@ def catalog():
 def magazine_detail(magazine_id):
     context = {
         "magazine": Magazine.query.get(magazine_id),
-        "issues_by_year": {},
+        "issues_by_year": defaultdict(list),
         "files": {
-            "cover_pages": {},
-            "logos": {},
+            "cover_pages": defaultdict(list),
+            "index_pages": defaultdict(list),
+            "logos": defaultdict(set),
         }
     }
 
     special_issues = []
-
-    for logo in MagazineIssueVersionFiles.query.filter(MagazineIssueVersionFiles.file_type==MagDBFileType.logo).all():
-        local_magazine_id = logo.magazine_issue_version.magazine_issue.magazine_id
-        if local_magazine_id not in context["files"]["logos"]:
-            context["files"]["logos"][local_magazine_id] = set()
-
-        context["files"]["logos"][local_magazine_id].add(logo.file)
+    issue_ids = set()
 
     for issue in MagazineIssue.query.filter(
             MagazineIssue.magazine_id == magazine_id
     ).order_by(MagazineIssue.published_year, MagazineIssue.published_month, MagazineIssue.published_day).all():
+        issue_ids.add(issue.id)
 
         if issue.is_special_issue:
             special_issues.append(issue)
             continue
 
-        if issue.published_year not in context["issues_by_year"]:
-            context["issues_by_year"][issue.published_year] = []
-
         context["issues_by_year"][issue.published_year].append(issue)
 
     if len(special_issues):
         context["issues_by_year"]["Speciály"] = special_issues
+
+    for file in db.session.query(MagazineIssueVersionFiles).join(MagazineIssueVersion).filter(MagazineIssueVersion.magazine_issue_id.in_(list(issue_ids))).all():
+        if file.file_type == MagDBFileType.logo:
+            context["files"]["logos"][file.magazine_issue_version.magazine_issue.magazine.id].add(file)
+            continue
+
+        if file.file_type == MagDBFileType.cover_page:
+            context["files"]["cover_pages"][file.magazine_issue_version.magazine_issue_id].append(file)
+            continue
+
+        if file.file_type == MagDBFileType.index_page:
+            context["files"]["index_pages"][file.magazine_issue_version.magazine_issue_id].append(file)
+            continue
 
     return render_template("magdb/magazine_detail.html", **context)
 

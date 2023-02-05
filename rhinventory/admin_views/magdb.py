@@ -9,6 +9,7 @@ from wtforms import Form, FileField, SelectField, SubmitField, BooleanField
 from rhinventory.admin_views import CustomModelView
 from rhinventory.admin_views.file import upload_file, DuplicateFile
 from rhinventory.extensions import db
+from rhinventory.models.file import FileCategory
 from rhinventory.models.magdb import Issuer, Magazine, Periodicity, MagazineIssue, Format, MagazineIssueVersion, MagazineIssueVersionPrice, MagazineIssueVersionFiles, MagDBFileType
 
 
@@ -199,6 +200,10 @@ class MagDbMagazineIssueVersionView(MagDbModelView):
             file = flask.request.files.get("file")
             try:
                 file_entry = upload_file(file)
+
+                if file_entry.category == FileCategory.image:
+                    file_entry.make_thumbnail()
+
             except DuplicateFile as e:
                 flash("Uploaded file is a duplicate -> logo not added.", "error")
                 return self.render("magdb/magazine_issue_version/manage_files.html", **context)
