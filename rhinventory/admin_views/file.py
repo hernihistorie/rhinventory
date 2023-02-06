@@ -17,6 +17,7 @@ from rhinventory.db import log, Asset, File, FileCategory, get_next_file_batch_n
 from rhinventory.extensions import db, simple_eval
 from rhinventory.forms import FileForm, FileAssignForm
 from rhinventory.admin_views.model_view import CustomModelView
+from rhinventory.models.file import FileStore
 
 
 class DuplicateFile(RuntimeError):
@@ -41,7 +42,8 @@ def upload_file(file, category=0, batch_number=None):
         raise DuplicateFile("Duplicate file", matching_file)
 
     # Save the file, partially accounting for filename collisions
-    files_dir = current_app.config['FILES_DIR']
+    file_store = FileStore(current_app.config['DEFAULT_FILE_STORE'])
+    files_dir = current_app.config['FILE_STORE_LOCATIONS'][file_store.value]
     filename = secure_filename(file.filename)
     directory = 'uploads'
     os.makedirs(files_dir + "/" + directory, exist_ok=True)
@@ -56,7 +58,7 @@ def upload_file(file, category=0, batch_number=None):
     if category == FileCategory.unknown and filename.split('.')[-1].lower() in ('jpg', 'jpeg', 'png', 'gif'):
         category = FileCategory.image
 
-    return File(filepath=filepath, storage='files', primary=False, category=category,
+    return File(filepath=filepath, storage=file_store, primary=False, category=category,
                    md5=md5, batch_number=batch_number,
                    upload_date=datetime.datetime.now(), user_id=current_user.id)
 

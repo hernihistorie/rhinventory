@@ -1,4 +1,5 @@
 import os
+import typing
 
 from flask import Flask, Blueprint, render_template, flash, redirect, url_for, send_file, Response, abort, request, session, jsonify, g
 from flask_login import current_user, login_required, login_user, logout_user
@@ -7,11 +8,12 @@ from jinja2 import StrictUndefined
 
 from rhinventory.extensions import db, admin, debug_toolbar, github, login_manager
 from rhinventory.admin import add_admin_views
-from rhinventory.db import User, Asset, Location, log
+from rhinventory.db import User, Asset, Location, File, log
 
 from rhinventory.labels.labels import make_barcode, make_label, make_asset_label
 
 from simpleeval import EvalWithCompoundTypes
+
 simple_eval = EvalWithCompoundTypes()
 
 add_admin_views(admin)
@@ -26,8 +28,8 @@ def create_app(config_object='rhinventory.config'):
     github.init_app(app)
     login_manager.init_app(app)
     
-    files_blueprint = Blueprint('files', __name__, static_url_path='/files', static_folder=app.config['FILES_DIR'])
-    app.register_blueprint(files_blueprint)
+    #files_blueprint = Blueprint('files', __name__, static_url_path='/files', static_folder=app.config['FILES_DIR'])
+    #app.register_blueprint(files_blueprint)
 
     bootstrap = Bootstrap5(app)
 
@@ -172,4 +174,22 @@ def create_app(config_object='rhinventory.config'):
 
         return send_file(open(label_filename, 'rb'), mimetype='image/png')
     
+    @login_required
+    @app.route('/files/<int:file_id>')
+    @app.route('/files/<int:file_id>/thumb', defaults={'thumb': True})
+    @app.route('/files/<int:file_id>/<filename>')
+    @app.route('/files/<int:file_id>/thumb_<filename>', defaults={'thumb': True})
+    def file(file_id: int, filename: str, thumb: bool = False) -> Response:
+        assert not filename.startswith('thumb_')
+        file: typing.Optional[File] = File.query.get(file_id)
+        if not file:
+            abort(404)
+
+        if thumb:
+            if not file.has_thumbnail:
+                abort(404)
+            return send_file(file.full_filepath_thumbnail)
+        return send_file(file.full_filepath)
+        
+
     return app

@@ -22,7 +22,7 @@
                     {% if file %}
                         <a href="{{ url_for('asset.details_view', id=asset.id) }}">
                             {% if file.has_thumbnail %}
-                                <img src="{{ url_for('files.static', filename=file.filepath_thumbnail) }}">
+                                <img src="{{ file.url_thumbnail }}">
                             {% else %}
                                 (Thumbnail missing)
                             {% endif %}

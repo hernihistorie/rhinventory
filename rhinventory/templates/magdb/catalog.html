@@ -11,7 +11,7 @@
                                 <div class="subheader">{{ magazine.title }}</div>
                                 {% if logos %}
                                     {% for logo in logos[magazine.id] %}
-                                        <img src="{{ url_for('files.static', filename=logo.filepath) }}" class="card-img">
+                                        <img src="{{ logo.url }}" class="card-img">
                                     {% endfor %}
                                 {% endif %}
                             </a>

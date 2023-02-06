@@ -2,7 +2,7 @@ import os
 import enum
 import subprocess
 
-from flask import current_app
+from flask import current_app, url_for
 from sqlalchemy import Column, Integer, Numeric, String, Text, \
     DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint
 from sqlalchemy.orm import relationship, backref
@@ -16,6 +16,10 @@ except Exception as ex:
 from rhinventory.extensions import db
 from rhinventory.models.computers import Benchmark
 
+
+class FileStore(enum.Enum):
+    local = "local"
+    local_nas = "local_nas"
 
 class FileCategory(enum.Enum):
     unknown     = 0
@@ -53,7 +57,7 @@ class File(db.Model):
     __tablename__ = 'files'
     id          = Column(Integer, primary_key=True)
     filepath    = Column(String, nullable=False)
-    storage     = Column(String, nullable=False)
+    storage     = Column(Enum(FileStore), nullable=False)
     primary     = Column(Boolean, nullable=False, default=False)
     has_thumbnail = Column(Boolean, nullable=False, default=False) # _thumb
     category    = Column(Enum(FileCategory))
@@ -92,41 +96,53 @@ class File(db.Model):
     def filepath_thumbnail(self):
         path = self.filepath.split('.')
         path[-2] += '_thumb'
-        return '.'.join(path)
+        return '.'.join(path) 
     
     def thumbnail_file_exists(self):
-        files_dir = current_app.config['FILES_DIR']
-        return os.path.exists(os.path.join(files_dir, self.filepath_thumbnail))
+        return os.path.exists(self.full_filepath_thumbnail)
     
     @property
     def filename(self):
         return self.filepath.split('/')[-1]
     
     @property
+    def _file_store_path(self) -> str:
+        return current_app.config['FILE_STORE_LOCATIONS'][self.storage.value]
+
+    @property
     def full_filepath(self):
-        files_dir = current_app.config['FILES_DIR']
-        return os.path.join(files_dir, self.filepath)
+        return os.path.join(self._file_store_path, self.filepath)
+    
+    @property
+    def full_filepath_thumbnail(self):
+        return os.path.join(self._file_store_path, self.filepath_thumbnail)
+
+    @property
+    def url(self) -> str:
+        return url_for('file', file_id=self.id, filename=self.filename)
+    
+    @property
+    def url_thumbnail(self) -> str:
+        return url_for('file', file_id=self.id, filename=self.filename, thumb=True)
     
     def open_image(self):
         if not self.is_image:
             return
         if self.filepath.endswith('.svg'):
             return
-        files_dir = current_app.config['FILES_DIR']
-        im = Image.open(os.path.join(files_dir, self.filepath))
+        im = Image.open(self.full_filepath)
         return im
     
     # Make sure to save the model after calling this method...
     def make_thumbnail(self):
         if not self.is_image:
             return False
-        files_dir = current_app.config['FILES_DIR']
         im = self.open_image()
         if not im:
             return False
         im = ImageOps.exif_transpose(im)
         im.thumbnail(self.THUMBNAIL_SIZE)
-        im.save(os.path.join(files_dir, self.filepath_thumbnail))
+        im.save(os.path.join(self.full_filepath_thumbnail))
         self.has_thumbnail = True
         return True
     
@@ -213,10 +229,10 @@ class File(db.Model):
             return
         self.asset_id = asset_id
 
-        files_dir = current_app.config['FILES_DIR']
+        files_dir = current_app.config['FILE_STORE_LOCATIONS'][current_app.config['DEFAULT_FILE_STORE']]
 
         directory = f'assets/{asset_id}'
-        os.makedirs(current_app.config['FILES_DIR'] + "/" + directory, exist_ok=True)
+        os.makedirs(files_dir + "/" + directory, exist_ok=True)
         new_filepath = f'{directory}/{self.filename}'
 
         while os.path.exists(os.path.join(files_dir, new_filepath)):

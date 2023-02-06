@@ -1,5 +1,7 @@
 from logging.config import fileConfig
 
+import alembic_autogenerate_enums
+
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 

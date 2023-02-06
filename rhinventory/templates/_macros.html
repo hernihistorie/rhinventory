@@ -6,7 +6,7 @@
     {% if file.has_thumbnail %}
         <img
             id="thumb-{{ file.id }}"
-            src="{{ url_for('files.static', filename=file.filepath_thumbnail, rnd=rnd) }}"
+            src="{{ file.url_thumbnail }}?rnd={{ rnd }}"
             class="upload_result_thumb"
         >
     {% endif %}

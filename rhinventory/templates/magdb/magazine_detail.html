@@ -3,11 +3,11 @@
 {% block content %}
 <div class="card card-sm">
     <div class="card-body">
-        <h1>{{ magazine.title }}</h1>
+        <h1>{{ magazine.title }}</h1>x
     </div>
 
     {% for logo in files.logos[magazine.id] %}
-        <img class="img-thumbnail" src="{{ url_for('files.static', filename=logo.file.filepath) }}" style="width: 200px;">
+        <img class="img-thumbnail" src="{{ logo.file.url }}" style="width: 200px;">
     {% endfor %}
 </div>
 
@@ -69,7 +69,7 @@
                                         </td>
                                         <td>
                                                 {% for file in files.cover_pages[issue.id] %}
-                                                    <img class="img-thumbnail" src="{{ url_for('files.static', filename=file.file.filepath_thumbnail) }}"
+                                                    <img class="img-thumbnail" src="{{ file.file.url_thumbnail }}"
                                                          class="img-rounded">
                                                 {% else %}
                                                      Chybí!
@@ -77,7 +77,7 @@
                                         </td>
                                         <td>
                                                 {% for file in files.index_pages[issue.id] %}
-                                                    <img class="img-thumbnail" src="{{ url_for('files.static', filename=file.file.filepath_thumbnail) }}"
+                                                    <img class="img-thumbnail" src="{{ file.file.url_thumbnail }}"
                                                         class="img-rounded">
                                                 {% else %}
                                                  Chybí!
