@@ -2,45 +2,60 @@
 
 {% block content %}
 
-    <div class="card">
-        <div class="card-body">
-            <div class="accordion" id="accordion-example">
-                <div class="accordion-item">
-                    {% for magazine_id, data in magazines.items() %}
-                        <h2 class="accordion-header" id="heading-{{ loop.index0 }}">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ loop.index0 }}" aria-expanded="false">
-                                {% if not data.logos %}
-                                    <h3>{{ data.magazine.title }}</h3>
-                                {% endif %}
+<div class="card">
+    <div class="card-body">
+        <div class="accordion" id="accordion-example">
+            <div class="accordion-item">
+                {% for magazine_id, data in magazines.items() %}
+                <h2 class="accordion-header" id="heading-{{ loop.index0 }}">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapse-{{ loop.index0 }}" aria-expanded="false">
+                        {% if not data.logos %}
+                        <h3>{{ data.magazine.title }}</h3>
+                        {% endif %}
 
-                                {% for image in data.logos %}
-                                    <span style="width: 200px; margin-right: 25px;">
+                        {% for image in data.logos %}
+                        <span style="width: 200px; margin-right: 25px;">
                                         <img src="{{ image.url }}">
                                     </span>
-                                {% endfor %}
-                            </button>
-                        </h2>
-                        <div id="collapse-{{ loop.index0 }}" class="accordion-collapse collapse" data-bs-parent="#accordion-example" style="">
-                            <div class="accordion-body pt-0">
-                                {% for issue in missing_magazines[magazine_id] %}
-                                   <ul>
-                                    <li>
-                                        <div>
-                                            <span>{{ issue }}</span>
-                                        </div>
-                                    </li>
-                                   </ul>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        <hr>
-                    {% else %}
-                        It seems, that we have everything, that we know about right now.
-                    {% endfor %}
+                        {% endfor %}
+                    </button>
+                </h2>
+                <div id="collapse-{{ loop.index0 }}" class="accordion-collapse collapse"
+                     data-bs-parent="#accordion-example" style="">
+                    <div class="accordion-body pt-0">
+                        <table class="table">
+                            {% for issue in missing_magazines[magazine_id] %}
+                            <tr>
+                                <td>
+                                    {{ issue }}
+                                </td>
+                                <td>
+                                    {% if issue.status.name == "have" %}
+                                    <span style="height: 25px; width: 25px; background-color: green; border-radius: 50%; display: inline-block;"
+                                          title="Máme!"></span>
+                                    {% elif issue.status.name == "dont_have" %}
+                                    <span style="height: 25px; width: 25px; background-color: red; border-radius: 50%; display: inline-block;"
+                                          title="Chybí!"></span>
+                                    {% elif issue.status.name == "problems" %}
+                                    <span style="height: 25px; width: 25px; background-color: yellow; border-radius: 50%; display: inline-block;"
+                                          title="Máme s problémy!"></span>
+                                    {% endif %}
+                                </td>
+                                </li>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
                 </div>
+                <hr>
+                {% else %}
+                It seems, that we have everything, that we know about right now.
+                {% endfor %}
             </div>
         </div>
     </div>
+</div>
 
 
 {% endblock %}

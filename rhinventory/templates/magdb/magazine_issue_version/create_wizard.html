@@ -2,6 +2,11 @@
 
 {% import 'magdb/lib.html' as internal_lib with context %}
 
+{% block body %}
+    <h2>Create issue version</h2>
+    {{ super() }}
+{% endblock %}
+
 {% block create_form %}
     {{ internal_lib.render_form(form, return_url, buttons, form_opts) }}
 {% endblock %}
