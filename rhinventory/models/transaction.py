@@ -45,6 +45,8 @@ class Transaction(db.Model):
     url         = Column(String)
     penouze_id  = Column(Integer)
 
+    finalized     = Column(Boolean, default=True, server_default="true")
+
     our_party = relationship("Party", foreign_keys=our_party_id)
     counterparty_new = relationship("Party", foreign_keys=counterparty_id)
     assets      = relationship(
