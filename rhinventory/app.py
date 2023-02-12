@@ -175,12 +175,13 @@ def create_app(config_object='rhinventory.config'):
         return send_file(open(label_filename, 'rb'), mimetype='image/png')
     
     @login_required
-    @app.route('/files/<int:file_id>')
     @app.route('/files/<int:file_id>/thumb', defaults={'thumb': True})
-    @app.route('/files/<int:file_id>/<filename>')
     @app.route('/files/<int:file_id>/thumb_<filename>', defaults={'thumb': True})
-    def file(file_id: int, filename: str, thumb: bool = False) -> Response:
-        assert not filename.startswith('thumb_')
+    @app.route('/files/<int:file_id>', defaults={'thumb': False})
+    @app.route('/files/<int:file_id>/<filename>', defaults={'thumb': False})
+    def file(file_id: int, filename: typing.Optional[str] = None, thumb: bool = False) -> Response:
+        if filename:
+            assert not filename.startswith('thumb_')
         file: typing.Optional[File] = File.query.get(file_id)
         if not file:
             abort(404)
