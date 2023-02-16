@@ -63,15 +63,15 @@ def magazine_detail(magazine_id):
 
     for file in db.session.query(MagazineIssueVersionFiles).join(MagazineIssueVersion).filter(MagazineIssueVersion.magazine_issue_id.in_(list(issue_ids))).all():
         if file.file_type == MagDBFileType.logo:
-            context["files"]["logos"][file.magazine_issue_version.magazine_issue.magazine.id].add(file)
+            context["files"]["logos"][file.magazine_issue_version.magazine_issue.magazine.id].add(file.file)
             continue
 
         if file.file_type == MagDBFileType.cover_page:
-            context["files"]["cover_pages"][file.magazine_issue_version.magazine_issue_id].append(file)
+            context["files"]["cover_pages"][file.magazine_issue_version.magazine_issue_id].append(file.file)
             continue
 
         if file.file_type == MagDBFileType.index_page:
-            context["files"]["index_pages"][file.magazine_issue_version.magazine_issue_id].append(file)
+            context["files"]["index_pages"][file.magazine_issue_version.magazine_issue_id].append(file.file)
             continue
 
     return render_template("magdb/magazine_detail.html", **context)
