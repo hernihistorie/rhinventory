@@ -57,6 +57,7 @@ class MagDbMagazineIssueView(MagDbModelView):
 
             prepared_values["issue_number"] = (last_issue.issue_number or 0) + 1
 
+            value = None
             if last_issue.published_year is not None:
                 date = datetime.datetime(day=last_issue.published_day or 1, month=last_issue.published_month or 1, year=last_issue.published_year)
                 value = None
@@ -79,13 +80,14 @@ class MagDbMagazineIssueView(MagDbModelView):
                         after_month = rrule(MONTHLY, dtstart=after_month.date(), interval=1).after(after_month)
                     value = after_month
 
-            prepared_values["periodicity"] = last_issue.periodicity.name
-
             if value is not None:
                 if last_issue.published_day is not None:
                     prepared_values["published_day"] = value.day
                 prepared_values["published_month"] = value.month
                 prepared_values["published_year"] = value.year
+
+            if last_issue.periodicity is not None:
+                prepared_values["periodicity"] = last_issue.periodicity.name
 
         form = create_form(flask.request.values, **prepared_values)
 
