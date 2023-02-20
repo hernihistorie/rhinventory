@@ -8,7 +8,7 @@ Dependencies:
 - Copy `.env_example` to `.env` and fill in variables
 - Copy `alembic.ini_example` to `alembic.ini` and fill in PostgreSQL database URL
 - Run:
-```
+```bash
     poetry init
     poetry run python dbseed.py
     alembic heads
@@ -23,7 +23,7 @@ Run with `poetry run flask run`.
 
 ## Jak se Alembic?
 
-```
+```bash
     # Řeknu si Sankymu aby mi vysvětlil alembic.ini...
 
     source .venv/bin/activate
@@ -38,6 +38,21 @@ Run with `poetry run flask run`.
 
     # Spustím migraci
     alembic upgrade head
+```
+
+## How to deploy
+
+If there are no database migrations: run the script `./ops/deploy.sh`
+
+If there are database migrations:
+
+```sh
+ssh retroherna.org
+cd /var/www/rhinventory
+sudo -u flask  git pull
+sudo -u flask  poetry run  alembic upgrade head
+# Correct any issues should they arise
+sudo systemctl restart www_rhinventory
 ```
 
 ## How to run scripts
