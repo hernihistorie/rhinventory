@@ -67,11 +67,11 @@ def magazine_detail(magazine_id):
             continue
 
         if file.file_type == MagDBFileType.cover_page:
-            context["files"]["cover_pages"][file.magazine_issue_version.magazine_issue_id].append(file.file)
+            context["files"]["cover_pages"][file.magazine_issue_version_id].append(file.file)
             continue
 
         if file.file_type == MagDBFileType.index_page:
-            context["files"]["index_pages"][file.magazine_issue_version.magazine_issue_id].append(file.file)
+            context["files"]["index_pages"][file.magazine_issue_version_id].append(file.file)
             continue
 
     return render_template("magdb/magazine_detail.html", **context)

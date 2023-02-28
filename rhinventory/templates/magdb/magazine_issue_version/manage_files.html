@@ -14,7 +14,7 @@
                 {{ file.file.filepath }}
             </td>
             <td>
-                {% if file.file_type == MagDBFileType.logo %}
+                {% if file.file_type == MagDBFileType.logo or file.file_type == MagDBFileType.cover_page or file.file_type == MagDBFileType.index_page %}
                     <img src="{{ file.file.url }}">
                 {% else %}
                     <a href="{{ url_for("file.details_view", id=file.file_id) }}">{{ file.file }}</a>
