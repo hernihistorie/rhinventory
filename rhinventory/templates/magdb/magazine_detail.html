@@ -68,7 +68,7 @@
                                             {{ version.name_suffix }}
                                         </td>
                                         <td>
-                                                {% for file in files.cover_pages[issue.id] %}
+                                                {% for file in files.cover_pages[version.id] %}
                                                     <img class="img-thumbnail" src="{{ file.url_thumbnail }}"
                                                          class="img-rounded">
                                                 {% else %}
@@ -76,7 +76,7 @@
                                                 {% endfor %}
                                         </td>
                                         <td>
-                                                {% for file in files.index_pages[issue.id] %}
+                                                {% for file in files.index_pages[version.id] %}
                                                     <img class="img-thumbnail" src="{{ file.url_thumbnail }}"
                                                         class="img-rounded">
                                                 {% else %}
