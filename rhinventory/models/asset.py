@@ -126,6 +126,14 @@ class Asset(db.Model):
     packaging = relationship(Packaging, secondary='asset_packaging', backref="assets")
     companies = relationship(Company, secondary=asset_company_table, backref="assets")
 
+    LAST_USED_ATTRIBUTES = {
+        'platforms': Platform,
+        'tags': AssetTag,
+        'mediums': Medium,
+        'packaging': Packaging,
+        'companies': Company,
+    }
+
     def __str__(self):
         return f"{self.code} {self.name}"
 

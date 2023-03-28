@@ -44,6 +44,11 @@ PRODUCT_ASSET_CATEGORIES = set([AssetCategory.game, AssetCategory.software, Asse
             AssetCategory.keyboard, AssetCategory.computer_mouse, AssetCategory.television,
             AssetCategory.monitor])
 
+def _last_used_query_factory_factory(cls: db.Model):
+    return lambda: cls.query.order_by(
+        nulls_last(cls.last_used.desc())
+    )
+
 class AssetView(CustomModelView):
     form_overrides = {
         'condition_new': ConditionField,
@@ -92,11 +97,10 @@ class AssetView(CustomModelView):
             'minimum_input_length': 0,
         }
     }
+
     form_args = {
         'companies': {
-            'query_factory': lambda: Company.query.order_by(
-                nulls_last(Company.last_used.desc())
-            )
+            'query_factory': _last_used_query_factory_factory(Company)
         },
         'location': {
             'query_factory': lambda: Asset.query.filter(Asset.category == AssetCategory.location).order_by(
@@ -115,6 +119,10 @@ class AssetView(CustomModelView):
         #    )
         #},
     }
+    for last_used_attribute, class_ in Asset.LAST_USED_ATTRIBUTES.items():
+        form_args[last_used_attribute] = {
+            'query_factory': _last_used_query_factory_factory(class_)
+        }
 
     can_view_details = True
     column_filters = [
@@ -166,10 +174,13 @@ class AssetView(CustomModelView):
         super().on_model_change(form, instance, is_created)
     
     def after_model_change(self, form, model, is_created):
-        company: Company
-        for company in model.companies:
-            company.last_used = datetime.now()
-            self.session.add(company)
+        for last_used_attribute in Asset.LAST_USED_ATTRIBUTES.keys():
+            obj_list = getattr(model, last_used_attribute)
+            if obj_list:
+                for obj in obj_list:
+                    obj.last_used = datetime.now()
+                    db.session.add(obj)
+        
         self.session.commit()
 
     # From https://stackoverflow.com/a/60829958

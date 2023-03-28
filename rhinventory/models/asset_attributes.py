@@ -25,6 +25,7 @@ class Platform(db.Model, SimpleAssetAttribute):
     id: int          = Column(Integer, primary_key=True)  # type: ignore
     slug: str        = Column(String, nullable=False)  # type: ignore
     name: str        = Column(String, nullable=False)  # type: ignore
+    last_used        = Column(DateTime, nullable=True)
 
 asset_platform_table = asset_n_to_n_table(Platform)
 
@@ -33,6 +34,7 @@ class AssetTag(db.Model, SimpleAssetAttribute):
     id: int          = Column(Integer, primary_key=True)  # type: ignore
     name: str        = Column(String, nullable=False)  # type: ignore
     description: str = Column(String, nullable=False)  # type: ignore
+    last_used        = Column(DateTime, nullable=True)
 
 asset_tag_table = asset_n_to_n_table(AssetTag)
 
@@ -40,6 +42,7 @@ class Packaging(db.Model, SimpleAssetAttribute):
     __tablename__ = 'packagings'
     id: int          = Column(Integer, primary_key=True)  # type: ignore
     name: str        = Column(String, nullable=False)  # type: ignore
+    last_used        = Column(DateTime, nullable=True)
 
 # An asset can have a single packaging multiple times so we need a middle table
 class AssetPackaging(db.Model):
@@ -55,6 +58,7 @@ class Medium(db.Model, SimpleAssetAttribute):
     __tablename__ = 'media'
     id: int          = Column(Integer, primary_key=True)  # type: ignore
     name: str        = Column(String, nullable=False)  # type: ignore
+    last_used        = Column(DateTime, nullable=True)
 
 class AssetMedium(db.Model):
     __tablename__ = 'asset_mediums'
