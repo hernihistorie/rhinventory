@@ -25,7 +25,7 @@ def get_asset_list_from_request_args() ->  typing.List[Asset]:
 class TransactionView(CustomModelView):
     can_view_details = True
     column_default_sort = ('id', True)
-    column_list = ('id', 'date', 'finalized', 'transaction_type', 'counterparty', 'assets')
+    column_list = ('id', 'date', 'finalized', 'transaction_type', 'counterparty_new', 'assets')
     form_columns = [
         'our_party',
         'counterparty_new',
