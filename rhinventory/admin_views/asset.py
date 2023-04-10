@@ -222,8 +222,12 @@ class AssetView(CustomModelView):
                 flash(f"Category of asset updated - {model}.", 'success')
 
             self.after_model_change(form, model, False)
+        
+        return True
 
     def get_save_return_url(self, model=None, is_created=False):
+        if '_save_and_print' in request.form:
+            return self.get_url('.details_view', id=model.id, print=1)
         return self.get_url('.details_view', id=model.id)
 
     def _get_gallery_url(self, view_args):
@@ -426,6 +430,7 @@ class AssetView(CustomModelView):
                             file_form=file_form,
                             logs=logs,
                             AssetCategory=AssetCategory)
+    
     @expose('/new2/', methods=['GET'])
     def new_view(self):
         return self.render('admin/asset/new.html')

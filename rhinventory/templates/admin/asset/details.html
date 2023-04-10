@@ -39,13 +39,13 @@
                 <a href="rhprint:{{model.id}}" id="print-label" class="btn btn-primary">
                     {{ icon("print") }} RH label
                 </a>
-                <a href="rhprint:{{model.id}}-ha" id="print-label" class="btn btn-primary">
+                <a href="rhprint:{{model.id}}-ha" id="print-label-ha" class="btn btn-primary">
                     {{ icon("print") }} HA label
                 </a>
-                <a href="rhprint:{{model.id}}-small" id="print-label" class="btn btn-primary">
+                <a href="rhprint:{{model.id}}-small" id="print-label-small" class="btn btn-primary">
                     {{ icon("print") }} small label
                 </a>
-                <a href="rhprint:{{model.id}}-big-ha" id="print-label" class="btn btn-primary">
+                <a href="rhprint:{{model.id}}-big-ha" id="print-label-big-ha" class="btn btn-primary">
                     {{ icon("print") }} BIG label
                 </a>
             </div>
@@ -344,5 +344,15 @@
     {% endfor %}
     </table>
 
+    <script>
+        // If there is a URL argument called "print" with the value "1"
+        // TODO this could be done in a cleaner way
+        if (window.location.href.indexOf("&print=1") !== -1) {
+            document.getElementById("print-label-ha").click();
+            // remove the "print" argument from the URL without refreshing the page
+            url = window.location.href.replace("&print=1", "");
+            window.history.pushState({}, "", url);
 
+        }
+    </script>
 {% endblock %}

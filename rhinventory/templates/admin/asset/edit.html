@@ -1,4 +1,5 @@
 {% extends 'admin/model/edit.html' %}
+{% from 'admin/asset/_macros.html' import save_and_print_button %}
 
 {% block navlinks %}
     {% from 'admin/asset/menu_bar.html' import asset_menu_bar with context %}
@@ -10,4 +11,8 @@
             min-width: 400px;
         }
     </style>
+{% endblock %}
+
+{% block edit_form %}
+    {{ lib.render_form(form, return_url, save_and_print_button() + extra(), form_opts) }}
 {% endblock %}
