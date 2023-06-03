@@ -10,7 +10,7 @@
             <!-- Bootstrap CSS -->
             {{ bootstrap.load_css() }}
 
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/css/tabler.min.css">
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/css/tabler.min.css">
         {% endblock %}
 
         <title>{% block title %}Databáze časopisů - ČSHA{% endblock %}</title>
@@ -18,12 +18,12 @@
 </head>
 <body>
 
-<header class="navbar navbar-expand-md navbar-dark d-print-none">
+<header class="navbar navbar-expand-md navbar-light d-print-none">
     <div class="container-xl">
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-menu">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <h1 class="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3">
+        <h1 class="navbar-brand d-none-navbar-horizontal pe-0 pe-md-3">
             <a href="{{ url_for(".index") }}">
                 Databáze časopisů
             </a>
@@ -63,7 +63,7 @@
     <!-- Optional JavaScript -->
     {{ bootstrap.load_js() }}
 
-    <script src="https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/js/tabler.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
 {% endblock %}
 </body>
 </html>
