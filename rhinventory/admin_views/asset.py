@@ -256,6 +256,8 @@ class AssetView(CustomModelView):
     def get_list_value(context, model, column):
         if column == "flags":
             return get_template_attribute("admin/asset/_macros.html", "render_flags")(model)
+        elif column == "name":
+            return get_template_attribute("admin/asset/_macros.html", "render_name_column")(model)
         else:
             return super().get_list_value(context, model, column)
 

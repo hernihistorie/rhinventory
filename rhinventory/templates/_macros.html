@@ -1,5 +1,10 @@
-{% macro icon(name, faded=False) -%}
-    <i class="fa-solid fa-{{name}} {% if faded %}faded{% endif %}"></i>
+{% macro icon(name, faded=False, tooltip=None) -%}
+    <i
+        class="fa-solid fa-{{name}} {% if faded %}faded{% endif %}"
+        {% if tooltip %}
+            rel="tooltip" title="{{ tooltip }}"
+        {% endif %}
+    ></i>
 {%- endmacro %}
 
 {% macro render_file_thumbnail(file, rnd=None) %}

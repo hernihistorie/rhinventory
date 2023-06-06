@@ -1,33 +1,87 @@
 {% from '_macros.html' import icon %}
 
 {% macro render_flags(asset) %}
+    <div class="flags">
     {% set file = asset.get_primary_image() %}
     {% if file %}
-        <a href="{{ url_for('file.details_view', id=file.id) }}">
+        <a
+            href="{{ url_for('file.details_view', id=file.id) }}"
+            rel="tooltip" title="<img src='{{ file.url_thumbnail }}'>"
+        >
             {{- icon("image") -}}
         </a>
     {% else %}
-        {{ icon("image", faded=True) }}
+        {{ icon("image", faded=True, tooltip="No image") }}
     {% endif %}
     {% if asset.get_dumps() %}
         <a href="{{ url_for('asset.details_view', id=asset.id) }}">
-            {{ icon("save") }}
+            {{- icon("save") -}}
         </a>
     {% else %}
-        {{ icon("save", faded=True) }}
+        {{ icon("save", faded=True, tooltip="No dumps") }}
     {% endif %}
     {% if asset.parent %}
-        <a href="{{ url_for('asset.details_view', id=asset.parent.id) }}">
+        <a
+            href="{{ url_for('asset.details_view', id=asset.parent.id) }}"
+            rel="tooltip" title="<strong>Parent</strong><br>{{ asset.parent }}"
+        >
             {{- icon("jar") -}}
         </a>
     {% else %}
-        {{- icon("jar", faded=True) -}}
+        {{ icon("jar", faded=True, tooltip="No parent") }}
+    {% endif %}
+    {% if asset.children %}
+        <a
+            href="{{ url_for('asset.details_view', id=asset.id) }}"
+            rel="tooltip" title="
+                {% if asset.children | count == 1 %}
+                    <strong>Child</strong><br>
+                {% else %}
+                    <strong>{{ asset.children | count }} children</strong><br>
+                {% endif %}
+                {% if asset.children | count <= 5 %}
+                    {{ asset.children | join('<br>') }}
+                {% endif %}
+            "
+        >
+            {{- icon("shapes") -}}
+        </a>
+    {% else %}
+        {{ icon("shapes", faded=True, tooltip="No children") }}
+    {% endif %}
+    {% if asset.contents %}
+        <a
+            href="{{ url_for('asset.details_view', id=asset.id) }}"
+            rel="tooltip" title="
+                <strong>{{ asset.contents | count }} contents</strong><br>
+                {% if asset.contents | count <= 5 %}
+                    {{ asset.contents | join('<br>') }}
+                {% endif %}
+            "
+        >
+            {{- icon("cubes") -}}
+        </a>
+    {% else %}
+        {{ icon("cubes", faded=True, tooltip="No contents") }}
     {% endif %}
     {% for transaction in asset.transactions %}
-        <a href="{{ url_for('transaction.details_view', id=transaction.id) }}">
+        <a
+            href="{{ url_for('transaction.details_view', id=transaction.id) }}"
+            rel="tooltip" title="
+                <strong>Transaction</strong> #{{ transaction.id }}<br>
+                {% if transaction.counterparty_new %}
+                    with {{ transaction.counterparty_new.name }}, 
+                {% endif %}
+                {{ transaction.assets | count }} assets"
+        >
             {{- icon("handshake") -}}
         </a>
     {% endfor %}
+    </div>
+{% endmacro %}
+
+{% macro render_name_column(asset) %}
+    <strong>{{ asset.category.name }}</strong> {{ asset.name }}
 {% endmacro %}
 
 {% macro new_asset_form(show_category_text=True, parent_id=None) %}
