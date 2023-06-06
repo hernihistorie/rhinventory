@@ -1,6 +1,7 @@
 import json
 import datetime
 import enum
+import typing
 
 from sqlalchemy import Column, Integer, Numeric, String, Text, \
     DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint
@@ -37,7 +38,7 @@ class LogItem(db.Model):
         return class_.query.get(self.object_id)
 
 
-def log(event: LogEvent, object: any, log_object=True, user=None, **kwargs):
+def log(event: LogEvent, object: typing.Any, log_object=True, user: User | None=None, **kwargs) -> None:
     log_item = LogItem(table=type(object).__name__, object_id=object.id,
         event=event, object_json=json.dumps(object.asdict(), default=repr, ensure_ascii=False) if log_object else None,
         user_id=user.id if user else None,

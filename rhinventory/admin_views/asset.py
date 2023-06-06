@@ -4,7 +4,7 @@ import sys
 from math import ceil
 from typing import Optional, Union, Iterable
 
-from flask import redirect, request, flash, url_for, get_template_attribute
+from flask import Response, redirect, request, flash, url_for, get_template_attribute
 from wtforms import RadioField
 import wtforms.validators
 from flask_admin import expose
@@ -16,12 +16,13 @@ from flask_admin.contrib.sqla import form
 from flask_admin.helpers import get_form_data
 from flask_login import current_user
 from sqlalchemy import desc, nulls_last
+from rhinventory.admin_views.utils import get_asset_list_from_request_args
 
 from rhinventory.extensions import db
 from rhinventory.admin_views.model_view import CustomModelView
 from rhinventory.db import Medium, Asset, get_next_file_batch_number, LogItem
 from rhinventory.models.asset import AssetCondition
-from rhinventory.models.log import log
+from rhinventory.models.log import LogEvent, log
 from rhinventory.forms import FileForm
 from rhinventory.models.asset import AssetCategory
 from rhinventory.models.asset_attributes import Company
@@ -525,3 +526,27 @@ class AssetView(CustomModelView):
         db.session.commit()
         flash(f"Added {num_assets} assets as contents.", "success")
         return response
+
+    @expose('/set_parent_bulk/', methods=['POST'])
+    def set_parent_bulk(self) -> Response:
+        parent_asset_id = int(request.form['parent_asset_id'])
+        parent_asset: Asset | None = db.session.query(Asset).get(parent_asset_id)
+        if not parent_asset:
+            flash(f"Asset with id {parent_asset_id} not found.", 'error')
+            return redirect(url_for('.index_view'))
+        
+        assert isinstance(parent_asset, Asset)
+
+        bulk_datetime = datetime.utcnow()
+        assets: list[Asset] = get_asset_list_from_request_args()
+        for asset in assets:
+            asset.parent_id = parent_asset.id
+            db.session.add(asset)
+            log(LogEvent.Update, object=asset, user=current_user, is_bulk=True, bulk_datetime=bulk_datetime.isoformat())
+        db.session.commit()
+
+        message = f"Parent for {len(assets)} assets set to be {parent_asset}."
+
+        flash(message, "success")
+
+        return redirect(url_for('.index_view'))

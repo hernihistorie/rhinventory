@@ -26,11 +26,14 @@
         .selected-buttons {
             text-align: right;
         }
+
+        .selected form {display: inline-block; border: 1px solid #bbb; padding: 2px; border-radius: 4px; margin: 0;}
     </style>
     <div id="selected" class="selected">
         <div id="selected-list">
         </div>
         <div class="selected-buttons">
+            <span id="selected-count" style="font-style:italic;"></span>
             <button id="selected-clear">Clear</button>
             <button id="selected-show-sheet">Show sheet</button>
             <button id="selected-create-transaction">Create transaction</button>
@@ -38,11 +41,19 @@
                 id="selected-add-to-transaction-form"
                 action="{{ get_url('transaction.add_to_view') }}"
                 method="POST"
-                style="display: inline-block; border: 1px solid #ccc; padding: 1px; border-radius: 4px; margin: 0;"
             >
                 <input id="selected-add-transaction-id-asset-id" type="hidden" name="asset_id" value="">
                 <input id="selected-add-transaction-id-transaction-id" name="transaction_id" type="text" placeholder="Transaction ID" style="margin: 0; padding: 2px; width: 120px;">
                 <input type="submit" value="Add to transaction">
+            </form>
+            <form
+                id="selected-set-parent-bulk-form"
+                action="{{ get_url('asset.set_parent_bulk') }}"
+                method="POST"
+            >
+                <input id="selected-set-parent-bulk-asset-id" type="hidden" name="asset_id" value="">
+                <input id="selected-set-parent-bulk-parent-asset-id" name="parent_asset_id" type="text" placeholder="Parent asset ID" style="margin: 0; padding: 2px; width: 120px;">
+                <input type="submit" value="Set parent">
             </form>
         </div>
     </div>
@@ -62,6 +73,7 @@
 
             document.getElementById('selected-list').innerHTML = selected.join(', ');
             document.getElementById('selected').style.display = selected.length ? 'block' : 'none';
+            document.getElementById('selected-count').innerHTML = selected.length;
         }
 
         function updateSelected() {
@@ -139,10 +151,22 @@
             var transaction_id = document.getElementById("selected-add-transaction-id-transaction-id").value;
             if (transaction_id == "") {
                 alert("Transaction ID is required");
-                return;
+                event.preventDefault()
+                return false;
             }
 
             document.getElementById("selected-add-transaction-id-asset-id").value = selected;
+        })
+
+        document.getElementById("selected-set-parent-bulk-form").addEventListener('submit', function(event) {
+            var transaction_id = document.getElementById("selected-set-parent-bulk-parent-asset-id").value;
+            if (transaction_id == "") {
+                alert("Parent asset ID is required");
+                event.preventDefault()
+                return false;
+            }
+
+            document.getElementById("selected-set-parent-bulk-asset-id").value = selected;
         })
 
         /* Select multiple checkboxes with shift */

@@ -3,23 +3,10 @@ from flask import request, redirect, url_for, flash, Response
 from flask_admin import expose
 
 from rhinventory.admin_views.model_view import CustomModelView
+from rhinventory.admin_views.utils import get_asset_list_from_request_args
 
-from rhinventory.extensions import db, simple_eval
-from rhinventory.db import Asset
+from rhinventory.extensions import debug_toolbar
 from rhinventory.models.transaction import Transaction
-
-def get_asset_list_from_request_args() ->  typing.List[Asset]:
-    assets: typing.List[Asset] = []
-    if "asset_id" in request.values:
-        asset_id = simple_eval.eval(request.values["asset_id"])
-        if isinstance(asset_id, int) or isinstance(asset_id, str):
-            asset_query = db.session.query(Asset).filter(Asset.id == asset_id).one()
-            assets = [asset_query]
-        else:
-            asset_query = db.session.query(Asset).filter(Asset.id.in_(asset_id)).all()
-            assets = asset_query
-    
-    return assets
 
 
 class TransactionView(CustomModelView):
@@ -59,7 +46,7 @@ class TransactionView(CustomModelView):
         transaction = db.session.query(Transaction).get(transaction_id)
         if not transaction:
             flash(f"Transaction with id {transaction_id} not found.", 'error')
-            return redirect(url_for('.list_view'))
+            return redirect(url_for('.index_view'))
 
         assert transaction
 
