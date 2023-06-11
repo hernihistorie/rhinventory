@@ -39,6 +39,8 @@ class FileCategory(enum.Enum):
     prose       = 31
     transcription = 32
 
+    test_result = 40
+
     collection  = 90
 
 IMAGE_CATEGORIES = [FileCategory.image, FileCategory.photo, FileCategory.scan,
