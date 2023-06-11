@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import datetime
 from enum import Enum
 import sys
@@ -15,13 +16,15 @@ from flask_admin.actions import action
 from flask_admin.contrib.sqla import form
 from flask_admin.helpers import get_form_data
 from flask_login import current_user
-from sqlalchemy import desc, nulls_last
+from sqlalchemy import desc, nulls_last, func
+from sqlalchemy.sql.functions import coalesce
 from rhinventory.admin_views.utils import get_asset_list_from_request_args
 
 from rhinventory.extensions import db
 from rhinventory.admin_views.model_view import CustomModelView
 from rhinventory.db import Medium, Asset, get_next_file_batch_number, LogItem
 from rhinventory.models.asset import AssetCondition
+from rhinventory.models.file import IMAGE_CATEGORIES, File
 from rhinventory.models.log import LogEvent, log
 from rhinventory.forms import FileForm
 from rhinventory.models.asset import AssetCategory
@@ -437,6 +440,42 @@ class AssetView(CustomModelView):
     @expose('/new2/', methods=['GET'])
     def new_view(self):
         return self.render('admin/asset/new.html')
+    
+
+    @expose('/map/', methods=['GET'])
+    def map_view(self):
+        # This code brought to you by GPT-4
+
+        # First, create a subquery that returns the count of files for each asset
+        images_count_subquery = (
+            db.session.query(File.asset_id, func.count(File.id).label("image_count"))
+            .filter(File.category.in_(IMAGE_CATEGORIES))
+            .group_by(File.asset_id)
+            .subquery()
+        )
+
+        # Now, join the Asset table with the subquery and select all assets
+        # along with the file count for each asset
+        assets_with_image_count = (
+            db.session.query(
+                Asset, coalesce(images_count_subquery.c.image_count, 0).label("image_count")
+            )
+            .outerjoin(images_count_subquery, Asset.id == images_count_subquery.c.asset_id)
+            .all()
+        )
+
+        image_count_by_id: dict[int, int] = defaultdict(lambda: None)
+        max_id = 0
+
+        # assets_with_has_image will contain a list of tuples with the Asset object and the boolean value
+        # You can unpack the tuple to get each asset and its "has_file" attribute, like this:
+        for asset, image_count in assets_with_image_count:
+            image_count_by_id[asset.id] = image_count
+            if max_id < asset.id:
+                max_id = asset.id
+
+
+        return self.render('admin/asset/map.html', image_count_by_id=image_count_by_id, max_id=max_id)
                     
     
     @action('create_transaction', 'Create transaction')
