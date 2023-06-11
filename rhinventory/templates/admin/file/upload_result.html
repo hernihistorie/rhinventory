@@ -32,77 +32,88 @@
                     <a href="{{ url_for('file.details_view', id=file.id) }}">
                         <span class="fa fa-eye glyphicon icon-eye-open"></span>
                     </a>
+
+                    <button class="plain"
+                        hx-post="{{ url_for('file.delete_view', id=file.id, htmx=True) }}">
+                        <span class="fa fa-trash glyphicon icon-trash"></span>
+                    </button>
                 </td>
                 <td>
                     <a href="{{ url_for('file.details_view', id=file.id) }}">
                         {{ file.filename }}
                     </a>
                 </td>
-                <td>
-                    {{ file.category.name }}
-                </td>
-                <td>
-                    <button hx-post="{{ url_for('file.set_primary_view', id=file.id, primary=not file.primary, refresh=True) }}" class="btn btn-secondary">
-                        {{ '★' if file.primary else '☆' }}
-                    </button>
-                </td>
-                <td style="padding: 0; min-width: 62px;">
-                    {{ render_file_thumbnail(file) }}
-                </td>
-                <td style="white-space: nowrap;">
-                    {% if file.has_thumbnail %}
-                        {% for rotation, icon in [('270', '↶'), ('0', '↓'), ('90', '↷'), ('180', '180°')] -%}
-                            <button
-                                hx-post="{{ url_for('file.rotate_view', id=file.id, rotation=rotation, htmx=True) }}"
-                                class="btn btn-secondary"
-                                hx-swap="outerHTML"
-                                hx-target="#thumb-{{ file.id }}"
-                            >
-                                {{ icon }}
-                            </button>
-                        {%- endfor %}
-                    {% endif %}
-                </td>
-                <td>
-                    {% if file.asset %}
-                        <a href="{{ url_for('asset.details_view', id=file.asset.id) }}">
-                            {{ file.asset }}
-                        </a>
-                    {% elif file.is_image and auto_assign %}
-                        <span class="text-warning">
-                            RH barcode not detected
-                        </span>
-                    {% endif %}
-                </td>
-                <td style="white-space: nowrap;">
-                    {% if not file.asset and (prev_file.asset or next_file.asset) %}
-                        {% if prev_file.asset == next_file.asset %}
-                            <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=prev_file.asset.id, refresh=True) }}"
-                                class="btn btn-secondary"
-                                {% if not prev_file.asset %} disabled {% endif %}>
-                                ⇕
-                            </button>
-                        {% else %}
-                            <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=prev_file.asset.id, refresh=True) if prev_file.asset else None }}"
-                                class="btn btn-secondary"
-                                {% if not prev_file.asset %} disabled {% endif %}>
-                                ⇞
-                            </button>
-                            <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=prev_file.asset.id+1, refresh=True) if prev_file.asset else None }}"
-                                class="btn btn-secondary"
-                                {% if not prev_file.asset %} disabled {% endif %}>
-                                ⇞+1
-                                {% if not prev_file.asset or not next_file.asset or (prev_file.asset.id+1 != next_file.asset.id) %}
-                            </button>
-                            <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=next_file.asset.id, refresh=True) if next_file.asset else None }}"
-                                class="btn btn-secondary"
-                                {% if not next_file.asset %} disabled {% endif %}>
-                                {% endif %}
-                                ⇟
-                            </button>
+                {% if file.is_deleted %}
+                    <td class="text-error" colspan=7>
+                        File has been deleted.
+                    </td>
+                {% else %}
+                    <td>
+                        {{ file.category.name }}
+                    </td>
+                    <td>
+                        <button hx-post="{{ url_for('file.set_primary_view', id=file.id, primary=not file.primary, refresh=True) }}" class="btn btn-secondary">
+                            {{ '★' if file.primary else '☆' }}
+                        </button>
+                    </td>
+                    <td style="padding: 0; min-width: 62px;">
+                        {{ render_file_thumbnail(file) }}
+                    </td>
+                    <td style="white-space: nowrap;">
+                        {% if file.has_thumbnail %}
+                            {% for rotation, icon in [('270', '↶'), ('0', '↓'), ('90', '↷'), ('180', '180°')] -%}
+                                <button
+                                    hx-post="{{ url_for('file.rotate_view', id=file.id, rotation=rotation, htmx=True) }}"
+                                    class="btn btn-secondary"
+                                    hx-swap="outerHTML"
+                                    hx-target="#thumb-{{ file.id }}"
+                                >
+                                    {{ icon }}
+                                </button>
+                            {%- endfor %}
                         {% endif %}
-                    {% endif %}
-                </td>
+                    </td>
+                    <td>
+                        {% if file.asset %}
+                            <a href="{{ url_for('asset.details_view', id=file.asset.id) }}">
+                                {{ file.asset }}
+                            </a>
+                        {% elif file.is_image and auto_assign %}
+                            <span class="text-warning">
+                                RH barcode not detected
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td style="white-space: nowrap;">
+                        {% if not file.asset and (prev_file.asset or next_file.asset) %}
+                            {% if prev_file.asset == next_file.asset %}
+                                <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=prev_file.asset.id, refresh=True) }}"
+                                    class="btn btn-secondary"
+                                    {% if not prev_file.asset %} disabled {% endif %}>
+                                    ⇕
+                                </button>
+                            {% else %}
+                                <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=prev_file.asset.id, refresh=True) if prev_file.asset else None }}"
+                                    class="btn btn-secondary"
+                                    {% if not prev_file.asset %} disabled {% endif %}>
+                                    ⇞
+                                </button>
+                                <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=prev_file.asset.id+1, refresh=True) if prev_file.asset else None }}"
+                                    class="btn btn-secondary"
+                                    {% if not prev_file.asset %} disabled {% endif %}>
+                                    ⇞+1
+                                    {% if not prev_file.asset or not next_file.asset or (prev_file.asset.id+1 != next_file.asset.id) %}
+                                </button>
+                                <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=next_file.asset.id, refresh=True) if next_file.asset else None }}"
+                                    class="btn btn-secondary"
+                                    {% if not next_file.asset %} disabled {% endif %}>
+                                    {% endif %}
+                                    ⇟
+                                </button>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                {% endif %}
             </tr>
         {% endfor %}
     </table>

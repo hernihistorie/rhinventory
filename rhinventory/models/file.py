@@ -74,6 +74,7 @@ class File(db.Model):
     original_md5 = Column(LargeBinary(16))
     sha256      = Column(LargeBinary(32))
     original_sha256 = Column(LargeBinary(32))
+    is_deleted = Column(Boolean, default=False)
 
     user        = relationship("User", backref="files")
     asset       = relationship("Asset", backref="files")
@@ -132,6 +133,13 @@ class File(db.Model):
             return
         im = Image.open(self.full_filepath)
         return im
+
+    def delete(self) -> None:
+        os.remove(self.full_filepath)
+        if self.full_filepath_thumbnail:
+            os.remove(self.full_filepath_thumbnail)
+        
+        self.is_deleted = True
     
     # Make sure to save the model after calling this method...
     def make_thumbnail(self):

@@ -324,3 +324,20 @@ class FileView(CustomModelView):
         else:
             flash("No RH barcode found.", 'success')
         return redirect(url_for("file.details_view", id=id))
+
+    @expose('/delete/', methods=['POST'])
+    def delete_view(self):
+        htmx = request.args.get('htmx', False)
+        id = get_mdict_item_or_list(request.args, 'id')
+        model = self.get_one(id)
+
+        model.delete()
+        db.session.add(model)
+        db.session.commit()
+
+        if htmx:
+            return 'OK', 200, {'HX-Refresh': 'true'}
+
+        flash("File deleted.", 'success')
+
+        return redirect(url_for("file.details_view", id=id))

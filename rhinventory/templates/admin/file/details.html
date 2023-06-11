@@ -6,6 +6,12 @@
     
     <h2>File: {{ model.filepath }}</h2>
 
+    {% if model.is_deleted %}
+        <div class="alert alert-danger">
+            This file has been deleted.
+        </div>
+    {% endif %}
+
     <div style="margin: 8px 0 8px 0; display: flex; justify-content: space-between;">
         <div>
             {% if model.has_thumbnail and not model.thumbnail_file_exists() %}
@@ -42,9 +48,12 @@
                     </form>
                 {% endfor %}
             {% endif %}
+            <form method="POST" action="{{ url_for('file.delete_view', id=model.id) }}" style="display: inline;">
+                <input type="submit" value="Delete" class="btn btn-danger">
+            </form>
         </div>
     </div>
-    {% if model.is_image %}
+    {% if model.is_image and not model.is_deleted %}
         <img src="{{ model.url}}" style="margin-bottom: 8px;">
         {% set barcodes = model.read_barcodes() %}
         {% if barcodes %}
