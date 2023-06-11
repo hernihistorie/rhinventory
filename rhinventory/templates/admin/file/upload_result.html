@@ -118,7 +118,14 @@
         {% endfor %}
     </table>
     {% if duplicate_files %}
-        <h2>Files skipped as duplicates</h2>
+        {% if duplicate_count %}
+            <h2>{{ duplicate_count }} files skipped as duplicates</h2>
+            {% if duplicate_count > 50 %}
+                <p>Only the first 50 duplicates are shown.
+            {% endif %}
+        {% else %}
+            <h2>Files skipped as duplicates</h2>
+        {% endif %}
         <table class="table table-hover table-bordered">
             <thead>
                 <tr>

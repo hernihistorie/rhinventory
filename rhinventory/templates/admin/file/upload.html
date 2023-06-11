@@ -116,9 +116,15 @@
                         xhr.send(formData)
                     } else {
                         // we're done
+                        window.onbeforeunload = null;
+                        duplicateCount = duplicateFiles.length;
+                        if (duplicateCount > 50) {
+                            duplicateFiles = duplicateFiles.slice(0, 50);
+                        }
                         window.location.href='{{ url_for("file.upload_result_view") }}'
                             + '?files=' + JSON.stringify(fileIds)
                             + '&duplicate_files=' + JSON.stringify(duplicateFiles)
+                            + '&duplicate_count=' + JSON.stringify(duplicateCount)
                             + '&auto_assign=' + (formElem.querySelector('#auto_assign').checked ? "True" : "False");
                     }
                 }

@@ -234,8 +234,14 @@ class FileView(CustomModelView):
             auto_assign = simple_eval.eval(request.args['auto_assign'])
         else:
             auto_assign = None
+
+        if 'duplicate_count' in request.args:
+            duplicate_count = simple_eval.eval(request.args['duplicate_count'])
+            print(duplicate_count)
+        else:
+            duplicate_count = None
         
-        return self.render('admin/file/upload_result.html', files=files, duplicate_files=duplicate_files, auto_assign=auto_assign, batch_number=batch_number)
+        return self.render('admin/file/upload_result.html', files=files, duplicate_files=duplicate_files, auto_assign=auto_assign, batch_number=batch_number, duplicate_count=duplicate_count)
 
 
     @expose('/make_thumbnail/', methods=['POST'])
