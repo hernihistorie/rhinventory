@@ -27,6 +27,12 @@
                 </a>
         </li>
 
+        <li class="{{ 'active' if request.url_rule.endpoint == 'asset.map_view' else '' }}">
+            <a href="{{ get_url('.map_view') }}">
+                {{ icon("map") }} Map
+                </a>
+        </li>
+
         {% if admin_view.can_create %}
             <li class="{{ 'active' if request.url_rule.endpoint == 'asset.create_view' else '' }} dropdown">
                 {#{%- if admin_view.create_modal -%}

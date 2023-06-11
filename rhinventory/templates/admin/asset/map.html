@@ -7,16 +7,19 @@
         .map {margin-left: 64px;}
         .map a {color: inherit;}
         .row {display: flex;}
-        .row > div {width: 16px;}
+        .row > div {width: 16px; text-align: center;}
         .row .col0 {width: 64px; text-align: right; padding-right: 8px; margin-right: 8px;border-right: 1px solid black;}
 
         .count-0 {color: #aaa;}
         .count {background: rgb(239, 255, 238);}
+
+        .tooltip {width: 300px !important;}
     </style>
     {% from 'admin/asset/menu_bar.html' import asset_menu_bar with context %}
     {{ asset_menu_bar() }}
 
     <h2>Asset map</h2>
+    <p>Indicates for each asset how many images are associated with it.  In the future other kinds of data can be represented - send your ideas to Sanqui.
     {% set PER_ROW = 50 %}
     <div class="map">
         {% for row in range((max_id // PER_ROW) + 1) %}
@@ -26,7 +29,12 @@
                 </div>
                 {% for i in range(row*PER_ROW, (row+1)*PER_ROW) %}
                     {% set count = image_count_by_id[i] %}
-                    <div class="{% if not count %} count-0 {% else %} count {% endif %}">
+                    <div
+                        class="{% if not count %} count-0 {% else %} count {% endif %}"
+                        {% if count != None %}
+                            rel="tooltip" title="{{ asset_by_id[i] }}"
+                        {% endif %}
+                    >
                         <a href="{{ url_for('asset.details_view', id=i) }}">
                             {% if count == None %}
                                 -
