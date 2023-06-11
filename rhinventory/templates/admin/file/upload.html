@@ -54,6 +54,10 @@
 
                 formElem.querySelector('input[type=submit]').disabled = true
 
+                window.onbeforeunload = function() {
+                    return "Upload in progress, are you sure you want to navigate away?";
+                }
+
                 const uploadPromises = []
 
                 uploadedCount = 0;
