@@ -5,7 +5,7 @@ from flask_admin import expose
 from rhinventory.admin_views.model_view import CustomModelView
 from rhinventory.admin_views.utils import get_asset_list_from_request_args
 
-from rhinventory.extensions import debug_toolbar
+from rhinventory.extensions import db
 from rhinventory.models.transaction import Transaction
 
 
