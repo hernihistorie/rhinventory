@@ -239,7 +239,7 @@ class File(db.Model):
             return
         self.asset_id = asset_id
 
-        files_dir = current_app.config['FILE_STORE_LOCATIONS'][current_app.config['DEFAULT_FILE_STORE']]
+        files_dir = current_app.config['FILE_STORE_LOCATIONS'][self.storage.value]
 
         directory = f'assets/{asset_id}'
         os.makedirs(files_dir + "/" + directory, exist_ok=True)
