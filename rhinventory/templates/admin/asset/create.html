@@ -11,9 +11,21 @@
         .admin-form input[type="text"], .admin-form textarea, .admin-form .select2-container {
             min-width: 400px;
         }
+
+        .no-hr hr {
+            display: none;
+        }
     </style>
 {% endblock %}
 
 {% block create_form %}
-    {{ lib.render_form(form, return_url, save_and_print_button() + extra(), form_opts) }}
+    {#{{ lib.render_form(form, return_url, save_and_print_button() + extra(), form_opts) }}#}
+    {# Inlined to also put the buttons on the top #}
+    {% call lib.form_tag(action=action) %}
+        <div class="no-hr">
+            {{ lib.render_form_buttons(return_url, save_and_print_button() + extra(), is_modal) }}
+        </div>
+        {{ lib.render_form_fields(form, form_opts=form_opts) }}
+        {{ lib.render_form_buttons(return_url, save_and_print_button() + extra(), is_modal) }}
+    {% endcall %}
 {% endblock %}
