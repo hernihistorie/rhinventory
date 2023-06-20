@@ -1,8 +1,14 @@
+import datetime
 import enum
+import json
+from copy import deepcopy
 
 import flask_login
 import sqlalchemy.orm
-from sqlalchemy import func
+from sqlalchemy import func, event, inspect
+from sqlalchemy.orm import object_session, object_mapper, ColumnProperty
+from sqlalchemy.orm.collections import InstrumentedList
+from sqlalchemy.orm.state import InstanceState
 
 from rhinventory.extensions import db
 
@@ -18,6 +24,44 @@ class HistoryTrait(db.Model):
     updated_at = db.Column(db.TIMESTAMP, server_default=func.now(), onupdate=func.current_timestamp())
     created_by = db.Column(db.Integer, default=get_current_user_id)
     updated_by = db.Column(db.Integer, default=get_current_user_id, onupdate=get_current_user_id)
+    history = db.Column(db.JSON, default=None, nullable=True)
+
+
+def on_update(session, flush_context, instances):
+    changed_objects = session.new.union(session.dirty)
+    for object_ in changed_objects:
+        changes = {}
+        if not isinstance(object_, HistoryTrait) or not inspect(object_).persistent:
+            continue
+
+        for mapper_property in object_mapper(object_).iterate_properties:
+            if isinstance(mapper_property, ColumnProperty):
+                key = mapper_property.key
+
+                if key == "history":
+                    continue
+
+                attribute_state = inspect(object_).attrs.get(key)
+                history = attribute_state.history
+
+                if history.has_changes():
+                    value = attribute_state.value
+                    # old_value is None for new objects and old value for dirty objects
+                    history = attribute_state.history
+                    old_value = history.deleted[0] if history.deleted else None
+
+                    changes[key] = old_value
+
+        if len(changes) > 0:
+            changes.update({"updated_at": object_.updated_at.isoformat(), "updated_by": object_.updated_by})
+
+            if isinstance(object_.history, list):
+                object_.history.append(changes)
+            else:
+                object_.history = [changes]
+
+
+event.listen(db.session, "before_flush", on_update)
 
 
 class Issuer(HistoryTrait):
