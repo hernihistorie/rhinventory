@@ -81,7 +81,7 @@
 {% endmacro %}
 
 {% macro render_name_column(asset) %}
-    <strong>{{ asset.category.name }}</strong> {{ asset.name }}
+    <strong class="asset-category">{{ asset.category.name }}</strong> {{ asset.name }}
 {% endmacro %}
 
 {% macro new_asset_form(show_category_text=True, parent_id=None) %}
