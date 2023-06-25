@@ -20,6 +20,7 @@
 
     <h2>Asset map</h2>
     <p>Indicates for each asset how many images are associated with it.  In the future other kinds of data can be represented - send your ideas to Sanqui.
+    <p>Assets with image: <strong>{{ "{:3.1f}".format(assets_with_image_fraction*100) }}%</strong>
     {% set PER_ROW = 50 %}
     <div class="map">
         {% for row in range((max_id // PER_ROW) + 1) %}

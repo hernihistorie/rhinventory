@@ -468,16 +468,20 @@ class AssetView(CustomModelView):
         asset_by_id: dict[int, Asset | None] = defaultdict(lambda: None)
         max_id: int = 0
 
+        assets_with_image = 0
+
         # assets_with_has_image will contain a list of tuples with the Asset object and the boolean value
         # You can unpack the tuple to get each asset and its "has_file" attribute, like this:
         for asset, image_count in assets_with_image_count:
             image_count_by_id[asset.id] = image_count
             asset_by_id[asset.id] = asset
+            if image_count:
+                assets_with_image += 1
             if max_id < asset.id:
                 max_id = asset.id
 
 
-        return self.render('admin/asset/map.html', image_count_by_id=image_count_by_id, asset_by_id=asset_by_id, max_id=max_id)
+        return self.render('admin/asset/map.html', image_count_by_id=image_count_by_id, asset_by_id=asset_by_id, max_id=max_id, assets_with_image_fraction=assets_with_image / len(assets_with_image_count))
                     
     
     @action('create_transaction', 'Create transaction')
