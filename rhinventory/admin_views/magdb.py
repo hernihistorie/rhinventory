@@ -4,7 +4,7 @@ from dateutil.rrule import rrule, WEEKLY, MONTHLY, YEARLY
 import flask
 from flask import flash
 from flask_admin import expose
-from wtforms import Form, FileField, SelectField, SubmitField, BooleanField
+from wtforms import Form, FileField, SelectField, SubmitField, BooleanField, ValidationError
 
 from rhinventory.admin_views import CustomModelView
 from rhinventory.admin_views.file import upload_file, DuplicateFile
@@ -112,6 +112,17 @@ class MagDbMagazineIssueView(MagDbModelView):
                 ("Add and go to magazine", "submit"),
             ]
         )
+
+    def on_model_change(self, form, model, is_created):
+        if is_created:
+            day, month, year = form.published_day.data, form.published_month.data, form.published_year.data
+        else:
+            day, month, year = model.published_day, model.published_month, model.published_year
+
+        try:
+            datetime.date(day=day or 1, month=month or 1, year=year or 1)
+        except ValueError:
+            raise ValidationError("Invalid date given!")
 
 class UploadForm(Form):
     file = FileField(label="File to upload")
