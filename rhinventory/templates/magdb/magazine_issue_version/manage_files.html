@@ -36,14 +36,29 @@
     <hr>
     <h3>Upload new file</h3>
 
+    <script>
+      // Note that the name "myDropzone" is the camelized
+      // id of the form.
+      Dropzone.options.myDropzone = {
+        // Configuration options go here
+      };
+    </script>
+
     <form action="{{ get_url('magdb_magazine_issue_version.manage_files', magazine_version_id=magazine_version.id) }}" method="POST" enctype='multipart/form-data'>
         <table>
-            {% for field in upload_form %}
-                <tr>
-                    <td>{{ field.label }}</td>
-                    <td>{{ field }}</td>
-                </tr>
-            {% endfor %}
+            <tr>
+                <td>{{ upload_form.file.label }}</td>
+                <td>{{ upload_form.file(id="uploaded_file", class="dropzone") }}</td>
+            </tr>
+            <tr>
+                <td>{{upload_form.file_type.label}}</td>
+                <td>{{upload_form.file_type}}</td>
+            </tr>
+
+            <tr>
+                <td></td>
+                <td>{{upload_form.submit}}</td>
+            </tr>
         </table>
     </form>
 {% endblock %}

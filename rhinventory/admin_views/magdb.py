@@ -4,7 +4,7 @@ from dateutil.rrule import rrule, WEEKLY, MONTHLY, YEARLY
 import flask
 from flask import flash
 from flask_admin import expose
-from wtforms import Form, FileField, SelectField, SubmitField, BooleanField, ValidationError
+from wtforms import Form, FileField, SubmitField, BooleanField, ValidationError, RadioField
 
 from rhinventory.admin_views import CustomModelView
 from rhinventory.admin_views.file import upload_file, DuplicateFile
@@ -126,7 +126,7 @@ class MagDbMagazineIssueView(MagDbModelView):
 
 class UploadForm(Form):
     file = FileField(label="File to upload")
-    file_type = SelectField(label="File type", choices=MagDBFileType.choices())
+    file_type = RadioField(label="File type", choices=MagDBFileType.choices())
     submit = SubmitField(label="Upload file")
 
 
