@@ -1,0 +1,27 @@
+{% extends 'admin/model/details.html' %}
+
+{% from '_macros.html' import icon %}
+{% from 'admin/asset/_macros.html' import new_asset_form %}
+
+{% block body %}
+    {% from 'admin/asset/menu_bar.html' import asset_menu_bar with context %}
+    {{ asset_menu_bar() }}
+
+    <h2>Asset tree</h2>
+    <p>Displays the <strong>location</strong> information for each asset.
+    <p>Please note that locations are distinct from parent/child relationships.  Parent/child are semantic relationships while locations are physical relationships.  In the future this page will support displaying both.
+
+    <h3>Root assets</h3>
+    <ul>
+        {% for asset, child_count in assets %}
+            <li>
+                {% if child_count %}
+                    <a hx-get="{{ url_for('asset.tree_view', id=asset.id) }}">
+                        {{- icon("square-plus") -}}
+                    </a>
+                {% endif %}
+                ({{ child_count }} children) <a href="{{ url_for('asset.details_view', id=asset.id) }}">{{ asset }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

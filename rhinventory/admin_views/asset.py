@@ -482,7 +482,25 @@ class AssetView(CustomModelView):
 
 
         return self.render('admin/asset/map.html', image_count_by_id=image_count_by_id, asset_by_id=asset_by_id, max_id=max_id, assets_with_image_fraction=assets_with_image / len(assets_with_image_count))
-                    
+
+    @expose('/tree/', methods=['GET'])
+    def tree_view(self):
+        subquery = (
+            db.session.query(Asset.location_id_new, func.count('*').label('child_count'))
+            .group_by(Asset.location_id_new)
+            .subquery()
+        )
+
+        assets = (
+            db.session.query(Asset, coalesce(subquery.c.child_count, 0))
+            .outerjoin(subquery, Asset.id == subquery.c.location_id_new)
+            .filter(Asset.location_id_new.is_(None))
+            .order_by(subquery.c.child_count.asc(), Asset.id.asc())
+            .all()
+        )
+
+        return self.render('admin/asset/tree.html', assets=assets)
+    
     
     @action('create_transaction', 'Create transaction')
     def create_transaction(self, asset_ids):
