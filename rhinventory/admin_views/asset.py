@@ -164,6 +164,7 @@ class AssetView(CustomModelView):
 #        'condition': AssetCondition,
     }
     can_export = True
+    page_size = 250
 
     list_template = "admin/asset/list.html"
     details_template = "admin/asset/details.html"
