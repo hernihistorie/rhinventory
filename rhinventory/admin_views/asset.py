@@ -6,12 +6,12 @@ from math import ceil
 from typing import Optional, Union, Iterable
 
 from flask import Response, redirect, request, flash, url_for, get_template_attribute
-from wtforms import RadioField
+from wtforms import RadioField, TextAreaField, Field
 import wtforms.validators
 from flask_admin import expose
 from flask_admin.helpers import get_redirect_target
 from flask_admin.model.helpers import get_mdict_item_or_list
-from flask_admin.form import Select2TagsField
+from flask_admin.form import Select2TagsField,  FormOpts
 from flask_admin.actions import action
 from flask_admin.contrib.sqla import form
 from flask_admin.helpers import get_form_data
@@ -54,7 +54,7 @@ def _last_used_query_factory_factory(cls: db.Model):
     )
 
 class AssetView(CustomModelView):
-    form_overrides = {
+    form_overrides: dict[str, type[Field]] = {
         'condition_new': ConditionField,
 #        'product_codes_new': Select2TagsField
     }
@@ -492,7 +492,7 @@ class AssetView(CustomModelView):
     def get_form(self):
         return self.make_asset_form(self.category)
 
-    def make_asset_form(self, category: AssetCategory):
+    def make_asset_form(self, category: AssetCategory, bulk=False):
         #form_class = super().scaffold_form()
 
         form_columns = []
@@ -505,6 +505,9 @@ class AssetView(CustomModelView):
                     continue
             form_columns.append(var)
         
+        if bulk:
+            self.form_overrides['name'] = TextAreaField
+
         converter = self.model_form_converter(self.session, self)
         form_class = form.get_form(self.model, converter,
                                    base_class=self.form_base_class,
@@ -514,15 +517,18 @@ class AssetView(CustomModelView):
                                    ignore_hidden=self.ignore_hidden,
                                    extra_fields=self.form_extra_fields)
 
+        if bulk:
+            del self.form_overrides['name']
+
         return form_class
 
-    def create_form(self, obj=None):
+    def create_form(self, obj=None, bulk=False):
         if "category" in request.args.keys():
             category = AssetCategory[request.args["category"]]
         else:
             category = AssetCategory.unknown
         
-        form = self.make_asset_form(category)(get_form_data(), obj=obj)
+        form = self.make_asset_form(category, bulk=bulk)(get_form_data(), obj=obj)
 
         form.category.data = category.name
 
@@ -598,3 +604,38 @@ class AssetView(CustomModelView):
         flash(message, "success")
 
         return redirect(url_for('.index_view'))
+
+    @expose('/bulk_new/', methods=('GET', 'POST'))
+    def bulk_create_view(self):
+        """
+            Bulk create model view
+
+            Based on .venv/lib/python3.11/site-packages/flask_admin/model/base.py#L2071
+        """
+        return_url = get_redirect_target() or self.get_url('.index_view')
+
+        if not self.can_create:
+            return redirect(return_url)
+
+        form = self.create_form(bulk=True)
+
+        if self.validate_form(form):
+            names = form.name.data.split('\n')
+            models = []
+            for name in names:
+                form.name.data = name.strip()
+                models.append(self.create_model(form))
+            if models:
+                flash(f'{len(models)} records was successfully created.', 'success')
+                return redirect(self.get_save_return_url(models[0], is_created=True))
+
+        form_opts = FormOpts(widget_args=self.form_widget_args,
+                             form_rules=self._form_create_rules)
+
+        template = self.create_template
+
+        return self.render(template,
+                           form=form,
+                           form_opts=form_opts,
+                           return_url=return_url)
+

@@ -1,7 +1,7 @@
 {% from 'admin/asset/_macros.html' import new_asset_form %}
 
 {# XXX https://github.com/flask-admin/flask-admin/blob/master/flask_admin/templates/bootstrap2/admin/model/list.html#L14 #}
-{% macro asset_menu_bar(return_url=None) %}
+{% macro asset_menu_bar(return_url=None, show_create_bulk=False) %}
     <style>
         .actions-nav {
             display: flex;
@@ -48,6 +48,22 @@
                 {#{%- endif -%}#}
                     <ul class="dropdown-menu field-filters">
                         {{ new_asset_form(show_category_text=False) }}
+                    </ul>
+            </li>
+            <li class="{{ 'active' if request.url_rule.endpoint == 'asset.bulk_create_view' else '' }} dropdown">
+                {#{%- if admin_view.create_modal -%}
+                    {{ lib.add_modal_button(url=get_url('.create_view', modal=True), title=_gettext('Create New Record'), content=_gettext('Create')) }}
+                {% else %}#}
+                    <a  {#href="{{ get_url('.bulk_new_view') }}"#} href="javascript:void(0)"
+                        class="dropdown-toggle"
+                        data-toggle="dropdown"
+                    >
+                        {{ icon("circle-plus") }} Bulk create
+                        <b class="caret"></b>
+                    </a>
+                {#{%- endif -%}#}
+                    <ul class="dropdown-menu field-filters">
+                        {{ new_asset_form(show_category_text=False, bulk=True) }}
                     </ul>
             </li>
             {% if model %}

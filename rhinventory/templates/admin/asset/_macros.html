@@ -84,7 +84,7 @@
     <strong class="asset-category">{{ asset.category.name }}</strong> {{ asset.name }}
 {% endmacro %}
 
-{% macro new_asset_form(show_category_text=True, parent_id=None) %}
+{% macro new_asset_form(show_category_text=True, parent_id=None, bulk=False) %}
     {# XXX refactor the style out #}
     <style>
         .category-select {
@@ -134,7 +134,10 @@
                         {% set shortname = shortnames.get(category, category) %}
                         <a
                             class="btn category-btn"
-                            href="{{ url_for('.create_view', category=category.replace(' ', '_'), parent_id=parent_id) }}"
+                            href="{{ url_for(
+                                    '.bulk_create_view' if bulk else '.create_view',
+                                    category=category.replace(' ', '_'), parent_id=parent_id
+                                ) }}"
                         >
                             {{ shortname.capitalize() }}
                         </a>

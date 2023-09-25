@@ -4,7 +4,7 @@
 
 {% block navlinks %}
     {% from 'admin/asset/menu_bar.html' import asset_menu_bar with context %}
-    {{ asset_menu_bar() }}
+    {{ asset_menu_bar(show_create_bulk=True) }}
 
     {# XXX this is duplicated in create.html !!! #}
     <style>
@@ -15,12 +15,20 @@
         .no-hr hr {
             display: none;
         }
+
+        .admin-form textarea[name="name"] {
+            height: 200px;
+        }
     </style>
 {% endblock %}
 
 {% block create_form %}
     {#{{ lib.render_form(form, return_url, save_and_print_button() + extra(), form_opts) }}#}
     {# Inlined to also put the buttons on the top #}
+    {% if request.url_rule.endpoint == 'asset.bulk_create_view' %}
+        <h2>Bulk create asset</h2>
+        <p>Using this form, you can create an arbitrary number of assets at once.  Simply put each name as a new line.  The rest of the data is shared.
+    {% endif %}
     {% call lib.form_tag(action=action) %}
         <div class="no-hr">
             {{ lib.render_form_buttons(return_url, save_and_print_button() + extra(), is_modal) }}
