@@ -10,7 +10,8 @@ from rhinventory.admin_views import CustomModelView
 from rhinventory.admin_views.file import upload_file, DuplicateFile
 from rhinventory.extensions import db
 from rhinventory.models.file import FileCategory
-from rhinventory.models.magdb import Issuer, Magazine, Periodicity, MagazineIssue, Format, MagazineIssueVersion, MagazineIssueVersionPrice, MagazineIssueVersionFiles, MagDBFileType
+from rhinventory.models.magdb import Issuer, Magazine, Periodicity, MagazineIssue, Format, MagazineIssueVersion, \
+    MagazineIssueVersionPrice, MagazineIssueVersionFiles, MagDBFileType, MagazineSupplement, MagazineSupplementVersion
 
 
 class MagDbModelView(CustomModelView):
@@ -289,9 +290,15 @@ class MagDbMagazineIssueVersionPriceView(MagDbModelView):
         )
 
 
-class MagazineIssueFileView(MagDbModelView):
+class MagDbMagazineIssueFileView(MagDbModelView):
     pass
 
+
+class MagDbMagazineSupplementView(MagDbModelView):
+    pass
+
+class MagDbMagazineSupplementVersionView(MagDbModelView):
+    pass
 
 
 def add_magdb_views(admin, session):
@@ -301,5 +308,7 @@ def add_magdb_views(admin, session):
     admin.add_view(MagDbModelView(Format, session, category="MagDB"))
     admin.add_view(MagDbMagazineIssueVersionView(MagazineIssueVersion, session, category="MagDB", endpoint="magdb_magazine_issue_version"))
     admin.add_view(MagDbMagazineIssueVersionPriceView(MagazineIssueVersionPrice, session, category="MagDB", endpoint="magdb_magazine_issue_version_price"))
-    admin.add_view(MagazineIssueFileView(MagazineIssueVersionFiles, session, category="MagDB", endpoint="magdb_file"))
+    admin.add_view(MagDbMagazineIssueFileView(MagazineIssueVersionFiles, session, category="MagDB", endpoint="magdb_file"))
+    admin.add_view(MagDbMagazineSupplementView(MagazineSupplement, session, category="MagDB", endpoint="magdb_magazine_supplement"))
+    admin.add_view(MagDbMagazineSupplementVersionView(MagazineSupplementVersion, session, category="MagDB", endpoint="magdb_magazine_supplement_version"))
 

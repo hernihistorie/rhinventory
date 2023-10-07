@@ -141,6 +141,7 @@ class MagDBFileType(enum.Enum):
     scan        = 11
     cover_page  = 12
     index_page  = 13
+    photo       = 14
 
     @classmethod
     def choices(cls):
@@ -201,5 +202,31 @@ class MagazineIssueVersionFiles(HistoryTrait):
 
     file_id = db.Column(db.Integer(), db.ForeignKey("files.id"), nullable=False)
     file = db.relationship("File", backref="magazine_issue_files")
+
+    file_type = db.Column(db.Enum(MagDBFileType))
+
+
+class MagazineSupplement(HistoryTrait):
+    __tablename__ = "magazine_supplement"
+    id = db.Column(db.Integer(), unique=True, primary_key=True)
+    title = db.Column(db.String(255), unique=True, info={"label": "Název přílohy"})
+
+class MagazineSupplementVersion(HistoryTrait):
+    __tablename__ = "magazine_supplement_version"
+    id = db.Column(db.Integer(), unique=True, primary_key=True)
+
+    magazine_supplement_id = db.Column(db.Integer(), db.ForeignKey("magazine_supplement.id"), nullable=False)
+    magazine_supplement = db.relationship("MagazineSupplement", backref="versions")
+
+
+class MagazineIssueVersionFiles(HistoryTrait):
+    __tablename__ = "magazine_supplement_version_files"
+    id = db.Column(db.Integer(), unique=True, primary_key=True)
+
+    magazine_supplement_version_id = db.Column(db.Integer(), db.ForeignKey("magazine_supplement_version.id"), nullable=False)
+    magazine_supplement_version = db.relationship("MagazineSupplementVersion", backref="files")
+
+    file_id = db.Column(db.Integer(), db.ForeignKey("files.id"), nullable=False)
+    file = db.relationship("File", backref="magazine_supplement_files")
 
     file_type = db.Column(db.Enum(MagDBFileType))
