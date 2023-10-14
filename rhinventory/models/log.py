@@ -4,7 +4,7 @@ import enum
 import typing
 
 import flask_login
-from sqlalchemy import Column, Integer, Numeric, String, Text, \
+from sqlalchemy import Boolean, Column, Integer, Numeric, String, Text, \
     DateTime, ForeignKey, Enum, Index, inspect, event
 from sqlalchemy.orm import relationship, object_mapper, ColumnProperty
 
@@ -21,6 +21,7 @@ class LogItem(db.Model):
     object_id   = Column(Integer, nullable=False)
     event       = Column(Enum(LogEvent), nullable=False)
     object_json = Column(Text)
+    object_json_new_format = Column(Boolean)
     
     extra_json  = Column(Text)
     
@@ -67,6 +68,7 @@ def log_data(obj: typing.Any, event: str, data: dict[typing.Any, typing.Any]) ->
                 data,
                 default=repr,
                 ensure_ascii=False),
+            object_json_new_format=True,
             user_id=flask_login.current_user.id if flask_login.current_user else None,
             datetime=datetime.datetime.now(),
             extra_json="{}"
