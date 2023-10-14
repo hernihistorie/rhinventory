@@ -15,13 +15,14 @@
 <div class="card card-sm">
     <div class="card-body">
         <div>
-            <h2>{{ year }}</h2>
+            <h2>{{ year or "Bez zadaného roku"}}</h2>
         </div>
 
         <div class="table-resposive">
             <table class="table table-vcenter">
                 <tr>
-                    <th>Číslo</th>
+                    <th>Časpis</th>
+                    <th>Číslo v pořadí</th>
                     <th>Datum vydání</th>
                     <th>Verze</th>
                 </tr>
@@ -30,7 +31,12 @@
                     {% if issue.is_special_issue %}
                     <td>{{ issue.current_magazine_name }}: {{ issue.issue_title }}</td>
                     {% else %}
-                    <td>{{ issue.current_magazine_name }}: {{ issue.calendar_id }}</td>
+                    <td>
+                        {{ issue.current_magazine_name }} {{ issue.calendar_id or ""}}
+                    </td>
+                    <td>
+                        {{ issue.issue_number or "" }}
+                    </td>
                     {% endif %}
                     <td>
                         {% if issue.published_day is not none %}
