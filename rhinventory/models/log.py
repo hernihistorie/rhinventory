@@ -67,7 +67,7 @@ def log_data(obj: typing.Any, event: str, data: dict[typing.Any, typing.Any]) ->
                 data,
                 default=repr,
                 ensure_ascii=False),
-            user_id=flask_login.current_user.id,
+            user_id=flask_login.current_user.id if flask_login.current_user else None,
             datetime=datetime.datetime.now(),
             extra_json="{}"
         )
