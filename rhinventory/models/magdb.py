@@ -18,6 +18,13 @@ class HistoryTrait(db.Model):
     created_by = db.Column(db.Integer, default=get_current_user_id)
     updated_by = db.Column(db.Integer, default=get_current_user_id, onupdate=get_current_user_id)
 
+
+class CheckedTrait(db.Model):
+    __abstract__ = True
+    inserted = db.Column(db.Boolean, server_default="False")
+    manually_checked = db.Column(db.Boolean, server_default="False")
+
+
 class Issuer(HistoryTrait):
     __tablename__ = "issuers"
     id = db.Column(db.Integer(), unique=True, primary_key=True)
@@ -83,8 +90,13 @@ class IssueStatus(enum.Enum):
     problems = "p"
 
 
-class MagazineIssue(HistoryTrait):
+class MagazineIssue(HistoryTrait, CheckedTrait):
     __tablename__ = "magazine_issues"
+    # for machine checking:
+    #   issue_number+calendar_id for non-specials, else issue_title NOT NULL
+    #   periodicity set
+    #   at least year is set
+    #   page_count set
     id = db.Column(db.Integer(), unique=True, primary_key=True)
     issue_number = db.Column(db.Integer(), nullable=True)
     calendar_id = db.Column(db.String(64), nullable=True)
@@ -93,7 +105,7 @@ class MagazineIssue(HistoryTrait):
     current_magazine_name = db.Column(db.String(127))
     is_special_issue = db.Column(db.Boolean())
 
-    periodicity = db.Column(db.Enum(Periodicity))
+    periodicity = db.Column(db.Enum(Periodicity), nullable=True)
 
     published_day = db.Column(db.Integer(), nullable=True)
     published_month = db.Column(db.Integer(), nullable=True)
@@ -102,9 +114,9 @@ class MagazineIssue(HistoryTrait):
     page_count = db.Column(db.Integer(), nullable=True)
     circulation = db.Column(db.Integer(), nullable=True)
 
-    chief_editor_id = db.Column(db.Integer, db.ForeignKey('parties.id'))
+    chief_editor_id = db.Column(db.Integer, db.ForeignKey('parties.id'), nullable=True)
 
-    issuer_id = db.Column(db.Integer(), db.ForeignKey("issuers.id"))
+    issuer_id = db.Column(db.Integer(), db.ForeignKey("issuers.id"), nullable=True)
     issuer = db.relationship("Issuer")
 
     magazine_id = db.Column(db.Integer(), db.ForeignKey("magazines.id"), nullable=False)
@@ -155,16 +167,20 @@ class MagDBFileType(enum.Enum):
         return str(self.value)
 
 
-class MagazineIssueVersion(HistoryTrait):
+class MagazineIssueVersion(HistoryTrait, CheckedTrait):
     __tablename__ = "magazine_issue_versions"
+    # for machine checking:
+    #   form is set
+    #   format is set
+    #   confirmed is True
     id = db.Column(db.Integer(), unique=True, primary_key=True)
     magazine_issue_id = db.Column(db.Integer(), db.ForeignKey("magazine_issues.id"), nullable=False)
     magazine_issue = db.relationship("MagazineIssue", backref="versions")
     name_suffix = db.Column(db.String(127))
 
-    form = db.Column(db.Enum(MagazineForm))
+    form = db.Column(db.Enum(MagazineForm), nullable=True)
 
-    format_id = db.Column(db.Integer(), db.ForeignKey("formats.id"))
+    format_id = db.Column(db.Integer(), db.ForeignKey("formats.id"), nullable=True)
     format = db.relationship("Format")
 
     confirmed = db.Column(db.Boolean())
