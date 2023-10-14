@@ -59,6 +59,10 @@ def log_data(obj: typing.Any, event: str, data: dict[typing.Any, typing.Any]) ->
     :param event: str, that is converted to LogEvent column
     :param data: dict with data, that are saved to object_json column
     """
+
+    user_id = None
+    if flask_login.current_user and flask_login.current_user.is_authenticated:
+        user_id = flask_login.current_user.id
     db.session.add(
         LogItem(
             table=type(obj).__name__,
@@ -69,7 +73,7 @@ def log_data(obj: typing.Any, event: str, data: dict[typing.Any, typing.Any]) ->
                 default=repr,
                 ensure_ascii=False),
             object_json_new_format=True,
-            user_id=flask_login.current_user.id if flask_login.current_user else None,
+            user_id=user_id,
             datetime=datetime.datetime.now(),
             extra_json="{}"
         )
