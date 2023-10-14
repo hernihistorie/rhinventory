@@ -125,7 +125,12 @@ class MagazineIssue(HistoryTrait, CheckedTrait):
     note = db.Column(db.Text())
 
     def __str__(self):
-        return f"{self.current_magazine_name}: { self.calendar_id if not self.is_special_issue else self.issue_title}"
+        issue_title = self.calendar_id if not self.is_special_issue else self.issue_title
+
+        if issue_title is None or len(issue_title) == 0:
+            issue_title = f"číslo {self.issue_number}"
+
+        return f"{self.current_magazine_name}: { issue_title }"
 
 
 class Currency(enum.Enum):
