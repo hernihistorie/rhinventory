@@ -74,16 +74,16 @@
                                             {{ version.name_suffix }}
                                         </td>
                                         <td>
-                                                {% for file in files.cover_pages[version.id] %}
-                                                    <img class="img-thumbnail" src="{{ file.url_thumbnail }}"
+                                                {% for file in version.cover_pages %}
+                                                    <img class="img-thumbnail" src="{{ file.thumbnail_path }}"
                                                          class="img-rounded">
                                                 {% else %}
                                                      Chybí!
                                                 {% endfor %}
                                         </td>
                                         <td>
-                                                {% for file in files.index_pages[version.id] %}
-                                                    <img class="img-thumbnail" src="{{ file.url_thumbnail }}"
+                                                {% for file in version.index_pages %}
+                                                    <img class="img-thumbnail" src="{{ file.thumbnail_path }}"
                                                         class="img-rounded">
                                                 {% else %}
                                                  Chybí!

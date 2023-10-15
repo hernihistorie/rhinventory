@@ -4,12 +4,12 @@ from typing import OrderedDict
 import flask.templating
 from flask import Blueprint, render_template
 
-from rhinventory.models.file import File, FileCategory
-from rhinventory.models.magdb import Magazine, MagazineIssue, MagazineIssueVersion, IssueStatus, MagazineIssueVersionFiles, MagDBFileType
-from rhinventory.extensions import db
-
+from rhinventory.models.magdb import Magazine, MagazineIssue, MagazineIssueVersion, IssueStatus, \
+    MagazineIssueVersionFiles, MagDBFileType
+from rhinventory.service.public_magdb import PublicMagDBService
 
 magdb_bp = Blueprint("magdb", __name__, url_prefix="/public-magdb")
+
 
 @magdb_bp.route("/")
 def index():
@@ -47,9 +47,10 @@ def magazine_detail(magazine_id):
     special_issues = []
     issue_ids = set()
 
-    for issue in MagazineIssue.query.filter(
-            MagazineIssue.magazine_id == magazine_id
-    ).order_by(MagazineIssue.published_year, MagazineIssue.published_month, MagazineIssue.published_day, MagazineIssue.issue_number).all():
+    service = PublicMagDBService()
+    new_data = service.list_magazine(magazine_id)
+
+    for issue in new_data:
         issue_ids.add(issue.id)
 
         if issue.is_special_issue:
@@ -61,18 +62,7 @@ def magazine_detail(magazine_id):
     if len(special_issues):
         context["issues_by_year"]["Speciály"] = special_issues
 
-    for file in db.session.query(MagazineIssueVersionFiles).join(MagazineIssueVersion).filter(MagazineIssueVersion.magazine_issue_id.in_(list(issue_ids))).all():
-        if file.file_type == MagDBFileType.logo:
-            context["files"]["logos"][file.magazine_issue_version.magazine_issue.magazine.id].add(file.file)
-            continue
-
-        if file.file_type == MagDBFileType.cover_page:
-            context["files"]["cover_pages"][file.magazine_issue_version_id].append(file.file)
-            continue
-
-        if file.file_type == MagDBFileType.index_page:
-            context["files"]["index_pages"][file.magazine_issue_version_id].append(file.file)
-            continue
+    # get logos
 
     return render_template("magdb/magazine_detail.html", **context)
 
