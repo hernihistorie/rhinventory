@@ -237,15 +237,15 @@ class MagazineSupplementVersion(HistoryTrait):
     id = db.Column(db.Integer(), unique=True, primary_key=True)
 
     magazine_supplement_id = db.Column(db.Integer(), db.ForeignKey("magazine_supplement.id"), nullable=False)
-    magazine_supplement = db.relationship("MagazineSupplement", backref="versions")
+    magazine_supplement = db.relationship("MagazineSupplement", backref="supplement_versions")
 
 
-class MagazineIssueVersionFiles(HistoryTrait):
+class MagazineSupplementVersionFiles(HistoryTrait):
     __tablename__ = "magazine_supplement_version_files"
     id = db.Column(db.Integer(), unique=True, primary_key=True)
 
     magazine_supplement_version_id = db.Column(db.Integer(), db.ForeignKey("magazine_supplement_version.id"), nullable=False)
-    magazine_supplement_version = db.relationship("MagazineSupplementVersion", backref="files")
+    magazine_supplement_version = db.relationship("MagazineSupplementVersion", backref="supplement_files")
 
     file_id = db.Column(db.Integer(), db.ForeignKey("files.id"), nullable=False)
     file = db.relationship("File", backref="magazine_supplement_files")

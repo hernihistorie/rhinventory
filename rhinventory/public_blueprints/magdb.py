@@ -49,7 +49,7 @@ def magazine_detail(magazine_id):
 
     for issue in MagazineIssue.query.filter(
             MagazineIssue.magazine_id == magazine_id
-    ).order_by(MagazineIssue.published_year, MagazineIssue.published_month, MagazineIssue.published_day).all():
+    ).order_by(MagazineIssue.published_year, MagazineIssue.published_month, MagazineIssue.published_day, MagazineIssue.issue_number).all():
         issue_ids.add(issue.id)
 
         if issue.is_special_issue:
