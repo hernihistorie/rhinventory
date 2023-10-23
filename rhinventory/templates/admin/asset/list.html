@@ -1,5 +1,7 @@
 {% extends 'admin/model/list.html' %}
 
+{% from '_macros.html' import icon %}
+
 {% block model_menu_bar %}
     {% from 'admin/asset/menu_bar.html' import asset_menu_bar with context %}
     {{ asset_menu_bar() }}
@@ -27,7 +29,26 @@
             text-align: right;
         }
 
-        .selected form {display: inline-block; border: 1px solid #bbb; padding: 2px; border-radius: 4px; margin: 0;}
+        .selected form {
+            /*
+            display: inline-block; border: 1px solid #bbb; padding: 2px; border-radius: 4px; margin: 0;
+            */    
+        }
+        .selected .btn {
+            font-size: 12px;
+        }
+        .selected .btn:not(a) {
+            height: 25px;
+        }
+        .selected a.btn {
+            height: 16px;
+        }
+        .selected input {
+            height: 19.5px;
+        }
+        .selected .input-append {
+            margin: 0;
+        }
         .col-id {width: 42px;}
         .col-code {width: 72px;}
         .col-flags {width: 82px;}
@@ -39,26 +60,34 @@
         </div>
         <div class="selected-buttons">
             <span id="selected-count" style="font-style:italic;"></span>
-            <button id="selected-clear">Clear</button>
-            <button id="selected-show-sheet">Show sheet</button>
-            <button id="selected-create-transaction">Create transaction</button>
+            <button id="selected-clear" class="btn">{{ icon('broom') }}</button>
+            <button id="selected-show-sheet" class="btn">Show sheet</button>
+            <a id="selected-print-labels" href="#" class="btn">Print labels</a>
+            <button id="selected-create-transaction" class="btn">Create transaction</button>
             <form
                 id="selected-add-to-transaction-form"
+                class="input-append"
                 action="{{ get_url('transaction.add_to_view') }}"
                 method="POST"
             >
                 <input id="selected-add-transaction-id-asset-id" type="hidden" name="asset_id" value="">
                 <input id="selected-add-transaction-id-transaction-id" name="transaction_id" type="text" placeholder="Transaction ID" style="margin: 0; padding: 2px; width: 120px;">
-                <input type="submit" value="Add to transaction">
+                <div class="btn-group">
+                    <input type="submit" value="Add to transaction" class="btn">
+                </div>
             </form>
             <form
                 id="selected-set-parent-bulk-form"
+                class="input-append"
                 action="{{ get_url('asset.set_parent_bulk') }}"
                 method="POST"
             >
+                {{ icon('jar') }}
                 <input id="selected-set-parent-bulk-asset-id" type="hidden" name="asset_id" value="">
                 <input id="selected-set-parent-bulk-parent-asset-id" name="parent_asset_id" type="text" placeholder="Parent asset ID" style="margin: 0; padding: 2px; width: 120px;">
-                <input type="submit" value="Set parent">
+                <div class="btn-group">
+                    <input type="submit" value="Set parent" class="btn">
+                </div>
             </form>
         </div>
     </div>
@@ -79,6 +108,8 @@
             document.getElementById('selected-list').innerHTML = selected.join(', ');
             document.getElementById('selected').style.display = selected.length ? 'block' : 'none';
             document.getElementById('selected-count').innerHTML = selected.length;
+
+            document.getElementById("selected-print-labels").href = "rhprint:" + selected.map(asset_id => asset_id + "-ha").join(";");
         }
 
         function updateSelected() {
