@@ -72,6 +72,12 @@
                 {% if transaction.counterparty_new %}
                     with {{ transaction.counterparty_new.name }}, 
                 {% endif %}
+                {% if transaction.transaction_type %}
+                    ({{ transaction.transaction_type.name }})<br>
+                {% endif %}
+                {% if transaction.finalized %}
+                    (not finalized)<br>
+                {% endif %}
                 {{ transaction.assets | count }} assets"
         >
             {{- icon("handshake") -}}
