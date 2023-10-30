@@ -623,6 +623,8 @@ class AssetView(CustomModelView):
             names = form.name.data.split('\n')
             models = []
             for name in names:
+                if not name.strip():
+                    continue
                 form.name.data = name.strip()
                 models.append(self.create_model(form))
             if models:
