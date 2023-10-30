@@ -277,8 +277,8 @@ class AssetView(CustomModelView):
             #('medium', 'Medium'), ('hardware_type', 'Hardware Type'), ('name', 'Name'), ('manufacturer', 'Manufacturer'), ('serial', 'Serial'), ('parent', 'Parent'), ('transactions', 'Transactions')
         ]
 
-    def _apply_search(self, query, count_query, joins, count_joins, search):
-        if search.lower().startswith('rh') or search.lower.startswith('hh'):
+    def _apply_search(self, query, count_query, joins, count_joins, search: str):
+        if search.lower().startswith('rh') or search.lower().startswith('hh'):
             search_id = int(search[2:])
             query = query.filter(Asset.id == search_id)
             search = ""
