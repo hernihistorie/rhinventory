@@ -95,9 +95,18 @@
         var selected = [];
         var checkboxes = Array.from(document.getElementsByClassName("action-checkbox"));
 
-        var selected_local_storage = localStorage.getItem("selected")
-        if (selected_local_storage) {
-            selected = JSON.parse(selected_local_storage);
+        /* Parse list of IDs in the selected URL parameter */
+        var urlParams = new URLSearchParams(window.location.search);
+        var selectedParam = urlParams.get('selected');
+
+        if (selectedParam) {
+            selected = selectedParam.split(',').map(Number);
+            console.log(selected);
+        } else {
+            var selected_local_storage = localStorage.getItem("selected")
+            if (selected_local_storage) {
+                selected = JSON.parse(selected_local_storage);
+            }
         }
 
         updateCheckboxes();
@@ -228,6 +237,7 @@
                 lastChecked = this;
             });
         });
+
 
     </script>
 {% endblock %}

@@ -636,7 +636,9 @@ class AssetView(CustomModelView):
                 models.append(self.create_model(form))
             if models:
                 flash(f'{len(models)} records was successfully created.', 'success')
-                return redirect(self.get_url(endpoint='.list_view', selected=[model.id for model in models]))
+                return redirect(
+                    self.get_url(endpoint='.index_view', selected=",".join(str(m.id) for m in models))
+                )
 
         form_opts = FormOpts(widget_args=self.form_widget_args,
                              form_rules=self._form_create_rules)
