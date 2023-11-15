@@ -118,7 +118,8 @@
             document.getElementById('selected').style.display = selected.length ? 'block' : 'none';
             document.getElementById('selected-count').innerHTML = selected.length;
 
-            document.getElementById("selected-print-labels").href = "rhprint:" + selected.map(asset_id => asset_id + "-ha").join(";");
+            let reversed_selected = selected.slice().reverse();
+            document.getElementById("selected-print-labels").href = "rhprint:" + reversed_selected.map(asset_id => asset_id + "-ha").join(";");
         }
 
         function updateSelected() {
