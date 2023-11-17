@@ -81,7 +81,7 @@ EXPOSED_CATEGORY_NUMBERS = {
 class Asset(db.Model):
     __tablename__ = 'assets'
     id          = Column(Integer, primary_key=True)
-    parent_id   = Column(Integer, ForeignKey('assets.id'))
+    parent_id   = Column(Integer, ForeignKey(id))
     name        = Column(String, nullable=False)
     manufacturer = Column(String) # TODO remove
     model       = Column(String)
@@ -105,8 +105,11 @@ class Asset(db.Model):
     #medium_id   = Column(Integer, ForeignKey('media.id'))
     hardware_type_id  = Column(Integer, ForeignKey('hardware_type.id'))
 
-    children    = relationship("Asset", foreign_keys=[parent_id], backref=backref("parent", remote_side=id))
-    contains    = relationship("Asset", foreign_keys=[location_id_new], backref=backref("location", remote_side=id))
+    children    = relationship("Asset", foreign_keys=[parent_id], back_populates="parent")
+    parent = relationship("Asset", foreign_keys=[parent_id], remote_side=[id], back_populates="children")
+
+    contains    = relationship("Asset", foreign_keys=[location_id_new], back_populates="location")
+    location = relationship("Asset", foreign_keys=[location_id_new], remote_side=[id], back_populates="children")
     #medium      = relationship("Medium", backref="assets")
     hardware_type = relationship("HardwareType", backref="assets")
 

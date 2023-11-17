@@ -11,7 +11,7 @@ from rhinventory.models.asset import Asset, AssetCategory
 
 class TestAppConfig:
     TESTING = True
-    DATABASE_URL = "sqlite:///:memory:"
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     GITHUB_CLIENT_ID = None
     GITHUB_CLIENT_SECRET = None
     FILES_DIR = "files"
