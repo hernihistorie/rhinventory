@@ -67,20 +67,28 @@
     {% for transaction in asset.transactions %}
         <a
             href="{{ url_for('transaction.details_view', id=transaction.id) }}"
+            {% if transaction.transaction_type and transaction.transaction_type.value < 0 %}
+                style="color: brown;"
+            {% endif %}
+            style=""
             rel="tooltip" title="
                 <strong>Transaction</strong> #{{ transaction.id }}<br>
-                {% if transaction.counterparty_new %}
-                    with {{ transaction.counterparty_new.name }}, 
-                {% endif %}
                 {% if transaction.transaction_type %}
-                    ({{ transaction.transaction_type.name }})<br>
+                    {{ transaction.transaction_type.name }}<br>
                 {% endif %}
-                {% if transaction.finalized %}
+                {% if transaction.counterparty_new %}
+                    with {{ transaction.counterparty_new.name }}<br>
+                {% endif %}
+                {% if not transaction.finalized %}
                     (not finalized)<br>
                 {% endif %}
                 {{ transaction.assets | count }} assets"
         >
-            {{- icon("handshake") -}}
+            {% if transaction.finalized %}
+                {{- icon("handshake") -}}
+            {% else %}
+                <i class="far fa-handshake"></i>
+            {% endif %}
         </a>
     {% endfor %}
     </div>
