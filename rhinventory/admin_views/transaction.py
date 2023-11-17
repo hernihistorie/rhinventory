@@ -25,6 +25,20 @@ class TransactionView(CustomModelView):
         'penouze_id',
         'finalized',
     ]
+    column_filters = [
+        'transaction_type',
+        'finalized',
+        'our_party',
+        'counterparty_new',
+    ]
+    column_searchable_list = [
+        'id',
+        'penouze_id',
+        #'our_party',
+        #'counterparty_new',
+        'url',
+        'note',
+    ]
     details_template = "admin/transaction/details.html"
 
     def create_form(self, obj=None):
