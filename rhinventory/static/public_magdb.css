@@ -1,0 +1,23 @@
+
+/* HA STYLES */
+
+:root {
+  --color-bg: #f3f2e7;
+  --color-text: #000;
+  --color-primary: #ef4d37;
+  --color-secondary: #b5a26d;
+  --max-width: 1400px;
+
+  --tblr-body-bg: var(--color-bg);
+  --tblr-border-color: var(--color-secondary);
+}
+
+body {
+  background-color: var(--color-bg);
+  font-family: Barlow, sans-serif;
+  font-size: 110%;
+}
+
+a, a:hover {
+  color: var(--color-primary);
+}
