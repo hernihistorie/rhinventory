@@ -38,6 +38,7 @@ ul.rating-field label { display: inline; }
 
 body {
   background-color: var(--color-bg);
+  font-family: Barlow, sans-serif;
 }
 
 a {
