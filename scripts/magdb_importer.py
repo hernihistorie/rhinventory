@@ -2,11 +2,14 @@ import csv
 import dataclasses
 from enum import StrEnum
 
+from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert
+
 from rhinventory.app import create_app
 from rhinventory.extensions import db
 from rhinventory.models.magdb import Magazine, MagazineIssue, MagazineIssueVersion
 
-csv_file = "/Users/rainbow/Desktop/BasicScore.csv"
+csv_file = "/home/rainbow/projects/personal/rhinventory/basic-score.csv"
 
 class CSVIssueStatus(StrEnum):
     have = "have"
@@ -103,19 +106,28 @@ with app.app_context():
     magazine = db.session.query(Magazine).get(3)
 
     for issue in resulting_data:
-        db_issue = MagazineIssue(
+        db_query = insert(MagazineIssue).values(
             issue_number=issue.issue_number,
             current_magazine_name=issue.title.capitalize(),
             is_special_issue=False,
             magazine_id=magazine.id,
             note=issue.comment,
-        )
-        db.session.add(db_issue)
+        ).on_conflict_do_nothing().returning(MagazineIssue.id)
+        result = db.session.execute(db_query)
 
+        magazine_id = result.fetchone()
+
+        if magazine_id is None:
+            query = select(MagazineIssue.id).where(
+                MagazineIssue.issue_number==issue.issue_number,
+                MagazineIssue.magazine_id==magazine.id
+            )
+
+            magazine_id = db.session.execute(query).fetchone()
 
         for version in issue.versions:
             db_version = MagazineIssueVersion(
-                magazine_issue=db_issue,
+                magazine_issue_id=magazine_id[0],
                 name_suffix=version.suffix,
                 confirmed=True if version.status != CSVIssueStatus.not_confirmed else False,
                 status=version.status if version.status != CSVIssueStatus.not_confirmed else "dont_have",
