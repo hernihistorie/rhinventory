@@ -4,6 +4,7 @@ import flask_login
 from sqlalchemy import func, UniqueConstraint
 
 from rhinventory.extensions import db
+from rhinventory.models.user import User
 
 
 def get_current_user_id():
@@ -11,7 +12,11 @@ def get_current_user_id():
     try:
         return flask_login.current_user.id
     except AttributeError:
-        return 20
+        result = User.query.where(User.username=="robot").first()
+
+        if result is not None:
+            return result.id
+        return None
 
 
 class HistoryTrait(db.Model):
