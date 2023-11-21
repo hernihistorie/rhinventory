@@ -44,6 +44,15 @@
     </a>
 {% endblock %}
 
+{% block main_menu %}
+    <ul class="nav">
+        {{ layout.menu() }}
+        <li>
+            <a href="https://casopisy.herniarchiv.cz/">Veřejná MagDB</a>
+        </li>
+    </ul>
+{% endblock %}
+
 {% block access_control %}
     <div class="pull-right">
         {% if current_user.is_authenticated %}
