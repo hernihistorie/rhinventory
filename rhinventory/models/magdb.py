@@ -1,14 +1,22 @@
 import enum
 
 import flask_login
-from sqlalchemy import func
+from sqlalchemy import func, UniqueConstraint
 
 from rhinventory.extensions import db
+from rhinventory.models.user import User
 
 
 def get_current_user_id():
     """Get's current looged in user."""
-    return flask_login.current_user.id
+    try:
+        return flask_login.current_user.id
+    except AttributeError:
+        result = User.query.where(User.username=="robot").first()
+
+        if result is not None:
+            return result.id
+        return None
 
 
 class HistoryTrait(db.Model):
@@ -123,6 +131,10 @@ class MagazineIssue(HistoryTrait, CheckedTrait):
     magazine = db.relationship("Magazine", backref="issues")
 
     note = db.Column(db.Text())
+
+    __table_args__ = (
+        UniqueConstraint('issue_number', 'magazine_id', name='_unique_issue'),
+    )
 
     def __str__(self):
         issue_title = self.calendar_id if not self.is_special_issue else self.issue_title

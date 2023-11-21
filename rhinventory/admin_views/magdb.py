@@ -35,6 +35,19 @@ class MagDbMagazineView(MagDbModelView):
 class MagDbMagazineIssueView(MagDbModelView):
     list_template = "magdb/magazine_issue/list_view.html"
 
+    column_searchable_list = [
+        'issue_number',
+        'current_magazine_name',
+    ]
+    column_sortable_list = [
+        'issue_number',
+        'current_magazine_name',
+    ]
+    column_filters = [
+        'magazine_id',
+        'current_magazine_name'
+    ]
+
     @expose("/create_wizard", methods=["GET", "POST"])
     def create_wizard(self):
         create_form = self.get_create_form()
