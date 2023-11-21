@@ -12,7 +12,7 @@
 {% block model_list_table %}
     <div style="display: flex; flex-wrap: wrap; justify-content: space-around;">
         {% for asset in data %}
-            <div style="width: 268px; max-width: 100%; border: 1px solid #bbb; border-radius: 2px; padding: 4px; margin: 4px;
+            <div style="width: 268px; max-width: 100%;  border-radius: 2px; padding: 4px; margin: 4px; border: 2px solid var(--color-secondary);
                         display: flex; flex-direction: column; justify-content: space-between;">
                 <div>
                     <strong>{{ asset.code }}</strong> {{ asset.category.name }}<br>
@@ -28,10 +28,10 @@
                             {% endif %}
                         </a>
                     {% else %}
-                        <a href="{{ url_for('asset.details_view', id=asset.id) }}" style="font-size: 128px; text-align: center; color: #ccc; min-height: 128px; padding-top: 28px; display: flex; align-items: center; justify-content: center; text-decoration: none;">✱</a>
+                        <a href="{{ url_for('asset.details_view', id=asset.id) }}" style="font-size: 128px; text-align: center; color: var(--color-secondary); min-height: 128px; padding-top: 28px; display: flex; align-items: center; justify-content: center; text-decoration: none;">✱</a>
                     {% endif %}
                 </div>
-                <div>
+                <div style="text-align: center;">
                     <a href="{{ url_for('asset.details_view', id=asset.id) }}">
                         {{ asset.name or '???' }}
                     </a>

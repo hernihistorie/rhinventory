@@ -25,3 +25,100 @@ ul.rating-field label { display: inline; }
       background-position: 7% 100%; }
     100% {
       background-position: 94% 0%; } }
+
+/* HA STYLES */
+
+:root {
+  --color-bg: #f3f2e7;
+  --color-text: #000;
+  --color-primary: #ef4d37;
+  --color-secondary: #b5a26d;
+  --max-width: 1400px
+}
+
+body {
+  background-color: var(--color-bg);
+}
+
+a {
+  color: var(--color-primary);
+}
+
+a:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.navbar .navbar-inner {
+  background: inherit;
+  border: 2px solid var(--color-secondary);
+  border-width: 0 0 2px 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.navbar .nav > li > a, .navbar .nav > .active > a {
+  color: var(--color-text);
+}
+
+.navbar .nav > li > a:hover, .navbar .nav > .active > a:hover {
+  color: var(--color-primary);
+}
+
+.navbar .nav > .active > a {
+  background: inherit;
+  /*border: 2px solid var(--color-primary);
+  border-width: 2px 2px 2px 2px;*/
+  font-weight: bold;
+  box-shadow: none;
+}
+
+.nav-tabs a {
+  color: var(--color-text);
+}
+.nav .dropdown-toggle .caret {
+    border-top-color: var(--color-text); border-bottom-color: var(--color-text);
+}
+
+.nav-tabs {
+  border-bottom: 1px solid var(--color-secondary);
+}
+
+.nav-tabs > .active > a {
+  font-weight: bold;
+  /* border: 2px solid var(--color-primary); */
+  border: 1px solid transparent;
+  background: inherit;
+  color: var(--color-text);
+}
+
+.nav-tabs > li > a:hover {
+  color: var(--color-primary);
+  background: inherit;
+  border: 1px solid transparent;
+}
+
+.nav-tabs > .active > a:hover {
+  /* border: 2px solid var(--color-primary); */
+  border: 1px solid transparent;
+  background: inherit;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.table {
+  border: 0;
+}
+
+.table tr td, .table tr th {
+  border: 0;
+  border-bottom: 1px solid var(--color-secondary);
+}
+
+.table-striped tbody > tr:nth-child(2n+1) > td, .table-striped tbody > tr:nth-child(2n+1) > th {
+  background-color: inherit;
+}
+
+.table-hover tbody tr:hover > td, .table-hover tbody tr:hover > th {
+  background-color: rgba(0, 0, 0, 0.05);
+}
