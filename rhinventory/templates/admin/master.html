@@ -1,4 +1,5 @@
 {% extends admin_base_template %}
+{# https://github.com/flask-admin/flask-admin/blob/master/flask_admin/templates/bootstrap2/admin/base.html #}
 {% from '_macros.html' import icon %}
 
 {% block head_css %}
@@ -47,9 +48,9 @@
 {% block main_menu %}
     <ul class="nav">
         {{ layout.menu() }}
-        <li>
+        {# <li>
             <a href="https://casopisy.herniarchiv.cz/">Veřejná MagDB</a>
-        </li>
+        </li> #}
     </ul>
 {% endblock %}
 
@@ -65,6 +66,25 @@
     </div>
 {% endblock %}
 
+{% block page_body %}
+    <header>
+        <a href="/" class="logo">
+            <img src="https://herniarchiv.cz/ico/logo_herni_archiv.svg" alt="Logo Herního archivu">
+        </a>
+        <nav class="halinks">
+            <li>
+                <a href="https://herniarchiv.cz/">Informace o projektu</a>
+            </li>
+            <li>
+                <a href="/"><strong>Inventární systém</strong></a>
+            </li>
+            <li>
+                <a href="https://casopisy.herniarchiv.cz/">Databáze časopisů</a>
+            </li>
+        </nav>
+    </header>
+    {{ super() }}
+{% endblock %}
 
 {% block tail %}
     {#

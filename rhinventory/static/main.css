@@ -50,6 +50,43 @@ a:hover {
   text-decoration: underline;
 }
 
+header {
+  /* max-width: var(--max-width); */
+  max-width: 1200px;
+  display: flex;
+  margin: 24px auto 24px auto;;
+}
+
+.halinks {
+  margin: auto;
+  list-style: none;
+  display: flex;
+  justify-content: end;
+  flex-wrap: wrap;
+}
+
+.halinks li {
+  padding: 0 29px;
+  border-right: 1px solid var(--color-secondary);
+}
+
+.halinks li:last-child {
+  border-right: none;
+}
+
+.halinks a {
+  color: inherit;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.logo {
+  display: block;
+  width: 128px;
+  margin-right: 12px;
+}
+
 .navbar .navbar-inner {
   background: inherit;
   border: 2px solid var(--color-secondary);
@@ -122,4 +159,10 @@ a:hover {
 
 .table-hover tbody tr:hover > td, .table-hover tbody tr:hover > th {
   background-color: rgba(0, 0, 0, 0.05);
+}
+
+p {
+  font-size: 1.2em;
+  line-height: 1.5em;
+  text-indent: 4%;
 }
