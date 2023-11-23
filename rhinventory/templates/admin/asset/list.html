@@ -54,6 +54,12 @@
         .col-flags {width: 82px;}
         .flags {display: flex; gap: 4px; width: 100%;}
         .asset-category {font-size: 12px; min-width: 90px; display: inline-block;}
+
+        {% if not current_user.write_permission %}
+            .action-checkbox[name=rowid], .action-rowtoggle[name=rowtoggle] {
+                display: none;
+            }
+        {% endif %}
     </style>
     <div id="selected" class="selected">
         <div id="selected-list">

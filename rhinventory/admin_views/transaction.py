@@ -7,6 +7,7 @@ from rhinventory.admin_views.utils import get_asset_list_from_request_args
 
 from rhinventory.extensions import db
 from rhinventory.models.transaction import Transaction
+from rhinventory.util import require_write_access
 
 
 class TransactionView(CustomModelView):
@@ -54,6 +55,7 @@ class TransactionView(CustomModelView):
         return form
 
     @expose('/add_to/', methods=['POST'])
+    @require_write_access
     def add_to_view(self) -> Response:
         transaction_id = int(request.form['transaction_id'])
         transaction: Transaction

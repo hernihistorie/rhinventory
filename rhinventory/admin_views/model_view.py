@@ -8,6 +8,14 @@ from rhinventory.db import log
 class CustomModelView(ModelView):
     form_excluded_columns = ['transactions']
 
+    @property
+    def _write_access_acl(self):
+        return current_user.is_authenticated and current_user.write_access
+    
+    can_edit = _write_access_acl
+    can_create = _write_access_acl
+    can_delete = _write_access_acl
+
     def is_accessible(self):
         return current_user.is_authenticated and current_user.read_access
     

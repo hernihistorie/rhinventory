@@ -14,6 +14,8 @@ from rhinventory.labels.labels import make_barcode, make_label, make_asset_label
 
 from simpleeval import EvalWithCompoundTypes
 
+from rhinventory.models.user import AnynomusUser
+
 simple_eval = EvalWithCompoundTypes()
 
 add_admin_views(admin)
@@ -27,6 +29,7 @@ def create_app(config_object='rhinventory.config'):
     debug_toolbar.init_app(app)
     github.init_app(app)
     login_manager.init_app(app)
+    login_manager.anonymous_user = AnynomusUser
     
     #files_blueprint = Blueprint('files', __name__, static_url_path='/files', static_folder=app.config['FILES_DIR'])
     #app.register_blueprint(files_blueprint)

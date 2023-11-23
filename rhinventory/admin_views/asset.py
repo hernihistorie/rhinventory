@@ -29,6 +29,7 @@ from rhinventory.models.log import LogEvent, log
 from rhinventory.forms import FileForm
 from rhinventory.models.asset import AssetCategory
 from rhinventory.models.asset_attributes import Company
+from rhinventory.util import require_write_access
 
 TESTING = "pytest" in sys.modules
 
@@ -446,6 +447,7 @@ class AssetView(CustomModelView):
                             AssetCategory=AssetCategory)
     
     @expose('/new2/', methods=['GET'])
+    @require_write_access
     def new_view(self):
         return self.render('admin/asset/new.html')
     
@@ -493,6 +495,7 @@ class AssetView(CustomModelView):
                     
     
     @action('create_transaction', 'Create transaction')
+    @require_write_access
     def create_transaction(self, asset_ids):
         return redirect(url_for('transaction.create_view', asset_id=repr(asset_ids)))
 
@@ -552,6 +555,7 @@ class AssetView(CustomModelView):
         return form
 
     @expose('/add_contents/', methods=['POST'])
+    @require_write_access
     def add_contents_view(self):
         asset_id = int(request.form['asset_id'])
         asset: Asset
@@ -589,6 +593,7 @@ class AssetView(CustomModelView):
         return response
 
     @expose('/set_parent_bulk/', methods=['POST'])
+    @require_write_access
     def set_parent_bulk(self) -> Response:
         parent_asset_id = int(request.form['parent_asset_id'])
         parent_asset: Asset | None = db.session.query(Asset).get(parent_asset_id)
@@ -613,6 +618,7 @@ class AssetView(CustomModelView):
         return redirect(url_for('.index_view'))
 
     @expose('/bulk_new/', methods=('GET', 'POST'))
+    @require_write_access
     def bulk_create_view(self):
         """
             Bulk create model view

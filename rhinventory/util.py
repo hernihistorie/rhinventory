@@ -1,4 +1,6 @@
 import datetime
+from flask import flash, redirect
+from flask_login import current_user
 
 from sqlalchemy import func
 from bokeh.plotting import figure
@@ -71,3 +73,15 @@ def figure_counter(
     p.line(x=x, y=y, line_width=6)
 
     return bokeh.embed.components(p) 
+
+# require_edit_rights decorator
+#
+#
+def require_write_access(func):
+    """Decorator to require edit rights for a view"""
+    def wrapper(*args, **kwargs):
+        if not current_user.write_access:
+            flash("You do not have permission to edit", "error")
+            return redirect("/")
+        return func(*args, **kwargs)
+    return wrapper

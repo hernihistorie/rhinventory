@@ -27,28 +27,30 @@
     <h2><tt>{{ model.code }}</tt> {{ model.name }}</h2>
     <div class="asset-split">
         <div class="asset-data">
-            <div style="margin-bottom: 8px;">
-                <!--
-                    <a href="{{ url_for('label_asset', asset_id=model.id, small=False) }}" class="btn btn-light">
-                        RH label
+            {% if admin_view.can_edit %}
+                <div style="margin-bottom: 8px;">
+                    <!--
+                        <a href="{{ url_for('label_asset', asset_id=model.id, small=False) }}" class="btn btn-light">
+                            RH label
+                        </a>
+                    -->
+                    <a href="{{ url_for('label_asset', asset_id=model.id, small=False, big=False) }}" class="btn btn-link">
+                        Label:
                     </a>
-                -->
-                <a href="{{ url_for('label_asset', asset_id=model.id, small=False, big=False) }}" class="btn btn-link">
-                    Label:
-                </a>
-                <a href="rhprint:{{model.id}}" id="print-label" class="btn btn-primary">
-                    {{ icon("print") }} RH label
-                </a>
-                <a href="rhprint:{{model.id}}-ha" id="print-label-ha" class="btn btn-primary">
-                    {{ icon("print") }} HA label
-                </a>
-                <a href="rhprint:{{model.id}}-small" id="print-label-small" class="btn btn-primary">
-                    {{ icon("print") }} small label
-                </a>
-                <a href="rhprint:{{model.id}}-big-ha" id="print-label-big-ha" class="btn btn-primary">
-                    {{ icon("print") }} BIG label
-                </a>
-            </div>
+                    <a href="rhprint:{{model.id}}" id="print-label" class="btn btn-primary">
+                        {{ icon("print") }} RH label
+                    </a>
+                    <a href="rhprint:{{model.id}}-ha" id="print-label-ha" class="btn btn-primary">
+                        {{ icon("print") }} HA label
+                    </a>
+                    <a href="rhprint:{{model.id}}-small" id="print-label-small" class="btn btn-primary">
+                        {{ icon("print") }} small label
+                    </a>
+                    <a href="rhprint:{{model.id}}-big-ha" id="print-label-big-ha" class="btn btn-primary">
+                        {{ icon("print") }} BIG label
+                    </a>
+                </div>
+            {% endif %}
             {% if model.EXPORE_CATEGORY_NUMBER %}
                 {{ model.organization.shortname }}{{ model.id }}<br>
             {% endif %}
@@ -240,14 +242,16 @@
             {% endif %}
             <h2>{{ icon("file") }} Files</h2>
 
-            <div style="margin-bottom: 8px">
-                <strong>Attach</strong>:
-                <form method="POST" enctype="multipart/form-data" action="{{ url_for('file.upload_view', id=model.id) }}" style="display: inline;">
-                    {{ file_form.files }}
-                    {{ file_form.category }}
-                    <input type="submit" value="Submit" class="btn btn-primary" style="vertical-align: top;">
-                </form>
-            </div>
+            {% if admin_view.can_edit %}
+                <div style="margin-bottom: 8px">
+                    <strong>Attach</strong>:
+                    <form method="POST" enctype="multipart/form-data" action="{{ url_for('file.upload_view', id=model.id) }}" style="display: inline;">
+                        {{ file_form.files }}
+                        {{ file_form.category }}
+                        <input type="submit" value="Submit" class="btn btn-primary" style="vertical-align: top;">
+                    </form>
+                </div>
+            {% endif %}
 
             <table class="table table-hover table-bordered">
                 <tr>
@@ -285,11 +289,13 @@
 
     <h2>{{ icon("handshake-angle") }} Transaction history</h2>
 
-    <div style="margin-bottom: 8px">
-        <a href="{{ url_for('transaction.create_view', asset_id=model.id) }}" class="btn btn-primary">
-            {{ icon("plus-circle") }} Add new transaction
-        </a>
-    </div>
+    {% if admin_view.can_create %}
+        <div style="margin-bottom: 8px">
+            <a href="{{ url_for('transaction.create_view', asset_id=model.id) }}" class="btn btn-primary">
+                {{ icon("plus-circle") }} Add new transaction
+            </a>
+        </div>
+    {% endif %}
 
     <table class="table table-hover table-bordered">
         <tr>
@@ -312,9 +318,11 @@
             </ul>
         </td>
         <td>
-            <a href="{{ url_for('transaction.edit_view', id=transaction.id) }}">
-               <span class="fa fa-pencil glyphicon icon-pencil"></span>
-            </a>
+            {% if admin_view.can_edit %}
+                <a href="{{ url_for('transaction.edit_view', id=transaction.id) }}">
+                <span class="fa fa-pencil glyphicon icon-pencil"></span>
+                </a>
+            {% endif %}
 
             <a href="{{ url_for('transaction.details_view', id=transaction.id) }}">
                 <span class="fa fa-eye glyphicon icon-eye-open"></span>

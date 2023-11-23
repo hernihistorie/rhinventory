@@ -18,6 +18,7 @@ from rhinventory.extensions import db, simple_eval
 from rhinventory.forms import FileForm, FileAssignForm
 from rhinventory.admin_views.model_view import CustomModelView
 from rhinventory.models.file import FileStore
+from rhinventory.util import require_write_access
 
 
 class DuplicateFile(RuntimeError):
@@ -117,6 +118,7 @@ class FileView(CustomModelView):
                             file_assign_form=file_assign_form)
 
     @expose('/upload/', methods=['GET', 'POST'])
+    @require_write_access
     def upload_view(self):
         id = get_mdict_item_or_list(request.args, 'id')
         if id:
@@ -212,6 +214,7 @@ class FileView(CustomModelView):
         return self.render('admin/file/upload.html', form=form)
     
     @expose('/upload/result', methods=['GET'])
+    @require_write_access
     def upload_result_view(self):
         if 'batch_number' in request.args:
             batch_number = request.args['batch_number']
@@ -245,6 +248,7 @@ class FileView(CustomModelView):
 
 
     @expose('/make_thumbnail/', methods=['POST'])
+    @require_write_access
     def make_thumbnail_view(self):
         id = get_mdict_item_or_list(request.args, 'id')
         model = self.get_one(id)
@@ -259,6 +263,7 @@ class FileView(CustomModelView):
         return redirect(url_for("file.details_view", id=id))
     
     @expose('/rotate/', methods=['POST'])
+    @require_write_access
     def rotate_view(self):
         htmx = request.args.get('htmx', False)
         id = get_mdict_item_or_list(request.args, 'id')
@@ -285,6 +290,7 @@ class FileView(CustomModelView):
         return redirect(url_for("file.details_view", id=id))
     
     @expose('/assign/', methods=['POST'])
+    @require_write_access
     def assign_view(self):
         id = get_mdict_item_or_list(request.args, 'id')
         model = self.get_one(id)
@@ -303,6 +309,7 @@ class FileView(CustomModelView):
         return redirect(url_for('.details_view', id=id))
     
     @expose('/set_primary/', methods=['POST'])
+    @require_write_access
     def set_primary_view(self):
         id = get_mdict_item_or_list(request.args, 'id')
         model = self.get_one(id)
@@ -317,6 +324,7 @@ class FileView(CustomModelView):
         return redirect(url_for('.details_view', id=id))
     
     @expose('/auto_assign/', methods=['POST'])
+    @require_write_access
     def auto_assign_view(self):
         id = get_mdict_item_or_list(request.args, 'id')
         model = self.get_one(id)
@@ -332,6 +340,7 @@ class FileView(CustomModelView):
         return redirect(url_for("file.details_view", id=id))
 
     @expose('/delete/', methods=['POST'])
+    @require_write_access
     def delete_view(self):
         htmx = request.args.get('htmx', False)
         id = get_mdict_item_or_list(request.args, 'id')

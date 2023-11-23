@@ -42,6 +42,25 @@ class User(db.Model):
         return self.username or self.github_login
 
 
+class AnynomusUser(User):
+    username = "_anonymous"
+    read_access = False
+    write_access = False
+    admin = False
+    
+    @property
+    def is_authenticated(self):
+        return False
+    
+    @property
+    def is_active(self):
+        return False
+    
+    @property
+    def is_anonymous(self):
+        return True
+
+
 class UserBookmark(db.Model):
     __tablename__ = 'user_bookmarks'
 
