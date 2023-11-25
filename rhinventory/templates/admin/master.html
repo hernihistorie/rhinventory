@@ -1,6 +1,6 @@
 {% extends admin_base_template %}
 {# https://github.com/flask-admin/flask-admin/blob/master/flask_admin/templates/bootstrap2/admin/base.html #}
-{% from '_macros.html' import icon %}
+{% from '_macros.html' import icon, ha_header %}
 
 {% block head_css %}
 {{ super() }}
@@ -67,22 +67,7 @@
 {% endblock %}
 
 {% block page_body %}
-    <header>
-        <a href="/" class="logo">
-            <img src="https://herniarchiv.cz/ico/logo_herni_archiv.svg" alt="Logo Herního archivu">
-        </a>
-        <nav class="halinks">
-            <li>
-                <a href="https://herniarchiv.cz/">Informace o projektu</a>
-            </li>
-            <li>
-                <a href="/"><strong>Inventární systém</strong></a>
-            </li>
-            <li>
-                <a href="https://casopisy.herniarchiv.cz/">Databáze časopisů</a>
-            </li>
-        </nav>
-    </header>
+    {{ ha_header('inventory') }}
     {{ super() }}
 {% endblock %}
 

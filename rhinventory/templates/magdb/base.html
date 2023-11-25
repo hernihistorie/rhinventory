@@ -1,3 +1,4 @@
+{%- from '_macros.html' import ha_header -%}
 <!doctype html>
 <html lang="en">
 <head>
@@ -24,7 +25,9 @@
 </head>
 <body>
 
-<header class="navbar navbar-expand-md navbar-light d-print-none">
+{{ ha_header('magdb') }}
+
+<header class="navbar navbar-expand-md navbar-transparent d-print-none">
     <div class="container-xl">
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-menu">
             <span class="navbar-toggler-icon"></span>

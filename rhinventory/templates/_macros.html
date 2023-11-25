@@ -16,3 +16,26 @@
         >
     {% endif %}
 {% endmacro %}
+
+{% macro ha_header(section) %}
+    <header class="ha-header">
+        <a href="/" class="logo">
+            <img src="https://herniarchiv.cz/ico/logo_herni_archiv.svg" alt="Logo Herního archivu">
+        </a>
+        <nav class="halinks">
+            <li>
+                <a href="https://herniarchiv.cz/">Informace o projektu</a>
+            </li>
+            <li>
+                <a href="https://inventory.retroherna.org/"
+                    {% if section == 'inventory' %}class="active"{% endif %}
+                >Inventární systém</a>
+            </li>
+            <li>
+                <a href="https://casopisy.herniarchiv.cz/"
+                    {% if section == 'magdb' %}class="active"{% endif %}
+                >Databáze časopisů</a>
+            </li>
+        </nav>
+    </header>
+{% endmacro %}

@@ -21,3 +21,53 @@ body {
 a, a:hover {
   color: var(--color-primary);
 }
+/* START HA HEADER */
+
+header.ha-header {
+  /* max-width: var(--max-width); */
+  max-width: 1200px;
+  display: flex;
+  margin: 24px auto 24px auto;
+  padding: 0 12px;
+}
+
+header.ha-header .halinks {
+  margin: auto;
+  list-style: none;
+  display: flex;
+  justify-content: end;
+  flex-wrap: wrap;
+}
+
+header.ha-header .halinks li {
+  padding: 0 29px;
+  border-right: 1px solid var(--color-secondary);
+}
+
+header.ha-header .halinks li:last-child {
+  border-right: none;
+}
+
+header.ha-header .halinks a {
+  color: inherit;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+header.ha-header .halinks a.active {
+  font-weight: bold;
+}
+
+header.ha-header .halinks a:hover {
+  text-decoration: underline;
+}
+
+header.ha-header .logo {
+  display: block;
+  width: 128px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+/* END HA HEADER */
