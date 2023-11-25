@@ -28,10 +28,10 @@ Bootstrap-Flask = "^2.1.0"
 psycopg2 = "^2.9.3"
 WTForms-Alchemy = "^0.18.0"
 python-dateutil = "^2.8.2"
-alembic_autogenerate_enums = "^0.0.2"
 werkzeug = "<3.0.0" # pinned until flask-login commit 7d98a49b is released
 sqlalchemy = "^2.0.0"
 flask-sqlalchemy = "^3.1.0"
+alembic-autogenerate-enums = "^0.1.2"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.950"

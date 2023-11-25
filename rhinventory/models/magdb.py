@@ -96,6 +96,7 @@ class IssueStatus(enum.Enum):
     have = "h"
     dont_have = "n"
     problems = "p"
+    existence_unconfirmed = "e"
 
 
 class MagazineIssue(HistoryTrait, CheckedTrait):
@@ -243,6 +244,9 @@ class MagazineSupplement(HistoryTrait):
     __tablename__ = "magazine_supplement"
     id = db.Column(db.Integer(), unique=True, primary_key=True)
     title = db.Column(db.String(255), unique=True, info={"label": "Název přílohy"})
+    note = db.Column(db.Text())
+    status = db.Column(db.Enum(IssueStatus))
+    confirmed = db.Column(db.Boolean())
 
 class MagazineSupplementVersion(HistoryTrait):
     __tablename__ = "magazine_supplement_version"
@@ -250,6 +254,9 @@ class MagazineSupplementVersion(HistoryTrait):
 
     magazine_supplement_id = db.Column(db.Integer(), db.ForeignKey("magazine_supplement.id"), nullable=False)
     magazine_supplement = db.relationship("MagazineSupplement", backref="supplement_versions")
+
+    magazine_issue_version_id = db.Column(db.Integer(), db.ForeignKey("magazine_issue_versions.id"), nullable=False)
+    magazine_issue_version = db.relationship("MagazineIssueVersion", backref="supplements")
 
 
 class MagazineSupplementVersionFiles(HistoryTrait):
