@@ -243,7 +243,7 @@ class MagazineIssueVersionFiles(HistoryTrait):
 class MagazineSupplement(HistoryTrait):
     __tablename__ = "magazine_supplement"
     id = db.Column(db.Integer(), unique=True, primary_key=True)
-    title = db.Column(db.String(255), unique=True, info={"label": "Název přílohy"})
+    title = db.Column(db.String(255), info={"label": "Název přílohy"})
     note = db.Column(db.Text())
     status = db.Column(db.Enum(IssueStatus))
     confirmed = db.Column(db.Boolean())

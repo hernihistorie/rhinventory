@@ -60,7 +60,7 @@ def get_db_status(status):
         case CSVIssueStatus.problem:
             return IssueStatus.problems
         case CSVIssueStatus.not_confirmed:
-            return IssueStatus.dont_have
+            return IssueStatus.existence_unconfirmed
         case CSVIssueStatus.dont_have:
             return IssueStatus.dont_have
 
@@ -81,9 +81,7 @@ with open(csv_file) as f:
                 note="",
                 status=get_status(row[5])
             )
-
-            for version in versions:
-                supplements.append(supplement)
+            supplements.append(supplement)
 
         if row[6] != "x":
             supplement = CSVSupplement(
@@ -91,9 +89,7 @@ with open(csv_file) as f:
                 note="seznam her: " + row[7],
                 status=get_status(row[6])
             )
-
-            for version in versions:
-                supplements.append(supplement)
+            supplements.append(supplement)
 
         # issues
         if row[2] != "x":
@@ -169,6 +165,7 @@ with app.app_context():
             db.session.add(db_version)
 
             for supplement in version.supplements:
+                print(f"Supplement {supplement.title} is gonna be added.")
                 supplement_db = MagazineSupplement(
                     title=supplement.title,
                     note=supplement.note,
@@ -176,6 +173,7 @@ with app.app_context():
                     status=get_db_status(supplement.status)
                 )
                 db.session.add(supplement_db)
+                db.session.commit()
 
                 connection = MagazineSupplementVersion(
                     magazine_supplement_id=supplement_db.id,
