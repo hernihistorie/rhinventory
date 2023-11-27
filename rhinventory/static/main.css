@@ -115,6 +115,8 @@ header.ha-header .logo {
 
 .navbar .nav > li > a:hover, .navbar .nav > .active > a:hover {
   color: var(--color-primary);
+  background-color: inherit;
+  box-shadow: inherit;
 }
 
 .navbar .nav > .active > a {

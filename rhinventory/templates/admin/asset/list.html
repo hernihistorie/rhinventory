@@ -55,7 +55,7 @@
         .flags {display: flex; gap: 4px; width: 100%;}
         .asset-category {font-size: 12px; min-width: 90px; display: inline-block;}
 
-        {% if not current_user.write_permission %}
+        {% if not current_user.write_access %}
             .action-checkbox[name=rowid], .action-rowtoggle[name=rowtoggle] {
                 display: none;
             }
