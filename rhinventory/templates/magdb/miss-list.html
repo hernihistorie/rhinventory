@@ -40,6 +40,10 @@
                                     {% elif issue.status.name == "problems" %}
                                     <span style="height: 25px; width: 25px; background-color: yellow; border-radius: 50%; display: inline-block;"
                                           title="Máme s problémy!"></span>
+                                    {% elif issue.status.name == "existence_unconfirmed" %}
+                                    <span style="height: 25px; width: 25px; background-color: orange; border-radius: 50%; display: inline-block;"
+                                          title="Nemáme potvrzenou existenci."></span>
+
                                     {% endif %}
                                 </td>
                                 </li>
