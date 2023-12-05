@@ -1473,4 +1473,4 @@ timezone = ["python-dateutil"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.13"
-content-hash = "6d709d11140b6580be95bf50161bb2fe6a6490212ee4894d70ea5a0ee866c36a"
+content-hash = "b39ee34187bebb0a93042db41be534e9bb63365438f4eadb33a57a9e16adcf87"

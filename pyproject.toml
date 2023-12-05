@@ -15,7 +15,6 @@ alembic = "^1.7.7"
 Pillow = "^9.1.0"
 WTForms = "<3.1.0" # pinned until flask-admin fixes https://github.com/flask-admin/flask-admin/issues/2391
 simpleeval = "^0.9.13"
-Flask-DebugToolbar = "^0.13.1"
 pyzbar = "^0.1.9"
 bokeh = "^2.4.2"
 beautifulsoup4 = "^4.11.1"
@@ -32,9 +31,13 @@ werkzeug = "<3.0.0" # pinned until flask-login commit 7d98a49b is released
 sqlalchemy = "^2.0.0"
 flask-sqlalchemy = "^3.1.0"
 alembic-autogenerate-enums = "^0.1.2"
+flask-debugtoolbar = "^0.13.1"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.950"
+
+[tool.poetry.group.dev.dependencies]
+flask-sqlalchemy = "^3.1.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

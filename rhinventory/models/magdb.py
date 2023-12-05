@@ -248,6 +248,9 @@ class MagazineSupplement(HistoryTrait):
     status = db.Column(db.Enum(IssueStatus))
     confirmed = db.Column(db.Boolean())
 
+    def __str__(self):
+        return f"{self.title}"
+
 class MagazineSupplementVersion(HistoryTrait):
     __tablename__ = "magazine_supplement_version"
     id = db.Column(db.Integer(), unique=True, primary_key=True)
@@ -257,6 +260,9 @@ class MagazineSupplementVersion(HistoryTrait):
 
     magazine_issue_version_id = db.Column(db.Integer(), db.ForeignKey("magazine_issue_versions.id"), nullable=False)
     magazine_issue_version = db.relationship("MagazineIssueVersion", backref="supplements")
+
+    def __str__(self):
+        return f"{str(self.magazine_issue_version)}: {self.magazine_supplement.title}"
 
 
 class MagazineSupplementVersionFiles(HistoryTrait):

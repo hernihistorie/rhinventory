@@ -38,6 +38,7 @@ class MagDbMagazineIssueView(MagDbModelView):
     column_searchable_list = [
         'issue_number',
         'current_magazine_name',
+        'calendar_id',
     ]
     column_sortable_list = [
         'issue_number',
@@ -45,7 +46,10 @@ class MagDbMagazineIssueView(MagDbModelView):
     ]
     column_filters = [
         'magazine_id',
-        'current_magazine_name'
+        'current_magazine_name',
+        'published_year',
+        'published_month',
+        'published_day',
     ]
 
     @expose("/create_wizard", methods=["GET", "POST"])
@@ -150,6 +154,30 @@ class MagDbMagazineIssueVersionView(MagDbModelView):
     form_extra_fields = {
         "copy_logos": BooleanField(),
     }
+
+    column_searchable_list = [
+        'magazine_issue.issue_number',
+        'magazine_issue.current_magazine_name',
+        'magazine_issue.calendar_id',
+        'name_suffix',
+        'issn_or_isbn',
+        'barcode',
+    ]
+    column_sortable_list = [
+        'magazine_issue.issue_number',
+        'magazine_issue.current_magazine_name',
+        'name_suffix' ,
+    ]
+    column_filters = [
+        'magazine_issue.magazine_id',
+        'magazine_issue.current_magazine_name',
+        'magazine_issue.published_year',
+        'magazine_issue.published_month',
+        'magazine_issue.published_day',
+        'name_suffix',
+        'issn_or_isbn',
+        'barcode',
+    ]
 
     @expose("/create_wizard", methods=["GET", "POST"])
     def create_wizard(self):
@@ -256,6 +284,31 @@ class MagDbMagazineIssueVersionView(MagDbModelView):
 
 
 class MagDbMagazineIssueVersionPriceView(MagDbModelView):
+
+    column_searchable_list = [
+        'issue_version.magazine_issue.issue_number',
+        'issue_version.magazine_issue.current_magazine_name',
+        'issue_version.magazine_issue.calendar_id',
+        'issue_version.name_suffix',
+        'issue_version.issn_or_isbn',
+        'issue_version.barcode',
+    ]
+    column_sortable_list = [
+        'issue_version.magazine_issue.issue_number',
+        'issue_version.magazine_issue.current_magazine_name',
+        'issue_version.name_suffix' ,
+    ]
+    column_filters = [
+        'issue_version.magazine_issue.magazine_id',
+        'issue_version.magazine_issue.current_magazine_name',
+        'issue_version.magazine_issue.published_year',
+        'issue_version.magazine_issue.published_month',
+        'issue_version.magazine_issue.published_day',
+        'issue_version.name_suffix',
+        'issue_version.issn_or_isbn',
+        'issue_version.barcode',
+    ]
+
     @expose("/create_wizard", methods=["GET", "POST"])
     def create_wizard(self):
         create_form = self.get_create_form()
@@ -304,14 +357,59 @@ class MagDbMagazineIssueVersionPriceView(MagDbModelView):
 
 
 class MagDbMagazineIssueFileView(MagDbModelView):
-    pass
+
+    column_searchable_list = [
+        'magazine_issue_version.magazine_issue.issue_number',
+        'magazine_issue_version.magazine_issue.current_magazine_name',
+        'magazine_issue_version.magazine_issue.calendar_id',
+        'magazine_issue_version.name_suffix',
+        'magazine_issue_version.issn_or_isbn',
+        'magazine_issue_version.barcode',
+    ]
+    column_sortable_list = [
+        'magazine_issue_version.magazine_issue.issue_number',
+        'magazine_issue_version.magazine_issue.current_magazine_name',
+        'magazine_issue_version.name_suffix' ,
+    ]
+    column_filters = [
+        'magazine_issue_version.magazine_issue.magazine_id',
+        'magazine_issue_version.magazine_issue.current_magazine_name',
+        'magazine_issue_version.magazine_issue.published_year',
+        'magazine_issue_version.magazine_issue.published_month',
+        'magazine_issue_version.magazine_issue.published_day',
+        'magazine_issue_version.name_suffix',
+        'magazine_issue_version.issn_or_isbn',
+        'magazine_issue_version.barcode',
+    ]
 
 
 class MagDbMagazineSupplementView(MagDbModelView):
     pass
 
 class MagDbMagazineSupplementVersionView(MagDbModelView):
-    pass
+    column_searchable_list = [
+        'magazine_issue_version.magazine_issue.issue_number',
+        'magazine_issue_version.magazine_issue.current_magazine_name',
+        'magazine_issue_version.magazine_issue.calendar_id',
+        'magazine_issue_version.name_suffix',
+        'magazine_issue_version.issn_or_isbn',
+        'magazine_issue_version.barcode',
+    ]
+    column_sortable_list = [
+        'magazine_issue_version.magazine_issue.issue_number',
+        'magazine_issue_version.magazine_issue.current_magazine_name',
+        'magazine_issue_version.name_suffix',
+    ]
+    column_filters = [
+        'magazine_issue_version.magazine_issue.magazine_id',
+        'magazine_issue_version.magazine_issue.current_magazine_name',
+        'magazine_issue_version.magazine_issue.published_year',
+        'magazine_issue_version.magazine_issue.published_month',
+        'magazine_issue_version.magazine_issue.published_day',
+        'magazine_issue_version.name_suffix',
+        'magazine_issue_version.issn_or_isbn',
+        'magazine_issue_version.barcode',
+    ]
 
 
 def add_magdb_views(admin, session):
