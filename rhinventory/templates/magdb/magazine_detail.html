@@ -1,9 +1,25 @@
 {% extends "magdb/base.html" %}
 
+{% macro render_status(status) %}
+    {% if status.name == "have" %}
+         <span style="height: 25px; width: 25px; background-color: green; border-radius: 50%; display: inline-block;"
+               title="Máme!"></span>
+    {% elif status.name == "dont_have" %}
+         <span style="height: 25px; width: 25px; background-color: red; border-radius: 50%; display: inline-block;"
+               title="Chybí!"></span>
+    {% elif status.name == "problems" %}
+         <span style="height: 25px; width: 25px; background-color: yellow; border-radius: 50%; display: inline-block;"
+               title="Máme s problémy!"></span>
+    {% elif status.name == "existence_unconfirmed" %}
+         <span style="height: 25px; width: 25px; background-color: orange; border-radius: 50%; display: inline-block;"
+               title="Nejsme si jistí existencí."></span>
+    {% endif %}
+{% endmacro %}
+
 {% block content %}
 <div class="card card-sm">
     <div class="card-body">
-        <h1>{{ magazine.title }}</h1>x
+        <h1>{{ magazine.title }}</h1>
     </div>
 
     {% for logo in files.logos[magazine.id] %}
@@ -67,6 +83,7 @@
                                     <th>Obsah</th>
                                     <th>Původní cena</th>
                                     <th>Stav</th>
+                                    <th>Přílohy</th>
                                 </tr>
                                 {% for version in issue.versions %}
                                     <tr id="version-{{ version.id }}">
@@ -103,15 +120,28 @@
                                             </table>
                                         </td>
                                         <td>
-                                            {% if version.status.name == "have" %}
-                                            <span style="height: 25px; width: 25px; background-color: green; border-radius: 50%; display: inline-block;"
-                                                  title="Máme!"></span>
-                                            {% elif version.status.name == "dont_have" %}
-                                            <span style="height: 25px; width: 25px; background-color: red; border-radius: 50%; display: inline-block;"
-                                                  title="Chybí!"></span>
-                                            {% elif version.status.name == "problems" %}
-                                            <span style="height: 25px; width: 25px; background-color: yellow; border-radius: 50%; display: inline-block;"
-                                                  title="Máme s problémy!"></span>
+                                            {{ render_status(version.status) }}
+                                        </td>
+                                        <td>
+                                            {% if version.supplements|length > 0 %}
+                                            <table class="table table-vcenter">
+                                                <tr>
+                                                    <th>Název</th>
+                                                    <th>Poznámka</th>
+                                                    <th>Stav</th>
+                                                </tr>
+                                                {% for supplement in version.supplements %}
+                                                <tr>
+                                                    <td>{{ supplement.title }}</td>
+                                                    <td>{{ supplement.note }}</td>
+                                                    <td>
+                                                        {{ render_status(supplement.status) }}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </table>
+                                            {% else %}
+                                            Bez příloh
                                             {% endif %}
                                         </td>
                                     </tr>

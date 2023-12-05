@@ -1,10 +1,9 @@
 import os
 import typing
 
-from flask import Flask, Blueprint, render_template, flash, redirect, url_for, send_file, Response, abort, request, session, jsonify, g
+from flask import Flask, render_template, redirect, url_for, send_file, Response, abort, request, session, jsonify, g
 from flask_login import current_user, login_required, login_user, logout_user
 from flask_bootstrap import Bootstrap5
-from jinja2 import StrictUndefined
 
 from rhinventory.extensions import db, admin, debug_toolbar, github, login_manager
 from rhinventory.admin import add_admin_views
@@ -41,7 +40,7 @@ def create_app(config_object='rhinventory.config'):
 
     @app.context_processor
     def inject_variables():
-        return dict(isinstance=isinstance, list=list)
+        return dict(isinstance=isinstance, list=list, request_uri=request.url)
 
     @app.before_request
     def before_request():

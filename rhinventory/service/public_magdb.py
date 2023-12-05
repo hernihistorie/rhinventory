@@ -6,7 +6,7 @@ from sqlalchemy import select
 from rhinventory.extensions import db
 from rhinventory.models.file import File
 from rhinventory.models.magdb import MagazineIssue, MagazineIssueVersion, MagazineIssueVersionPrice, \
-    MagazineIssueVersionFiles, MagDBFileType, IssueStatus, Currency
+    MagazineIssueVersionFiles, MagDBFileType, IssueStatus, Currency, MagazineSupplementVersion, MagazineSupplement
 
 
 @dataclasses.dataclass
@@ -22,6 +22,15 @@ class PublicFile:
 
 
 @dataclasses.dataclass
+class PublicSupplement:
+    id: int
+    title: str
+    note: str
+    status: IssueStatus
+    confirmed: bool
+
+
+@dataclasses.dataclass
 class PublicVersion:
     id: int
     name_suffix: str
@@ -29,6 +38,8 @@ class PublicVersion:
     prices: set[PublicPrice]
     cover_pages: list[PublicFile]
     index_pages: list[PublicFile]
+    supplements: list[PublicSupplement]
+
 
 @dataclasses.dataclass
 class PublicIssue:
@@ -80,7 +91,8 @@ class PublicMagDBService:
                 MagazineIssue.published_year,
                 MagazineIssue.published_month,
                 MagazineIssue.published_day,
-                MagazineIssue.issue_number
+                MagazineIssue.issue_number,
+                MagazineIssueVersion.name_suffix,
             )
         )
 
@@ -114,7 +126,8 @@ class PublicMagDBService:
                     status=version_status,
                     prices=[],
                     index_pages=[],
-                    cover_pages=[]
+                    cover_pages=[],
+                    supplements=[]
                 )
                 issue.versions.append(version)
                 version_index[version_id] = version
@@ -150,5 +163,31 @@ class PublicMagDBService:
                             path=real_filepath,
                             thumbnail_path=thumbnail_path,
                         ))
+
+        supplements_query = (
+            select(
+                MagazineSupplement.id,
+                MagazineSupplement.title,
+                MagazineSupplement.note,
+                MagazineSupplement.status,
+                MagazineSupplement.confirmed,
+                MagazineSupplementVersion.magazine_issue_version_id,
+            ).join(MagazineSupplementVersion)
+            .join(MagazineIssueVersion)
+            .join(MagazineIssue)
+            .where(MagazineIssue.magazine_id == magazine_id)
+            .select_from(MagazineSupplement)
+        )
+
+        for row in db.session.execute(supplements_query).fetchall():
+            supplement = PublicSupplement(
+                id=row.id,
+                title=row.title,
+                note=row.note,
+                status=IssueStatus(row.status),
+                confirmed=row.confirmed
+            )
+
+            version_index[row.magazine_issue_version_id].supplements.append(supplement)
 
         return issues

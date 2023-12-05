@@ -7,7 +7,8 @@ from sqlalchemy.dialects.postgresql import insert
 
 from rhinventory.app import create_app
 from rhinventory.extensions import db
-from rhinventory.models.magdb import Magazine, MagazineIssue, MagazineIssueVersion
+from rhinventory.models.magdb import Magazine, MagazineIssue, MagazineIssueVersion, IssueStatus, MagazineSupplement, \
+    MagazineSupplementVersion
 
 csv_file = "/home/rainbow/projects/personal/rhinventory/basic-score.csv"
 
@@ -17,11 +18,20 @@ class CSVIssueStatus(StrEnum):
     problem = "problems"
     not_confirmed = "not confirmed"
 
+
+@dataclasses.dataclass
+class CSVSupplement:
+    title: str
+    note: str
+    status: CSVIssueStatus
+
+
 @dataclasses.dataclass
 class CSVIssueVersion:
     suffix: str
     comment: str
     status: CSVIssueStatus
+    supplements: list[CSVSupplement]
 
 @dataclasses.dataclass
 class CSVIssue:
@@ -42,6 +52,19 @@ def get_status(status):
         case "?":
             return CSVIssueStatus.not_confirmed
 
+
+def get_db_status(status):
+    match status:
+        case CSVIssueStatus.have:
+            return IssueStatus.have
+        case CSVIssueStatus.problem:
+            return IssueStatus.problems
+        case CSVIssueStatus.not_confirmed:
+            return IssueStatus.existence_unconfirmed
+        case CSVIssueStatus.dont_have:
+            return IssueStatus.dont_have
+
+
 with open(csv_file) as f:
     reader = csv.reader(f)
 
@@ -49,12 +72,32 @@ with open(csv_file) as f:
 
     for row in reader:
         versions = []
+        supplements = []
 
+        # supplements
+        if row[5] != "x":
+            supplement = CSVSupplement(
+                title="Karton",
+                note="",
+                status=get_status(row[5])
+            )
+            supplements.append(supplement)
+
+        if row[6] != "x":
+            supplement = CSVSupplement(
+                title="Steam hry",
+                note="seznam her: " + row[7],
+                status=get_status(row[6])
+            )
+            supplements.append(supplement)
+
+        # issues
         if row[2] != "x":
             issue = CSVIssueVersion(
-                suffix="Standart",
+                suffix="standard",
                 comment="",
-                status=get_status(row[2])
+                status=get_status(row[2]),
+                supplements=supplements
             )
             versions.append(issue)
 
@@ -62,7 +105,9 @@ with open(csv_file) as f:
             issue = CSVIssueVersion(
                 suffix="CD",
                 comment="",
-                status=get_status(row[3])
+                status=get_status(row[3]),
+                supplements=supplements
+
             )
             versions.append(issue)
 
@@ -70,26 +115,10 @@ with open(csv_file) as f:
             issue = CSVIssueVersion(
                 suffix="DVD",
                 comment="",
-                status=get_status(row[4])
+                status=get_status(row[4]),
+                supplements=supplements
             )
             versions.append(issue)
-
-        if row[5] != "x":
-            issue = CSVIssueVersion(
-                suffix="karton",
-                comment="",
-                status=get_status(row[5])
-            )
-            versions.append(issue)
-
-        if row[6] != "x":
-            issue = CSVIssueVersion(
-                suffix="Steam hra",
-                comment="seznam her: " + row[7],
-                status=get_status(row[6])
-            )
-            versions.append(issue)
-
 
         issue = CSVIssue(
             title=row[0],
@@ -130,10 +159,27 @@ with app.app_context():
                 magazine_issue_id=magazine_id[0],
                 name_suffix=version.suffix,
                 confirmed=True if version.status != CSVIssueStatus.not_confirmed else False,
-                status=version.status if version.status != CSVIssueStatus.not_confirmed else "dont_have",
+                status=get_db_status(version.status),
                 note=version.comment
             )
             db.session.add(db_version)
+
+            for supplement in version.supplements:
+                print(f"Supplement {supplement.title} is gonna be added.")
+                supplement_db = MagazineSupplement(
+                    title=supplement.title,
+                    note=supplement.note,
+                    confirmed=True if supplement.status != CSVIssueStatus.not_confirmed else False,
+                    status=get_db_status(supplement.status)
+                )
+                db.session.add(supplement_db)
+                db.session.commit()
+
+                connection = MagazineSupplementVersion(
+                    magazine_supplement_id=supplement_db.id,
+                    magazine_issue_version_id=db_version.id,
+                )
+                db.session.add(connection)
 
         print(f"Issue num {issue.issue_number} added.")
     db.session.commit()
