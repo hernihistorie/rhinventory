@@ -1,2 +1,9 @@
 #!/bin/bash
-ssh -t retroherna.org "cd /var/www/rhinventory && sudo -u flask git pull && sudo systemctl restart www_rhinventory"
+echo "retroherna.org: "
+ssh -t retroherna.org "\
+    cd /var/www/rhinventory && \
+    sudo -u flask git pull && \
+    sudo -u flask poetry install && \
+    sudo systemctl restart www_rhinventory \
+"
+echo "https://inventory.retroherna.org"
