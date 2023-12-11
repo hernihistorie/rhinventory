@@ -2,7 +2,22 @@
 
 {% macro render_flags(asset) %}
     <div class="flags">
+    {% set privacy_icon = {
+        Privacy.private_implicit: 'eye-slash',
+        Privacy.private: 'eye-slash',
+        Privacy.unlisted: 'low-vision',
+        Privacy.public: 'eye',
+    }[asset.privacy] %}
+    <span
+        rel="tooltip" title="{{ asset.privacy }}"
+        {% if asset.privacy == Privacy.public %}
+            class="faded"
+        {% endif %}
+    >
+        {{- icon(privacy_icon) -}}
+    </span>
     {% set file = asset.get_primary_image() %}
+    <span>
     {% if file %}
         <a
             href="{{ url_for('file.details_view', id=file.id) }}"
@@ -13,6 +28,8 @@
     {% else %}
         {{ icon("image", faded=True, tooltip="No image") }}
     {% endif %}
+    </span>
+    <span>
     {% if asset.get_dumps() %}
         <a href="{{ url_for('asset.details_view', id=asset.id) }}">
             {{- icon("save") -}}
@@ -20,6 +37,9 @@
     {% else %}
         {{ icon("save", faded=True, tooltip="No dumps") }}
     {% endif %}
+    </span>
+    
+    <span>
     {% if asset.parent %}
         <a
             href="{{ url_for('asset.details_view', id=asset.parent.id) }}"
@@ -30,6 +50,9 @@
     {% else %}
         {{ icon("jar", faded=True, tooltip="No parent") }}
     {% endif %}
+    </span>
+
+    <span>
     {% if asset.children %}
         <a
             href="{{ url_for('asset.details_view', id=asset.id) }}"
@@ -49,6 +72,9 @@
     {% else %}
         {{ icon("shapes", faded=True, tooltip="No children") }}
     {% endif %}
+    </span>
+
+    <span>
     {% if asset.contents %}
         <a
             href="{{ url_for('asset.details_view', id=asset.id) }}"
@@ -64,6 +90,9 @@
     {% else %}
         {{ icon("cubes", faded=True, tooltip="No contents") }}
     {% endif %}
+    </span>
+
+    <span>
     {% for transaction in asset.transactions %}
         <a
             href="{{ url_for('transaction.details_view', id=transaction.id) }}"
@@ -91,6 +120,7 @@
             {% endif %}
         </a>
     {% endfor %}
+    </span>
     </div>
 {% endmacro %}
 

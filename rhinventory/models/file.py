@@ -5,8 +5,10 @@ import subprocess
 from flask import current_app, url_for
 from sqlalchemy import Column, Integer, Numeric, String, Text, \
     DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship, backref, Mapped, mapped_column
 from PIL import Image, ImageEnhance, ImageOps
+
+from rhinventory.models.enums import Privacy
 try:
     from pyzbar import pyzbar
 except Exception as ex:
@@ -77,6 +79,8 @@ class File(db.Model):
     sha256      = Column(LargeBinary(32))
     original_sha256 = Column(LargeBinary(32))
     is_deleted = Column(Boolean, default=False)
+
+    privacy: Mapped[Privacy] = mapped_column(Enum(Privacy), default=Privacy.private_implicit, nullable=False)
 
     user        = relationship("User", backref="files")
     asset       = relationship("Asset", backref="files")

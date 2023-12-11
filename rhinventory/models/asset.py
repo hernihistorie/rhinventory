@@ -4,8 +4,9 @@ import enum
 from sqlalchemy import Column, Integer, Numeric, String, Text, \
     DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint, \
         ARRAY, desc
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship, backref, Mapped, mapped_column
 from rhinventory.models.asset_attributes import AssetMedium, AssetPackaging, Company, Platform, Medium, Packaging, AssetTag, asset_tag_table, asset_platform_table, asset_company_table
+from rhinventory.models.enums import Privacy
 
 from rhinventory.models.file import File, IMAGE_CATEGORIES, FileCategory
 from rhinventory.extensions import db
@@ -120,6 +121,8 @@ class Asset(db.Model):
 
     condition_new: AssetCondition = Column(Enum(AssetCondition), default=AssetCondition.unknown, nullable=False)  # type: ignore
     
+    privacy: Mapped[Privacy] = mapped_column(Enum(Privacy), default=Privacy.private_implicit, nullable=False)
+
     #producers = relationship(Company, backref="assets_produced")
     #distributors = relationship(Company, backref="assets_distributed")
 

@@ -12,6 +12,7 @@ from rhinventory.db import User, Asset, Location, File, log
 from rhinventory.labels.labels import make_barcode, make_label, make_asset_label
 
 from simpleeval import EvalWithCompoundTypes
+from rhinventory.models.enums import Privacy
 
 from rhinventory.models.user import AnynomusUser
 
@@ -38,9 +39,15 @@ def create_app(config_object='rhinventory.config'):
     from rhinventory.public_blueprints.magdb import magdb_bp
     app.register_blueprint(magdb_bp)
 
+    app.jinja_env.globals['Privacy'] = Privacy
+
     @app.context_processor
     def inject_variables():
-        return dict(isinstance=isinstance, list=list, request_uri=request.url)
+        return dict(
+            isinstance=isinstance,
+            list=list,
+            request_uri=request.url
+        )
 
     @app.before_request
     def before_request():
