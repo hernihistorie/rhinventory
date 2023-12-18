@@ -1,9 +1,11 @@
 import typing
 
 from flask import request
+from flask_login import current_user
 
 from rhinventory.models.asset import Asset
 from rhinventory.extensions import db, simple_eval
+from rhinventory.models.enums import HIDDEN_PRIVACIES
 
 
 def get_asset_list_from_request_args() ->  typing.List[Asset]:
@@ -18,3 +20,12 @@ def get_asset_list_from_request_args() ->  typing.List[Asset]:
             assets = asset_query
     
     return assets
+
+def visible_to_current_user(obj: Asset) -> bool:
+    if current_user.is_authenticated and current_user.read_access:
+        return True
+    
+    if obj.privacy in HIDDEN_PRIVACIES:
+        return False
+
+    return True

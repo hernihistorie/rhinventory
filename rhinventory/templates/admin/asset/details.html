@@ -289,68 +289,74 @@
 
     <h2>{{ icon("handshake-angle") }} Transaction history</h2>
 
-    {% if admin_view.can_create %}
-        <div style="margin-bottom: 8px">
-            <a href="{{ url_for('transaction.create_view', asset_id=model.id) }}" class="btn btn-primary">
-                {{ icon("plus-circle") }} Add new transaction
-            </a>
-        </div>
+    {% if current_user.is_authenticated %}
+        {% if admin_view.can_create %}
+            <div style="margin-bottom: 8px">
+                <a href="{{ url_for('transaction.create_view', asset_id=model.id) }}" class="btn btn-primary">
+                    {{ icon("plus-circle") }} Add new transaction
+                </a>
+            </div>
+        {% endif %}
+
+        <table class="table table-hover table-bordered">
+            <tr>
+                <th>Date</th>
+                <th>Transaction type</th>
+                <th>Note</th>
+                <th>Together with</th>
+                <th></th>
+            </tr>
+        {% for transaction in model.transactions %}
+        <tr>
+            <td>{{ transaction.date }}</td>
+            <td>{{ transaction.transaction_type.name }}</td>
+            <td>{{ transaction.note }}</td>
+            <td>
+                <ul>
+                {% for asset in transaction.assets %}
+                    <li><a href="{{ url_for('asset.details_view', id=asset.id) }}">{{ asset.name }}</a></li>
+                {% endfor %}
+                </ul>
+            </td>
+            <td>
+                {% if admin_view.can_edit %}
+                    <a href="{{ url_for('transaction.edit_view', id=transaction.id) }}">
+                    <span class="fa fa-pencil glyphicon icon-pencil"></span>
+                    </a>
+                {% endif %}
+
+                <a href="{{ url_for('transaction.details_view', id=transaction.id) }}">
+                    <span class="fa fa-eye glyphicon icon-eye-open"></span>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+        </table>
+    {% else %}
+        <p>Historie transakcí vázaných k předmětu je v současnosti dostupná pouze pro přihlášení uživatele.
     {% endif %}
 
-    <table class="table table-hover table-bordered">
-        <tr>
-            <th>Date</th>
-            <th>Transaction type</th>
-            <th>Note</th>
-            <th>Together with</th>
-            <th></th>
-        </tr>
-    {% for transaction in model.transactions %}
-    <tr>
-        <td>{{ transaction.date }}</td>
-        <td>{{ transaction.transaction_type.name }}</td>
-        <td>{{ transaction.note }}</td>
-        <td>
-            <ul>
-            {% for asset in transaction.assets %}
-                <li><a href="{{ url_for('asset.details_view', id=asset.id) }}">{{ asset.name }}</a></li>
-            {% endfor %}
-            </ul>
-        </td>
-        <td>
-            {% if admin_view.can_edit %}
-                <a href="{{ url_for('transaction.edit_view', id=transaction.id) }}">
-                <span class="fa fa-pencil glyphicon icon-pencil"></span>
-                </a>
-            {% endif %}
 
-            <a href="{{ url_for('transaction.details_view', id=transaction.id) }}">
-                <span class="fa fa-eye glyphicon icon-eye-open"></span>
-            </a>
-        </td>
-    </tr>
-    {% endfor %}
-    </table>
+    {% if current_user.is_authenticated %}
+        <h2>{{ icon("file-lines") }} Edit Logs</h2>
 
-
-    <h2>{{ icon("file-lines") }} Edit Logs</h2>
-
-    <table class="table table-hover table-bordered">
-        <tr>
-            <th>User</th>
-            <th>Date</th>
-            <th>Event</th>
-            <th>Details</th>
-        </tr>
-    {% for log in logs %}
-    <tr>
-        <td>{{ log.user }}</td>
-        <td>{{ log.datetime }}</td>
-        <td>{{ log.event }}</td>
-        <td>{{ log.object_json }}</td>
-    </tr>
-    {% endfor %}
-    </table>
+        <table class="table table-hover table-bordered">
+            <tr>
+                <th>User</th>
+                <th>Date</th>
+                <th>Event</th>
+                <th>Details</th>
+            </tr>
+        {% for log in logs %}
+            <tr>
+                <td>{{ log.user }}</td>
+                <td>{{ log.datetime }}</td>
+                <td>{{ log.event }}</td>
+                <td>{{ log.object_json }}</td>
+            </tr>
+        {% endfor %}
+        </table>
+    {% endif %}
 
     <script>
         // If there is a URL argument called "print" with the value "1"

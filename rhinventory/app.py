@@ -8,6 +8,7 @@ from flask_bootstrap import Bootstrap5
 from rhinventory.extensions import db, admin, debug_toolbar, github, login_manager
 from rhinventory.admin import add_admin_views
 from rhinventory.db import User, Asset, Location, File, log
+from rhinventory.admin_views.utils import visible_to_current_user
 
 from rhinventory.labels.labels import make_barcode, make_label, make_asset_label
 
@@ -46,7 +47,8 @@ def create_app(config_object='rhinventory.config'):
         return dict(
             isinstance=isinstance,
             list=list,
-            request_uri=request.url
+            request_uri=request.url,
+            visible_to_current_user=visible_to_current_user
         )
 
     @app.before_request
