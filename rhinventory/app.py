@@ -185,7 +185,6 @@ def create_app(config_object='rhinventory.config'):
 
         return send_file(open(label_filename, 'rb'), mimetype='image/png')
     
-    @login_required
     @app.route('/files/<int:file_id>/thumb', defaults={'thumb': True})
     @app.route('/files/<int:file_id>/thumb_<filename>', defaults={'thumb': True})
     @app.route('/files/<int:file_id>', defaults={'thumb': False})
@@ -196,6 +195,9 @@ def create_app(config_object='rhinventory.config'):
         file: typing.Optional[File] = File.query.get(file_id)
         if not file:
             abort(404)
+        
+        if not visible_to_current_user(file):
+            return abort(403)
 
         if thumb:
             if not file.has_thumbnail:

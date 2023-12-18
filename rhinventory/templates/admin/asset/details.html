@@ -192,28 +192,36 @@
             {% macro render_asset_image(file, primary=False) %}
                 {% if file.is_image %}
                     <div class="asset-image-file {% if primary %}asset-image-file-primary{% endif %}">
-                        <div>
-                            <a href="{{ url_for('file.details_view', id=file.id) }}">
-                                {% if file.has_thumbnail %}
-                                    <img src="{{ file.url_thumbnail }}">
-                                {% else %}
-                                    (Thumbnail missing)
-                                {% endif %}
-                            </a>
-                        </div>
-                        <div class="asset-image-desc">
-                            <a href="{{ url_for('file.edit_view', id=file.id, url=url_for('asset.details_view', id=model.id)) }}">
-                                <span class="fa fa-pencil"></span>
-                            </a>
-                            {% if file.primary %}
-                                <span class="fa fa-star"></span>
-                            {% endif %}
-                            <!--
+                        {% if visible_to_current_user(file) %}
+                            <div>
                                 <a href="{{ url_for('file.details_view', id=file.id) }}">
-                                    {{ file.filename }}
+                                    {% if file.has_thumbnail %}
+                                        <img src="{{ file.url_thumbnail }}">
+                                    {% else %}
+                                        (Thumbnail missing)
+                                    {% endif %}
                                 </a>
-                            -->
-                        </div>
+                            </div>
+                            <div class="asset-image-desc">
+                                {% if admin_view.can_edit %}
+                                    <a href="{{ url_for('file.edit_view', id=file.id, url=url_for('asset.details_view', id=model.id)) }}">
+                                        <span class="fa fa-pencil"></span>
+                                    </a>
+                                {% endif %}
+                                {% if file.primary %}
+                                    <span class="fa fa-star"></span>
+                                {% endif %}
+                                <!--
+                                    <a href="{{ url_for('file.details_view', id=file.id) }}">
+                                        {{ file.filename }}
+                                    </a>
+                                -->
+                            </div>
+                        {% else %}
+                            <div class="">
+                                (skrytý obrázek)
+                            </div>
+                        {% endif %}
                     </div>
                 {% endif %}
             {% endmacro %}
@@ -262,24 +270,28 @@
             {% for file in model.files %}
                 {% if not file.is_image %}
                     <tr>
-                        <td>
-                            <a href="{{ url_for('file.edit_view', id=file.id, url=url_for('asset.details_view', id=model.id)) }}">
-                            <span class="fa fa-pencil glyphicon icon-pencil"></span>
-                            </a>
+                        {% if visible_to_current_user(file) %}
+                            <td>
+                                <a href="{{ url_for('file.edit_view', id=file.id, url=url_for('asset.details_view', id=model.id)) }}">
+                                <span class="fa fa-pencil glyphicon icon-pencil"></span>
+                                </a>
 
-                            <a href="{{ url_for('file.details_view', id=file.id) }}">
-                                <span class="fa fa-eye glyphicon icon-eye-open"></span>
-                            </a>
-                        </td>
-                        <td>
-                            {% if file.primary %}
-                                <span class="fa fa-eye glyphicon icon-star"></span>
-                            {% endif %}
-                            <a href="{{ url_for('file.details_view', id=file.id) }}">
-                                {{ file.filename }}
-                            </a>
-                        </td>
-                        <td>{{ file.category.name }}</td>
+                                <a href="{{ url_for('file.details_view', id=file.id) }}">
+                                    <span class="fa fa-eye glyphicon icon-eye-open"></span>
+                                </a>
+                            </td>
+                            <td>
+                                {% if file.primary %}
+                                    <span class="fa fa-eye glyphicon icon-star"></span>
+                                {% endif %}
+                                <a href="{{ url_for('file.details_view', id=file.id) }}">
+                                    {{ file.filename }}
+                                </a>
+                            </td>
+                            <td>{{ file.category.name }}</td>
+                        {% else %}
+                            <td></td><td>(skrytý soubor)</td>
+                        {% endif %}
                     </tr>
                 {% endif %}
             {% endfor %}
