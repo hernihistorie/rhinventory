@@ -58,3 +58,19 @@ sudo systemctl restart www_rhinventory
 ## How to run scripts
 
 `PYTHONPATH=. python scripts/script.py`
+
+## Debugging crashes on prod
+
+Try to check logs with `sudo journalctl -u www_rhinventory -e`.  If that's not enough, run manually with:
+
+```sh
+sudo systemctl stop rhinventory
+cd /var/www/rhinventory
+sudo -u flask ./deploy.sh
+```
+
+Once solved:
+
+```sh
+sudo systemctl start rhinventory
+```
