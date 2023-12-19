@@ -1,4 +1,5 @@
 {% extends 'admin/model/list.html' %}
+{% from 'admin/asset/_macros.html' import render_asset_card %}
 {% from 'admin/asset/list.html' import asset_menu_bar with context %}
 
 {% block model_menu_bar %}
@@ -12,31 +13,7 @@
 {% block model_list_table %}
     <div style="display: flex; flex-wrap: wrap; justify-content: space-around;">
         {% for asset in data %}
-            <div style="width: 268px; max-width: 100%;  border-radius: 2px; padding: 4px; margin: 4px; border: 2px solid var(--color-secondary);
-                        display: flex; flex-direction: column; justify-content: space-between;">
-                <div>
-                    <strong>{{ asset.code }}</strong> {{ asset.category.name }}<br>
-                </div>
-                <div>
-                    {% set file = asset.get_primary_image() %}
-                    {% if file %}
-                        <a href="{{ url_for('asset.details_view', id=asset.id) }}">
-                            {% if file.has_thumbnail %}
-                                <img src="{{ file.url_thumbnail }}">
-                            {% else %}
-                                (Thumbnail missing)
-                            {% endif %}
-                        </a>
-                    {% else %}
-                        <a href="{{ url_for('asset.details_view', id=asset.id) }}" style="font-size: 128px; text-align: center; color: var(--color-secondary); min-height: 128px; padding-top: 28px; display: flex; align-items: center; justify-content: center; text-decoration: none;">✱</a>
-                    {% endif %}
-                </div>
-                <div style="text-align: center;">
-                    <a href="{{ url_for('asset.details_view', id=asset.id) }}">
-                        {{ asset.name or '???' }}
-                    </a>
-                </div>
-            </div>
+            {{ render_asset_card(asset) }}
         {% endfor %}
     </div>
 

@@ -26,7 +26,10 @@ class CustomIndexView(AdminIndexView):
             title='Total assets')
 
         next = request.args.get('next')
-        return self.render('admin/index.html', plot_script=plot_script, plot_div=plot_div, next=next)
+
+        featured_tags = db.session.query(AssetTag).filter(AssetTag.is_featured == True).all()
+
+        return self.render('admin/index.html', plot_script=plot_script, plot_div=plot_div, featured_tags=featured_tags, next=next)
 
 admin._set_admin_index_view(CustomIndexView()) # XXX this is not great
 

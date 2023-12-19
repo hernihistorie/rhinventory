@@ -1,4 +1,20 @@
 {% extends 'admin/master.html' %}
+{% from 'admin/asset/_macros.html' import render_asset_card %}
+
+{% macro render_featured_tags() %}
+    {% for tag in featured_tags %}
+        <h3> {{ tag.name }}</h3>
+        {% if tag.description %}
+            <p>{{ tag.description }}</p>
+        {% endif %}
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-evenly">
+            {% for asset in tag.assets %}
+                {{ render_asset_card(asset) }}
+            {% endfor %}
+        </div>
+    {% endfor %}
+{% endmacro %}
+
 {% block body %}
 {{ super() }}
 <div class="container">
@@ -18,22 +34,21 @@
                 <div style="margin-top: 128px; text-align: right;">
                     <a href="{{ url_for('login', next=next) }}">Přihlášení pro správce</a>
                 </a>
-            {% endif %}
-            <p>
-                {% if current_user.is_authenticated %}
-                    {% if not current_user.read_access %}
-                        <p class="text-warning">Nemáte práva, požádejte si o ně.
-                    {% endif %}
-                    <h2>Pro přihlášené uživatele</h2>
-                    <p>Omrkni další info <a href="https://retroherna.org/wiki/doku.php?id=inventar">na wiki</a>.
-
-                    <script src="https://cdnjs.cloudflare.com/ajax/libs/bokeh/2.4.1/bokeh.min.js" integrity="sha512-2Eg0zNXJlBmICBS/KO67OamNxpln5shamyEK7UiUjvLdtYyCoAhzeAgUWYjJxilTZiPrGYZzlqWfiH1+8DBmVg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-                    
-                    {{ plot_div | safe }}
-
-                    {{ plot_script | safe }}
-
+            {% else %}
+                {{ render_featured_tags() }}
+                {% if not current_user.read_access %}
+                    <p class="text-warning">Nemáte práva, požádejte si o ně.
                 {% endif %}
+                <h2>Pro přihlášené uživatele</h2>
+                <p>Omrkni další info <a href="https://retroherna.org/wiki/doku.php?id=inventar">na wiki</a>.
+
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/bokeh/2.4.1/bokeh.min.js" integrity="sha512-2Eg0zNXJlBmICBS/KO67OamNxpln5shamyEK7UiUjvLdtYyCoAhzeAgUWYjJxilTZiPrGYZzlqWfiH1+8DBmVg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+                
+                {{ plot_div | safe }}
+
+                {{ plot_script | safe }}
+
+            {% endif %}
         </div>
     </div>
 </div>
