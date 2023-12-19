@@ -1,8 +1,8 @@
 import sys
 import enum
 
-from sqlalchemy import Column, DateTime, Integer, String, ForeignKey, Table
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, ForeignKey, Table
+from sqlalchemy.orm import relationship, backref, Mapped, mapped_column
 
 from rhinventory.extensions import db
 
@@ -33,8 +33,12 @@ class AssetTag(db.Model, SimpleAssetAttribute):
     __tablename__ = 'tags'
     id: int          = Column(Integer, primary_key=True)  # type: ignore
     name: str        = Column(String, nullable=False)  # type: ignore
-    description: str = Column(String, nullable=False)  # type: ignore
+    description: str = Column(String)  # type: ignore
     last_used        = Column(DateTime, nullable=True)
+
+    is_featured: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_collection: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
 asset_tag_table = asset_n_to_n_table(AssetTag)
 
