@@ -182,3 +182,14 @@ p {
   line-height: 1.5em;
   text-indent: 4%;
 }
+
+.missing-asset-icon {
+  font-size: 128px;
+  text-align: center;
+  color: var(--color-secondary);
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none !important;
+}

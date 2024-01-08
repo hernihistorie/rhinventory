@@ -213,7 +213,7 @@
                     {% endif %}
                 </a>
             {% else %}
-                <a href="{{ url_for('asset.details_view', id=asset.id) }}" style="font-size: 128px; text-align: center; color: var(--color-secondary); min-height: 200px;  display: flex; align-items: center; justify-content: center; text-decoration: none;">✱</a>
+                <a href="{{ url_for('asset.details_view', id=asset.id) }}" class="missing-asset-icon">✱</a>
             {% endif %}
         </div>
         <div style="text-align: center;">

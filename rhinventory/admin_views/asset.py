@@ -24,6 +24,7 @@ from rhinventory.extensions import db
 from rhinventory.admin_views.model_view import CustomModelView
 from rhinventory.db import Medium, Asset, get_next_file_batch_number, LogItem
 from rhinventory.models.asset import AssetCondition
+from rhinventory.models.enums import Privacy
 from rhinventory.models.file import IMAGE_CATEGORIES, File
 from rhinventory.models.log import LogEvent, log
 from rhinventory.forms import FileForm
@@ -492,6 +493,25 @@ class AssetView(CustomModelView):
 
 
         return self.render('admin/asset/map.html', image_count_by_id=image_count_by_id, asset_by_id=asset_by_id, max_id=max_id, assets_with_image_fraction=assets_with_image / len(assets_with_image_count))
+                    
+    
+
+    @expose('/publicize/', methods=['GET'])
+    def publicize_view(self):
+        start_id = int(request.args.get('start_id', 0))
+        all_assets = db.session.query(Asset)
+        private_implicit_assets = db.session.query(Asset)\
+            .filter(Asset.privacy == Privacy.private_implicit)
+        
+        all_assets_count = all_assets.count()
+        private_implicit_count = private_implicit_assets.count()
+        assets = private_implicit_assets.filter(Asset.id >= start_id).order_by(Asset.id.asc()).limit(20).all()
+
+
+        return self.render('admin/asset/publicize.html',
+                           assets=assets,
+                           all_assets_count=all_assets_count,
+                           private_implicit_count=private_implicit_count)
                     
     
     @action('create_transaction', 'Create transaction')
