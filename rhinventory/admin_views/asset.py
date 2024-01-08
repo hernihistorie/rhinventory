@@ -496,22 +496,49 @@ class AssetView(CustomModelView):
                     
     
 
-    @expose('/publicize/', methods=['GET'])
+    @expose('/publicize/', methods=['GET', 'POST'])
     def publicize_view(self):
         start_id = int(request.args.get('start_id', 0))
-        all_assets = db.session.query(Asset)
-        private_implicit_assets = db.session.query(Asset)\
-            .filter(Asset.privacy == Privacy.private_implicit)
-        
-        all_assets_count = all_assets.count()
-        private_implicit_count = private_implicit_assets.count()
-        assets = private_implicit_assets.filter(Asset.id >= start_id).order_by(Asset.id.asc()).limit(20).all()
+        count = int(request.args.get('count', 50))
+        if request.method != "POST":
+            all_assets = db.session.query(Asset)
+            private_implicit_assets = db.session.query(Asset)\
+                .filter(Asset.privacy == Privacy.private_implicit)
+            
+            all_assets_count = all_assets.count()
+            private_implicit_count = private_implicit_assets.count()
+            assets = private_implicit_assets.filter(Asset.id >= start_id).order_by(Asset.id.asc()).limit(count).all()
+        else:
+            if '_skip' in request.form:
+                return redirect(url_for('.publicize_view'))
+            PRIVACY_DICT = {
+                'public': Privacy.public,
+                'private': Privacy.private,
+                'default': Privacy.public
+            }
+            num_assets_changed = 0
+            for key, value in request.form.items():
+                if key.startswith("asset"):
+                    asset_id = int(key.split('-')[1])
+                    asset = db.session.query(Asset).filter(Asset.id == asset_id).one()
+                    if value == 'default' and '_publicize' not in request.form:
+                        continue
+                    asset.privacy = PRIVACY_DICT[value]
+                    db.session.add(asset)
+                    for file in asset.files:
+                        file.privacy = PRIVACY_DICT[value]
+                        db.session.add(file)
+                    num_assets_changed += 1
+            db.session.commit()
+            flash(f"Saved {num_assets_changed} assets.")
+            return redirect(url_for('.publicize_view'))
 
 
         return self.render('admin/asset/publicize.html',
                            assets=assets,
                            all_assets_count=all_assets_count,
-                           private_implicit_count=private_implicit_count)
+                           private_implicit_count=private_implicit_count,
+                           count=count)
                     
     
     @action('create_transaction', 'Create transaction')

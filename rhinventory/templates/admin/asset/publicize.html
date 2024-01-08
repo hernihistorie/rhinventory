@@ -1,0 +1,109 @@
+{% extends 'admin/model/details.html' %}
+
+{% from 'admin/asset/_macros.html' import new_asset_form %}
+
+{% block body %}
+    <style>
+        .assets {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .asset-row {
+            border: 2px solid var(--color-secondary);
+            padding: 4px;
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .asset-row:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .asset-row .btn.btn-public.active {
+            background: rgb(98, 255, 95) !important;
+        }
+        .asset-row .btn.btn-private.active {
+            background: rgb(255, 116, 95) !important;
+        }
+    </style>
+    {% from 'admin/asset/menu_bar.html' import asset_menu_bar with context %}
+    {{ asset_menu_bar() }}
+
+    <h2><em>Publicize!</em></h2>
+    <p>Using this interface, judge whether the following {{ assets | count }} assets should be displayed publicly or not.
+    <p>Total unjudged assets:
+        {{ private_implicit_count }} / {{ all_assets_count }}
+        (<strong>{{ "{:3.1f}".format((private_implicit_count / all_assets_count)*100) }}%</strong>)
+    
+    <form method="POST">
+        <div class="assets">
+            {% for asset in assets %}
+                <div class="asset-row">
+                    <div class="btn-group" data-toggle="buttons-radio">
+                        <button type="button" name="asset-{{asset.id}}-public" class="btn btn-secondary btn-public" data-value="public">Public</button>
+                        <button type="button" name="asset-{{asset.id}}-default" class="btn btn-secondary active" data-value="default">&nbsp;</button>
+                        <button type="button" name="asset-{{asset.id}}-private" class="btn btn-secondary btn-private" data-value="private">Private</button>                    </div>
+                    <div style="flex-grow: 1;">
+                        <div>
+                            {{ asset.code }} <strong class="asset-category">{{ asset.category.name }}</strong>
+                            <br>
+                            <span style="font-size: 24px;">
+                                <a href="{{ url_for('asset.details_view', id=asset.id) }}">{{ asset.name }}</a>
+                            </span>
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                            {% set images = asset.get_sorted_images() %}
+                            {% for file in images %}
+                                <a href="{{ url_for('asset.details_view', id=asset.id) }}" style="display: block; width: 100px; height: 100px;">
+                                    {% if file.has_thumbnail %}
+                                        <img src="{{ file.url_thumbnail }}">
+                                    {% else %}
+                                        (Thumbnail missing)
+                                    {% endif %}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div style="margin: 32px 16px 128px 16px; text-align: center;">
+            <input name="_publicize" type="submit" class="btn btn-large btn-success" value="Publicize all except private">
+            <input name="_save" type="submit" class="btn btn-large btn-primary" value="Save">
+            <input name="_skip" type="submit" class="btn btn-large btn-secondary" value="Skip">
+        </div>
+    </form>
+    <script>
+        /* Thanks GPT-4! */
+        document.querySelector('form').addEventListener('submit', function(event) {
+            let form = event.target;
+            let buttonGroups = form.querySelectorAll('.btn-group');
+            
+            // Remove any old hidden fields to avoid duplications
+            let oldHiddenFields = form.querySelectorAll('.hiddenField');
+            oldHiddenFields.forEach(field => form.removeChild(field));
+            
+            buttonGroups.forEach(group => {
+                let assetId = group.querySelector('.btn.active').name.split('-')[1];
+                let value = group.querySelector('.btn.active').dataset.value;
+
+                // Create new, hidden form input to hold the button's value
+                let field = document.createElement('input');
+                field.type = 'hidden';
+                field.name = `asset-${assetId}`;
+                field.value = value;
+                field.className = 'hiddenField';  // class added to aid in removal prior to submit
+
+                // Append new input to the form
+                form.appendChild(field);
+            });
+
+            // Form will now submit with this new input
+        }, false);
+
+    </script>
+{% endblock %}
