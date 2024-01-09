@@ -50,3 +50,15 @@
         </nav>
     </header>
 {% endmacro %}
+
+{% macro organization_icon(organization) %}
+    <span
+        rel="tooltip" title="{{ organization.name }}"
+    >
+        {% if organization.icon_url %}
+            <img src="{{ organization.icon_url }}" class="organization-icon">
+        {% else %}
+            {{ organization.shortname }}
+        {% endif %}
+    </span>
+{% endmacro %}

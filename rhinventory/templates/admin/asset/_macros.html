@@ -1,4 +1,4 @@
-{% from '_macros.html' import icon %}
+{% from '_macros.html' import icon, organization_icon %}
 
 {% macro render_flags(asset) %}
     <div class="flags">
@@ -122,6 +122,10 @@
     {% endfor %}
     </span>
     </div>
+{% endmacro %}
+
+{% macro render_code_column(asset) %}
+    {{ organization_icon(asset.organization) }} {{ asset.code_without_organization }}
 {% endmacro %}
 
 {% macro render_name_column(asset) %}

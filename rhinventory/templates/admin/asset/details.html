@@ -1,5 +1,7 @@
 {% extends 'admin/model/details.html' %}
 
+{% from '_macros.html' import organization_icon %}
+
 {# XXX https://github.com/flask-admin/flask-admin/blob/master/flask_admin/templates/bootstrap2/admin/model/details.html#L5 #}
 {% block navlinks %}
     {% from 'admin/asset/menu_bar.html' import asset_menu_bar with context %}
@@ -24,7 +26,7 @@
             padding-left: 12px;
         }
     </style>
-    <h2><tt>{{ model.code }}</tt> {{ model.name }}</h2>
+    <h2><small>{{ organization_icon(model.organization) }}{{ model.code_without_organization }}</small> {{ model.name }}</h2>
     <div class="asset-split">
         <div class="asset-data">
             {% if admin_view.can_edit %}
@@ -77,8 +79,10 @@
             {% endmacro %}
 
             <table class="table table-hover table-bordered searchable">
-                {{ row('organization') }}
-                {{ row('category') }}
+                <tr><td><strong>Organization</strong></td>
+                <td>{{ organization_icon(model.organization) }}{{ model.organization }}</td></tr>
+                <tr><td><strong>Category</strong></td>
+                <td>{{ model.category.name }}</td></tr>
                 {{ row('name') }}
                 {% if model.companies %}
                     <tr><td><strong>Companies</strong></td>
@@ -97,6 +101,7 @@
                 {{ row('serial') }}
                 {{ row('condition_new') }}
                 {{ row('tags') }}
+                {{ row('privacy') }}
                 {{ row('note', pre_line=True) }}
                 {% if model.parent %}
                     <tr><td><strong>Parent</strong></td>

@@ -168,6 +168,13 @@ class Asset(db.Model):
         if self.organization:
             string += f"{self.organization.shortname}: "
 
+        string += self.code_without_organization
+        
+        return string
+
+    @property
+    def code_without_organization(self):
+        string = ""
         if self.CATEGORY_EXPOSE_NUMBER:
             string += f"{self.CATEGORY_PREFIX}{self.custom_code}"
         else:
@@ -177,6 +184,7 @@ class Asset(db.Model):
                 string += "XXXXX"
         
         return string
+
 
 
 
