@@ -1,6 +1,6 @@
 {% extends admin_base_template %}
 {# https://github.com/flask-admin/flask-admin/blob/master/flask_admin/templates/bootstrap2/admin/base.html #}
-{% from '_macros.html' import icon, ha_header %}
+{% from '_macros.html' import icon, ha_header, organization_icon %}
 
 {% block head_css %}
 {{ super() }}
@@ -58,7 +58,9 @@
     <div class="pull-right">
         {% if current_user.is_authenticated %}
             <div style="margin-top: 8px;">
-                {{ icon("user") }} {{ current_user.github_login }}
+                {{ icon("user") }}
+                {{ organization_icon(current_user.organization) }}
+                {{ current_user.github_login }}
                 &bull;
                 <a href="{{ url_for('logout') }}">Log out</a>
             </div>

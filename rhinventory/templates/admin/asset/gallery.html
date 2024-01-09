@@ -5,9 +5,6 @@
 {% block model_menu_bar %}
     {% from 'admin/asset/menu_bar.html' import asset_menu_bar with context %}
     {{ asset_menu_bar() }}
-    <div style="margin-left: 10px;">
-        <a href="?flt2_43=photo%2Cimage">Show only assets with images</a>
-    </div>
 {% endblock %}
 
 {% block model_list_table %}

@@ -12,6 +12,7 @@ from rhinventory.db import User, Asset, Location, File, log
 from rhinventory.labels.labels import make_barcode, make_label, make_asset_label
 
 from simpleeval import EvalWithCompoundTypes
+from rhinventory.models.entities import Organization
 from rhinventory.models.enums import Privacy
 
 from rhinventory.models.user import AnynomusUser
@@ -39,6 +40,15 @@ def create_app(config_object='rhinventory.config'):
     from rhinventory.public_blueprints.magdb import magdb_bp
     app.register_blueprint(magdb_bp)
 
+    # Supports multiple query args with the same key.
+    def url_for_here(**changed_args):
+        args = request.args.to_dict(flat=False)
+        args.update(request.view_args)
+        args.update(changed_args)
+        return url_for(request.endpoint, **args)
+
+    app.jinja_env.globals['url_for_here'] = url_for_here
+
     app.jinja_env.globals['Privacy'] = Privacy
 
     @app.context_processor
@@ -52,6 +62,7 @@ def create_app(config_object='rhinventory.config'):
     @app.before_request
     def before_request():
         g.debug = app.debug
+        g.organizations = Organization.query.order_by(Organization.id).all()
 
     @login_manager.user_loader
     def load_user(user_id):

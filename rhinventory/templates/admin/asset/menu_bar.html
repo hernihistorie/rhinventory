@@ -1,3 +1,4 @@
+{% from '_macros.html' import organization_icon %}
 {% from 'admin/asset/_macros.html' import new_asset_form %}
 
 {# XXX https://github.com/flask-admin/flask-admin/blob/master/flask_admin/templates/bootstrap2/admin/model/list.html#L14 #}
@@ -113,6 +114,23 @@
 
             {% block model_menu_bar_before_filters %}{% endblock %}
 
+            <li class="dropdown open">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="javascript:void(0)">
+                    Common Filters<b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu field-filters">
+                    {% for organization in g.organizations %}
+                        <li>
+                            <a href="{{ url_for_here(flt1_0=organization.name) }}">From {{ organization_icon(organization) }} {{ organization }}</a>
+                        </li>
+                    {% endfor %}
+                    <li>
+                        <a href="{{ url_for_here(flt2_43='photo,image') }}">With images</a>
+                    </li>
+
+                </ul>
+            </li>
+
             {% if filters %}
             <li class="dropdown">
                 {{ model_layout.filter_options() }}
@@ -125,14 +143,15 @@
             </li>
             {% endif %}
 
+            {#
             {% if actions %}
             <li class="dropdown">
                 {{ actionlib.dropdown(actions) }}
             </li>
             {% endif %}
-
+            #}
             {% if search_supported %}
-            <li>
+            <li style="margin-left: auto;">
                 {{ model_layout.search_form() }}
             </li>
             {% endif %}
