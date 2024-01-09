@@ -1,6 +1,6 @@
 from collections import defaultdict
 from datetime import datetime
-from enum import Enum
+from enum import EnumMeta
 import sys
 from math import ceil
 from typing import Optional, Union, Iterable
@@ -12,6 +12,7 @@ from flask_admin import expose
 from flask_admin.helpers import get_redirect_target
 from flask_admin.model.helpers import get_mdict_item_or_list
 from flask_admin.form import Select2TagsField,  FormOpts
+import flask_admin.form.rules as form_rules
 from flask_admin.actions import action
 from flask_admin.contrib.sqla import form
 from flask_admin.helpers import get_form_data
@@ -34,13 +35,19 @@ from rhinventory.util import require_write_access
 
 TESTING = "pytest" in sys.modules
 
-CONDITION_OPTIONS = AssetCondition
-class ConditionField(RadioField):
+class FixedRadioField(RadioField):
+    _enum: EnumMeta
     def __init__(self, **kwargs):
         super().__init__(render_kw={'class': 'rating-field'}, **kwargs)
-        self.choices = [(value.name, value.name) for value in AssetCondition]
+        self.choices = [(value.name, value.name) for value in self._enum]
         self.coerce = lambda x: x.split('.')[-1] if isinstance(x, str) else x.name
         self.validators = [wtforms.validators.Optional()]
+
+class ConditionField(FixedRadioField):
+    _enum = AssetCondition
+
+class PrivacyField(FixedRadioField):
+    _enum = Privacy
 
 ALL_CATEGORIES = set(AssetCategory)
 PRODUCT_ASSET_CATEGORIES = set([AssetCategory.game, AssetCategory.software, AssetCategory.multimedia,
@@ -58,6 +65,7 @@ def _last_used_query_factory_factory(cls: db.Model):
 class AssetView(CustomModelView):
     form_overrides: dict[str, type[Field]] = {
         'condition_new': ConditionField,
+        'privacy': PrivacyField
 #        'product_codes_new': Select2TagsField
     }
     form_excluded_columns = ('metadata', 'logs', 'transactions')
@@ -79,12 +87,14 @@ class AssetView(CustomModelView):
 #        'functionality',
 #        'status',
         'note',
+        'privacy',
         'tags',
         'parent',
         'location',
         'contains',
 #        'children',
     ]
+    
     form_columns_categories: dict[str, Union[AssetCategory, Iterable[AssetCategory]]] = {
         'hardware_type': AssetCategory.computer_component,
         'mediums': [AssetCategory.game, AssetCategory.software, AssetCategory.multimedia,
@@ -144,6 +154,7 @@ class AssetView(CustomModelView):
         'manufacturer',
         'note',
         'parent.id',
+        'privacy'
     ]
     column_searchable_list = [
         'id',
@@ -552,8 +563,6 @@ class AssetView(CustomModelView):
         return self.make_asset_form(self.category)
 
     def make_asset_form(self, category: AssetCategory, bulk=False):
-        #form_class = super().scaffold_form()
-
         form_columns = []
         for var in self.form_columns:
             if var in self.form_columns_categories:
@@ -569,12 +578,12 @@ class AssetView(CustomModelView):
 
         converter = self.model_form_converter(self.session, self)
         form_class = form.get_form(self.model, converter,
-                                   base_class=self.form_base_class,
-                                   only=form_columns,
-                                   exclude=self.form_excluded_columns,
-                                   field_args=self.form_args,
-                                   ignore_hidden=self.ignore_hidden,
-                                   extra_fields=self.form_extra_fields)
+                                  base_class=self.form_base_class,
+                                  only=form_columns,
+                                  exclude=self.form_excluded_columns,
+                                  field_args=self.form_args,
+                                  ignore_hidden=self.ignore_hidden,
+                                  extra_fields=self.form_extra_fields)
 
         if bulk:
             del self.form_overrides['name']
@@ -587,6 +596,7 @@ class AssetView(CustomModelView):
         else:
             category = AssetCategory.unknown
         
+        #form = self._create_form_class(get_form_data(), obj=obj)
         form = self.make_asset_form(category, bulk=bulk)(get_form_data(), obj=obj)
 
         form.category.data = category.name

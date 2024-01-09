@@ -204,7 +204,7 @@
     <div style="width: 268px; max-width: 100%;  padding: 4px; margin: 4px; 
                 display: flex; flex-direction: column; justify-content: space-between;">
         <div>
-            <strong>{{ asset.code }}</strong> {{ asset.category.name }}<br>
+            <strong>{{ organization_icon(asset.organization) }} {{ asset.code_without_organization }}</strong> {{ asset.category.name }}<br>
         </div>
         <div style="border: 2px solid var(--color-secondary); border-radius: 2px;">
             {% set file = asset.get_primary_image() %}
