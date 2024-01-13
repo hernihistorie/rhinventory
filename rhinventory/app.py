@@ -63,6 +63,10 @@ def create_app(config_object='rhinventory.config'):
     def before_request():
         g.debug = app.debug
         g.organizations = Organization.query.order_by(Organization.id).all()
+        # XXX
+        g.current_user_organization_label = 'ha'
+        if current_user.organization and current_user.organization.name.lower() == "ucm":
+            g.current_user_organization_label = 'ucm'
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -145,13 +149,14 @@ def create_app(config_object='rhinventory.config'):
     @app.route('/label/asset/<int:asset_id>-small', defaults={'small': True})
     @app.route('/label/asset/<int:asset_id>-ha', defaults={'logo_ha': True})
     @app.route('/label/asset/<int:asset_id>-small-ha', defaults={'small': True, 'logo_ha': True})
+    @app.route('/label/asset/<int:asset_id>-ucm', defaults={'logo_ucm': True})
     @app.route('/label/asset/<int:asset_id>-big', defaults={'big': True})
     @app.route('/label/asset/<int:asset_id>-big-ha', defaults={'big': True, 'logo_ha': True})
-    def label_asset(asset_id, small=False, logo_ha=False, big=False):
+    def label_asset(asset_id, small=False, logo_ha=False, big=False, logo_ucm=False):
         asset = Asset.query.get(asset_id)
         if not asset: abort(404)
 
-        label_filename = make_asset_label(asset, small=small, logo_ha=logo_ha, big=big)
+        label_filename = make_asset_label(asset, small=small, logo_ha=logo_ha, big=big, logo_ucm=logo_ucm)
 
         return send_file(open(label_filename, 'rb'), mimetype='image/png')
     

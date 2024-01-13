@@ -26,7 +26,8 @@ def make_barcode(text):
 
     return fp
 
-def make_label(id, custom_code, name, subtitle="", medium="", small=False, logo_ha=False, big=False):
+# TODO refactor me :(
+def make_label(id, custom_code, name, subtitle="", medium="", small=False, logo_ha=False, big=False, logo_ucm=False) -> str:
     png_width = 2147 if big else 696
     
     fp = make_barcode(id)
@@ -37,6 +38,11 @@ def make_label(id, custom_code, name, subtitle="", medium="", small=False, logo_
         logo_kwargs = {
             'logo_href': "../assets/ha_logo.png",
             'logo_text_href': "../assets/ha_logo.png"
+        }
+    elif logo_ucm:
+        logo_kwargs = {
+            'logo_href': "../assets/ucmfmk_logo.png",
+            'logo_text_href': "../assets/ucmfmk_logo.png"
         }
     else:
         logo_kwargs = {
@@ -58,6 +64,8 @@ def make_label(id, custom_code, name, subtitle="", medium="", small=False, logo_
         filename += "-big"
     if logo_ha:
         filename += "-ha"
+    if logo_ucm:
+        filename += "-ucm"
     open(filename+'.svg', 'w').write(label_svg)
 
     inkscape_version = subprocess.check_output(['inkscape', '--version']).decode('utf-8').split('\n')[0].split(' ')[1]
@@ -71,7 +79,7 @@ def make_label(id, custom_code, name, subtitle="", medium="", small=False, logo_
 
     return filename+'.png'
 
-def make_asset_label(asset: Asset, small=False, logo_ha=False, big=False):
+def make_asset_label(asset: Asset, small=False, logo_ha=False, big=False, logo_ucm=False):
     id = f"RH{asset.id:05}"
     if asset.CATEGORY_EXPOSE_NUMBER:
         if asset.custom_code:
@@ -84,5 +92,5 @@ def make_asset_label(asset: Asset, small=False, logo_ha=False, big=False):
     return make_label(id, code, asset.name,
         subtitle=", ".join([c.name for c in asset.companies]),
         medium="; ".join([m.name for m in asset.mediums]),
-        small=small, logo_ha=logo_ha, big=big)
+        small=small, logo_ha=logo_ha, big=big, logo_ucm=logo_ucm)
     
