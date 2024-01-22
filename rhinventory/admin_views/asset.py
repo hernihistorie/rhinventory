@@ -529,7 +529,18 @@ class AssetView(CustomModelView):
                 'private': Privacy.private,
                 'default': Privacy.public
             }
+            num_files_changed = 0
             num_assets_changed = 0
+            for key, value in request.form.items():
+                if key.startswith("file"):
+                    file_id = int(key.split('-')[1])
+                    file = db.session.query(File).filter(File.id == file_id).one()
+                    if value == 'default' and '_publicize' not in request.form:
+                        continue
+                    file.privacy = PRIVACY_DICT[value]
+                    db.session.add(file)
+                    num_files_changed += 1
+            
             for key, value in request.form.items():
                 if key.startswith("asset"):
                     asset_id = int(key.split('-')[1])
@@ -539,11 +550,13 @@ class AssetView(CustomModelView):
                     asset.privacy = PRIVACY_DICT[value]
                     db.session.add(asset)
                     for file in asset.files:
-                        file.privacy = PRIVACY_DICT[value]
-                        db.session.add(file)
+                        if file.privacy == Privacy.private_implicit:
+                            file.privacy = PRIVACY_DICT[value]
+                            db.session.add(file)
+                            num_files_changed += 1
                     num_assets_changed += 1
             db.session.commit()
-            flash(f"Saved {num_assets_changed} assets.")
+            flash(f"Saved {num_assets_changed} assets and {num_files_changed} files.")
             return redirect(url_for('.publicize_view'))
 
 

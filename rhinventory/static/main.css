@@ -2,14 +2,26 @@ ul.rating-field li { list-style-type: none; display: inline; margin-right: 1em; 
 ul.rating-field label { display: inline; }
 
 .upload_result_thumb {
-    height: 46px; margin: auto; display: block;
-    transition: transform .2s;
-    transform-origin: bottom right;
+  height: 46px; margin: auto; display: block;
+  transition: transform .2s;
+  transform-origin: bottom right;
 }
 
 .upload_result_thumb:hover {
-    position: relative;
-    transform: scale(6, 6);
+  position: relative;
+  transform: scale(6, 6);
+}
+
+.publicize-thumb {
+  margin: auto; display: block;
+  transition: transform .2s;
+  transform-origin: top center;
+  z-index: 100;
+}
+
+.publicize-thumb:hover {
+  position: relative;
+  transform: scale(6, 6);
 }
 
 .btn.htmx-request {

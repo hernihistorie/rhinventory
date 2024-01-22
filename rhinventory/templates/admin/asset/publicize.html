@@ -33,19 +33,48 @@
     {{ asset_menu_bar() }}
 
     <h2><em>Publicize!</em></h2>
-    <p>Using this interface, judge whether the following {{ assets | count }} assets should be displayed publicly or not.
+    <p>Using this interface, judge whether the following {{ assets | count }} assets and their photos should be displayed publicly or not.
+    <p>Note: This currently doesn't show dumps, so don't put any "pesonal" floppies or cassettes that you don't know the contents of.
     <p>Total unjudged assets:
         {{ private_implicit_count }} / {{ all_assets_count }}
         (<strong>{{ "{:3.1f}".format((private_implicit_count / all_assets_count)*100) }}%</strong>)
     
+    {% macro render_privacy_buttons(name, id, value, small) %}
+        <div class="btn-group" data-toggle="buttons-radio">
+            <button type="button" name="{{ name }}-{{id}}-public"
+                class="btn btn-secondary btn-public {% if small %}btn-small{% endif %}
+                    {% if value == Privacy.public %} active {% endif %}" 
+                data-value="public">
+                {% if small %}
+                    {{ icon('eye') }}
+                {% else %}
+                    Public
+                {% endif %}
+            </button>
+            <button type="button" name="{{ name }}-{{id}}-default"
+                class="btn btn-secondary {% if small %}btn-small{% endif %}
+                    {% if value == Privacy.private_implicit %} active {% endif %}" 
+                data-value="default">
+                    &nbsp;
+            </button>
+            <button type="button" name="{{ name }}-{{id}}-private" 
+                class="btn btn-secondary btn-private {% if small %}btn-small{% endif %}
+                    {% if value == Privacy.private %} active {% endif %}" 
+                data-value="private">
+                {% if small %}
+                    {{ icon('eye-slash') }}
+                {% else %}
+                    Private
+                {% endif %}
+            </button>
+        </div>
+    {% endmacro %}
+
     <form method="POST">
         <div class="assets">
             {% for asset in assets %}
                 <div class="asset-row">
-                    <div class="btn-group" data-toggle="buttons-radio">
-                        <button type="button" name="asset-{{asset.id}}-public" class="btn btn-secondary btn-public" data-value="public">Public</button>
-                        <button type="button" name="asset-{{asset.id}}-default" class="btn btn-secondary active" data-value="default">&nbsp;</button>
-                        <button type="button" name="asset-{{asset.id}}-private" class="btn btn-secondary btn-private" data-value="private">Private</button>                    </div>
+                    {{ render_privacy_buttons('asset', asset.id, asset.privacy, False) }}
                     <div style="flex-grow: 1;">
                         <div>
                             {{ asset.code }} <strong class="asset-category">{{ asset.category.name }}</strong>
@@ -57,13 +86,16 @@
                         <div style="display: flex; flex-wrap: wrap; gap: 4px;">
                             {% set images = asset.get_sorted_images() %}
                             {% for file in images %}
-                                <a href="{{ url_for('asset.details_view', id=asset.id) }}" style="display: block; width: 100px; height: 100px;">
-                                    {% if file.has_thumbnail %}
-                                        <img src="{{ file.url_thumbnail }}">
-                                    {% else %}
-                                        (Thumbnail missing)
-                                    {% endif %}
-                                </a>
+                                <div style="display: flex; flex-direction: column; align-items: center;">
+                                    {{ render_privacy_buttons('file', file.id, file.privacy, True) }}
+                                    <a href="{{ url_for('file.details_view', id=file.id) }}" style="display: block; width: 100px; height: 100px;">
+                                        {% if file.has_thumbnail %}
+                                            <img src="{{ file.url_thumbnail }}" class="publicize-thumb">
+                                        {% else %}
+                                            (Thumbnail missing)
+                                        {% endif %}
+                                    </a>
+                                </div>
                             {% endfor %}
                         </div>
                     </div>
@@ -88,13 +120,14 @@
             oldHiddenFields.forEach(field => form.removeChild(field));
             
             buttonGroups.forEach(group => {
-                let assetId = group.querySelector('.btn.active').name.split('-')[1];
+                let fieldName = group.querySelector('.btn.active').name.split('-')[0];
+                let id = group.querySelector('.btn.active').name.split('-')[1];
                 let value = group.querySelector('.btn.active').dataset.value;
 
                 // Create new, hidden form input to hold the button's value
                 let field = document.createElement('input');
                 field.type = 'hidden';
-                field.name = `asset-${assetId}`;
+                field.name = `${fieldName}-${id}`;
                 field.value = value;
                 field.className = 'hiddenField';  // class added to aid in removal prior to submit
 
