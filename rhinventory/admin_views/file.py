@@ -38,7 +38,9 @@ def upload_file(file, category=0, batch_number=None):
     """
     md5 = hashlib.md5(file.read()).digest()
     file.seek(0)
-    matching_file = db.session.query(File).filter((File.md5 == md5) | (File.original_md5 == md5)).first()
+    matching_file = db.session.query(File).filter(
+            (File.md5 == md5) | (File.original_md5 == md5)
+        ).filter(File.is_deleted == False).first()
     if matching_file:
         raise DuplicateFile("Duplicate file", matching_file)
 

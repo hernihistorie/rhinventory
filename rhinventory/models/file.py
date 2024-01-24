@@ -141,8 +141,9 @@ class File(db.Model):
         return im
 
     def delete(self) -> None:
-        os.remove(self.full_filepath)
-        if self.full_filepath_thumbnail:
+        if os.path.exists(self.full_filepath):
+            os.remove(self.full_filepath)
+        if self.full_filepath_thumbnail and os.path.exists(self.full_filepath_thumbnail):
             os.remove(self.full_filepath_thumbnail)
         
         self.is_deleted = True
