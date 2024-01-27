@@ -1,0 +1,15 @@
+{% macro render_status(status) %}
+    {% if status.name == "have" %}
+         <span class="status-have"
+               title="Máme!"></span>
+    {% elif status.name == "dont_have" %}
+         <span class="status-dont-have"
+               title="Chybí!"></span>
+    {% elif status.name == "problems" %}
+         <span class="status-problems"
+               title="Máme s problémy!"></span>
+    {% elif status.name == "existence_unconfirmed" %}
+         <span class="status-existance-unconfirmed"
+               title="Nejsme si jistí existencí."></span>
+    {% endif %}
+{% endmacro %}

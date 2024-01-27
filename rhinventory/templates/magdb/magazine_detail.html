@@ -1,20 +1,5 @@
 {% extends "magdb/base.html" %}
-
-{% macro render_status(status) %}
-    {% if status.name == "have" %}
-         <span style="height: 25px; width: 25px; background-color: green; border-radius: 50%; display: inline-block;"
-               title="Máme!"></span>
-    {% elif status.name == "dont_have" %}
-         <span style="height: 25px; width: 25px; background-color: red; border-radius: 50%; display: inline-block;"
-               title="Chybí!"></span>
-    {% elif status.name == "problems" %}
-         <span style="height: 25px; width: 25px; background-color: yellow; border-radius: 50%; display: inline-block;"
-               title="Máme s problémy!"></span>
-    {% elif status.name == "existence_unconfirmed" %}
-         <span style="height: 25px; width: 25px; background-color: orange; border-radius: 50%; display: inline-block;"
-               title="Nejsme si jistí existencí."></span>
-    {% endif %}
-{% endmacro %}
+{% from "magdb/_macros.html" import render_status %}
 
 {% block content %}
 <div class="card card-sm">

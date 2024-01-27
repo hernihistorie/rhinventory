@@ -71,3 +71,21 @@ header.ha-header .logo {
 }
 
 /* END HA HEADER */
+
+
+.status-have {
+  height: 25px; width: 25px; background-color: green; border-radius: 50%; display: inline-block;
+  border: 1px solid black;
+}
+.status-dont-have {
+  height: 25px; width: 25px; background-color: red; border-radius: 50%; display: inline-block;
+  border: 1px solid black;
+}
+.status-problems {
+  height: 25px; width: 25px; background-color: yellow; border-radius: 50%; display: inline-block;
+  border: 1px solid black;
+}
+.status-existance-unconfirmed {
+  height: 25px; width: 25px; background-color: orange; border-radius: 50%; display: inline-block;
+  border: 1px solid black;
+}
