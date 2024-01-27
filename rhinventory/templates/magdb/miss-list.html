@@ -28,7 +28,11 @@
                         <table class="table">
                             {% for issue in missing_magazines[magazine_id] %}
                             <tr>
-                                <td>
+                                <td
+                                    {% if issue.status.name == "existence_unconfirmed" %}
+                                        class="text-secondary"
+                                    {% endif %}
+                                >
                                     {{ issue }}
                                 </td>
                                 <td>

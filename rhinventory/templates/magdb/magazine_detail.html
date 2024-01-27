@@ -75,7 +75,11 @@
                                     {# <th>Přílohy</th> #}
                                 </tr>
                                 {% for version in issue.versions %}
-                                    <tr id="version-{{ version.id }}">
+                                    <tr id="version-{{ version.id }}"
+                                        {% if version.status.name == "existence_unconfirmed" %}
+                                            class="text-secondary"
+                                        {% endif %}
+                                    >
                                         <td>
                                             {% if version.name_suffix %}
                                                 {% if version.name_suffix.lower() == 'cd' %}
