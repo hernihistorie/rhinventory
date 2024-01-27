@@ -63,7 +63,7 @@
                         <div class="table-resposive">
                             <table class="table table-vcenter">
                                 <tr>
-                                    <th>Název verze</th>
+                                    <th></th>
                                     <th>Titulní stránka</th>
                                     <th>Obsah</th>
                                     <th>Původní cena</th>
@@ -73,7 +73,15 @@
                                 {% for version in issue.versions %}
                                     <tr id="version-{{ version.id }}">
                                         <td>
-                                            {{ version.name_suffix }}
+                                            {% if version.name_suffix.lower() == 'cd' %}
+                                                S&nbsp;CD
+                                            {% elif version.name_suffix.lower() == 'standard' %}
+                                                Bez&nbsp;přílohy
+                                            {% elif version.name_suffix.lower() == 'dvd' %}
+                                                S&nbsp;DVD
+                                            {% else %}
+                                                {{ version.name_suffix }}
+                                            {% endif %}
                                         </td>
                                         <td>
                                             {% for file in version.cover_pages %}
