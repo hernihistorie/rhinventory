@@ -13,3 +13,17 @@
                title="Nejsme si jistí existencí."></span>
     {% endif %}
 {% endmacro %}
+
+{% macro render_version_name_suffix(name_suffix) %}
+    {% if name_suffix %}
+        {% if name_suffix.lower() == 'cd' %}
+            s&nbsp;CD
+        {% elif name_suffix.lower() == 'standard' %}
+            bez&nbsp;přílohy
+        {% elif name_suffix.lower() == 'dvd' %}
+            s&nbsp;DVD
+        {% else %}
+            {{ name_suffix }}
+        {% endif %}
+    {% endif %}
+{% endmacro %}

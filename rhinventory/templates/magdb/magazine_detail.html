@@ -1,5 +1,5 @@
 {% extends "magdb/base.html" %}
-{% from "magdb/_macros.html" import render_status %}
+{% from "magdb/_macros.html" import render_status, render_version_name_suffix %}
 
 {% block content %}
 <div class="card card-sm">
@@ -81,17 +81,7 @@
                                         {% endif %}
                                     >
                                         <td>
-                                            {% if version.name_suffix %}
-                                                {% if version.name_suffix.lower() == 'cd' %}
-                                                    S&nbsp;CD
-                                                {% elif version.name_suffix.lower() == 'standard' %}
-                                                    Bez&nbsp;přílohy
-                                                {% elif version.name_suffix.lower() == 'dvd' %}
-                                                    S&nbsp;DVD
-                                                {% else %}
-                                                    {{ version.name_suffix }}
-                                                {% endif %}
-                                            {% endif %}
+                                            {{ render_version_name_suffix(version.name_suffix) }}
                                         </td>
                                         <td>
                                             {% for file in version.cover_pages %}

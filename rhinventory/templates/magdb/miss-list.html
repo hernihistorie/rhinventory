@@ -1,5 +1,5 @@
 {% extends "magdb/base.html" %}
-{% from "magdb/_macros.html" import render_status %}
+{% from "magdb/_macros.html" import render_status, render_version_name_suffix %}
 
 {% block content %}
 
@@ -33,7 +33,7 @@
                                         class="text-secondary"
                                     {% endif %}
                                 >
-                                    {{ issue }}
+                                    {{ issue.magazine_issue }} {{ render_version_name_suffix(issue.name_suffix) }}
                                 </td>
                                 <td>
                                     {{ render_status(issue.status) }}
