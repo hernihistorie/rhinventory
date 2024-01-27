@@ -76,20 +76,30 @@
                                             {{ version.name_suffix }}
                                         </td>
                                         <td>
-                                                {% for file in version.cover_pages %}
-                                                    <img class="img-thumbnail" src="{{ file.thumbnail_path }}"
-                                                         class="img-rounded">
-                                                {% else %}
-                                                     Chybí!
-                                                {% endfor %}
-                                        </td>
-                                        <td>
-                                                {% for file in version.index_pages %}
+                                            {% for file in version.cover_pages %}
+                                                <a href="{{ file.path }}"
+                                                    data-lightbox="lightbox-{{file.path}}"
+                                                    data-title="{{ issue.current_magazine_name }} {{ issue.calendar_id or ''}} Cover page"
+                                                >
                                                     <img class="img-thumbnail" src="{{ file.thumbnail_path }}"
                                                         class="img-rounded">
-                                                {% else %}
-                                                 Chybí!
-                                                {% endfor %}
+                                                </a>
+                                            {% else %}
+                                                    Chybí!
+                                            {% endfor %}
+                                        </td>
+                                        <td>
+                                            {% for file in version.index_pages %}
+                                                <a href="{{ file.path }}"
+                                                    data-lightbox="lightbox-{{file.path}}"
+                                                    data-title="{{ issue.current_magazine_name }} {{ issue.calendar_id or ''}} Index page"
+                                                >
+                                                  <img class="img-thumbnail" src="{{ file.thumbnail_path }}"
+                                                    class="img-rounded">
+                                                </a>
+                                            {% else %}
+                                                Chybí!
+                                            {% endfor %}
                                         </td>
                                         <td>
                                             <table class="table table-vcenter">
@@ -141,6 +151,9 @@
         </div>
     </div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox-plus-jquery.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css"  crossorigin="anonymous" referrerpolicy="no-referrer" />
 {% endfor %}
 
 {% endblock %}
