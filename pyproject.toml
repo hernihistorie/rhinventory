@@ -32,6 +32,7 @@ sqlalchemy = "^2.0.0"
 flask-sqlalchemy = "^3.1.0"
 alembic-autogenerate-enums = "^0.1.2"
 flask-debugtoolbar = "^0.13.1"
+tqdm = "^4.66.1"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.950"
