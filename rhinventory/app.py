@@ -51,6 +51,7 @@ def create_app(config_object='rhinventory.config'):
     app.jinja_env.globals['url_for_here'] = url_for_here
 
     app.jinja_env.globals['Privacy'] = Privacy
+    app.jinja_env.globals['visible_to_current_user'] = visible_to_current_user
 
     @app.context_processor
     def inject_variables():
@@ -58,7 +59,6 @@ def create_app(config_object='rhinventory.config'):
             isinstance=isinstance,
             list=list,
             request_uri=request.url,
-            visible_to_current_user=visible_to_current_user
         )
 
     @app.before_request

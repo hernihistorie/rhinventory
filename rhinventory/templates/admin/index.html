@@ -29,12 +29,12 @@
                     - etc.
                 #}
             </p>
+            {{ render_featured_tags() }}
             {% if not current_user.is_authenticated %}
                 <div style="margin-top: 128px; text-align: right;">
                     <a href="{{ url_for('login', next=next) }}">Přihlášení pro správce</a>
                 </a>
             {% else %}
-                {{ render_featured_tags() }}
                 {% if not current_user.read_access %}
                     <p class="text-warning">Nemáte práva, požádejte si o ně.
                 {% endif %}
