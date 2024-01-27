@@ -12,6 +12,7 @@ from flask_admin import expose
 from flask_admin.helpers import get_redirect_target
 from flask_admin.model.helpers import get_mdict_item_or_list
 from werkzeug.utils import secure_filename
+from rhinventory.admin_views.utils import visible_to_current_user
 
 from rhinventory.db import log, Asset, File, FileCategory, get_next_file_batch_number
 from rhinventory.extensions import db, simple_eval
@@ -80,6 +81,9 @@ class FileView(CustomModelView):
         'md5',
     ]
 
+    def is_accessible(self):
+        return True
+
     # Overridden https://flask-admin.readthedocs.io/en/latest/_modules/flask_admin/model/base/#BaseModelView.details_view
     @expose('/details/', methods=['GET', 'POST'])
     def details_view(self):
@@ -94,6 +98,10 @@ class FileView(CustomModelView):
         if model is None:
             flash('Record does not exist.', 'error')
             return redirect(return_url)
+        
+        if not visible_to_current_user(model):
+            flash('You do not have permission to view this file.', 'error')
+            return redirect('/')
 
         template = self.details_template
 

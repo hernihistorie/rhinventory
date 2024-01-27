@@ -203,28 +203,36 @@
             {% macro render_asset_image(file, primary=False) %}
                 {% if file.is_image %}
                     <div class="asset-image-file {% if primary %}asset-image-file-primary{% endif %}">
-                        <div>
-                            <a href="{{ url_for('file.details_view', id=file.id) }}">
-                                {% if file.has_thumbnail %}
-                                    <img src="{{ file.url_thumbnail }}">
-                                {% else %}
-                                    (Thumbnail missing)
-                                {% endif %}
-                            </a>
-                        </div>
-                        <div class="asset-image-desc">
-                            <a href="{{ url_for('file.edit_view', id=file.id, url=url_for('asset.details_view', id=model.id)) }}">
-                                <span class="fa fa-pencil"></span>
-                            </a>
-                            {% if file.primary %}
-                                <span class="fa fa-star"></span>
-                            {% endif %}
-                            <!--
+                        {% if visible_to_current_user(file) %}
+                            <div>
                                 <a href="{{ url_for('file.details_view', id=file.id) }}">
-                                    {{ file.filename }}
+                                    {% if file.has_thumbnail %}
+                                        <img src="{{ file.url_thumbnail }}">
+                                    {% else %}
+                                        (Thumbnail missing)
+                                    {% endif %}
                                 </a>
-                            -->
-                        </div>
+                            </div>
+                            <div class="asset-image-desc">
+                                {% if admin_view.can_edit %}
+                                    <a href="{{ url_for('file.edit_view', id=file.id, url=url_for('asset.details_view', id=model.id)) }}">
+                                        <span class="fa fa-pencil"></span>
+                                    </a>
+                                {% endif %}
+                                {% if file.primary %}
+                                    <span class="fa fa-star"></span>
+                                {% endif %}
+                                <!--
+                                    <a href="{{ url_for('file.details_view', id=file.id) }}">
+                                        {{ file.filename }}
+                                    </a>
+                                -->
+                            </div>
+                        {% else %}
+                            <div class="">
+                                (skrytý obrázek)
+                            </div>
+                        {% endif %}
                     </div>
                 {% endif %}
             {% endmacro %}
@@ -273,24 +281,28 @@
             {% for file in model.files %}
                 {% if not file.is_image %}
                     <tr>
-                        <td>
-                            <a href="{{ url_for('file.edit_view', id=file.id, url=url_for('asset.details_view', id=model.id)) }}">
-                            <span class="fa fa-pencil glyphicon icon-pencil"></span>
-                            </a>
+                        {% if visible_to_current_user(file) %}
+                            <td>
+                                <a href="{{ url_for('file.edit_view', id=file.id, url=url_for('asset.details_view', id=model.id)) }}">
+                                <span class="fa fa-pencil glyphicon icon-pencil"></span>
+                                </a>
 
-                            <a href="{{ url_for('file.details_view', id=file.id) }}">
-                                <span class="fa fa-eye glyphicon icon-eye-open"></span>
-                            </a>
-                        </td>
-                        <td>
-                            {% if file.primary %}
-                                <span class="fa fa-eye glyphicon icon-star"></span>
-                            {% endif %}
-                            <a href="{{ url_for('file.details_view', id=file.id) }}">
-                                {{ file.filename }}
-                            </a>
-                        </td>
-                        <td>{{ file.category.name }}</td>
+                                <a href="{{ url_for('file.details_view', id=file.id) }}">
+                                    <span class="fa fa-eye glyphicon icon-eye-open"></span>
+                                </a>
+                            </td>
+                            <td>
+                                {% if file.primary %}
+                                    <span class="fa fa-eye glyphicon icon-star"></span>
+                                {% endif %}
+                                <a href="{{ url_for('file.details_view', id=file.id) }}">
+                                    {{ file.filename }}
+                                </a>
+                            </td>
+                            <td>{{ file.category.name }}</td>
+                        {% else %}
+                            <td></td><td>(skrytý soubor)</td>
+                        {% endif %}
                     </tr>
                 {% endif %}
             {% endfor %}
@@ -300,68 +312,74 @@
 
     <h2>{{ icon("handshake-angle") }} Transaction history</h2>
 
-    {% if admin_view.can_create %}
-        <div style="margin-bottom: 8px">
-            <a href="{{ url_for('transaction.create_view', asset_id=model.id) }}" class="btn btn-primary">
-                {{ icon("plus-circle") }} Add new transaction
-            </a>
-        </div>
+    {% if current_user.is_authenticated %}
+        {% if admin_view.can_create %}
+            <div style="margin-bottom: 8px">
+                <a href="{{ url_for('transaction.create_view', asset_id=model.id) }}" class="btn btn-primary">
+                    {{ icon("plus-circle") }} Add new transaction
+                </a>
+            </div>
+        {% endif %}
+
+        <table class="table table-hover table-bordered">
+            <tr>
+                <th>Date</th>
+                <th>Transaction type</th>
+                <th>Note</th>
+                <th>Together with</th>
+                <th></th>
+            </tr>
+        {% for transaction in model.transactions %}
+        <tr>
+            <td>{{ transaction.date }}</td>
+            <td>{{ transaction.transaction_type.name }}</td>
+            <td>{{ transaction.note }}</td>
+            <td>
+                <ul>
+                {% for asset in transaction.assets %}
+                    <li><a href="{{ url_for('asset.details_view', id=asset.id) }}">{{ asset.name }}</a></li>
+                {% endfor %}
+                </ul>
+            </td>
+            <td>
+                {% if admin_view.can_edit %}
+                    <a href="{{ url_for('transaction.edit_view', id=transaction.id) }}">
+                    <span class="fa fa-pencil glyphicon icon-pencil"></span>
+                    </a>
+                {% endif %}
+
+                <a href="{{ url_for('transaction.details_view', id=transaction.id) }}">
+                    <span class="fa fa-eye glyphicon icon-eye-open"></span>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+        </table>
+    {% else %}
+        <p>Historie transakcí vázaných k předmětu je v současnosti dostupná pouze pro přihlášení uživatele.
     {% endif %}
 
-    <table class="table table-hover table-bordered">
-        <tr>
-            <th>Date</th>
-            <th>Transaction type</th>
-            <th>Note</th>
-            <th>Together with</th>
-            <th></th>
-        </tr>
-    {% for transaction in model.transactions %}
-    <tr>
-        <td>{{ transaction.date }}</td>
-        <td>{{ transaction.transaction_type.name }}</td>
-        <td>{{ transaction.note }}</td>
-        <td>
-            <ul>
-            {% for asset in transaction.assets %}
-                <li><a href="{{ url_for('asset.details_view', id=asset.id) }}">{{ asset.name }}</a></li>
-            {% endfor %}
-            </ul>
-        </td>
-        <td>
-            {% if admin_view.can_edit %}
-                <a href="{{ url_for('transaction.edit_view', id=transaction.id) }}">
-                <span class="fa fa-pencil glyphicon icon-pencil"></span>
-                </a>
-            {% endif %}
 
-            <a href="{{ url_for('transaction.details_view', id=transaction.id) }}">
-                <span class="fa fa-eye glyphicon icon-eye-open"></span>
-            </a>
-        </td>
-    </tr>
-    {% endfor %}
-    </table>
+    {% if current_user.is_authenticated %}
+        <h2>{{ icon("file-lines") }} Edit Logs</h2>
 
-
-    <h2>{{ icon("file-lines") }} Edit Logs</h2>
-
-    <table class="table table-hover table-bordered">
-        <tr>
-            <th>User</th>
-            <th>Date</th>
-            <th>Event</th>
-            <th>Details</th>
-        </tr>
-    {% for log in logs %}
-    <tr>
-        <td>{{ log.user }}</td>
-        <td>{{ log.datetime }}</td>
-        <td>{{ log.event }}</td>
-        <td>{{ log.object_json }}</td>
-    </tr>
-    {% endfor %}
-    </table>
+        <table class="table table-hover table-bordered">
+            <tr>
+                <th>User</th>
+                <th>Date</th>
+                <th>Event</th>
+                <th>Details</th>
+            </tr>
+        {% for log in logs %}
+            <tr>
+                <td>{{ log.user }}</td>
+                <td>{{ log.datetime }}</td>
+                <td>{{ log.event }}</td>
+                <td>{{ log.object_json }}</td>
+            </tr>
+        {% endfor %}
+        </table>
+    {% endif %}
 
     <script>
         // If there is a URL argument called "print" with the value "1"

@@ -1,0 +1,23 @@
+{% extends 'admin/model/details.html' %}
+
+{# XXX https://github.com/flask-admin/flask-admin/blob/master/flask_admin/templates/bootstrap2/admin/model/details.html#L5 #}
+{% block navlinks %}
+    {% from 'admin/asset/menu_bar.html' import asset_menu_bar with context %}
+    {{ asset_menu_bar(return_url=url_for('asset.details_view', id=model_id)) }}
+{% endblock %}
+
+{% block details_search %}
+{% endblock %}
+
+{% block details_table %}
+    <h2>Skrytý předmět</h2>
+    <p>Omlouváme se, ale tento předmět není veřejně dostupný.
+    <p>Proč tomu tak je?  Může to mít několik příčin.
+    <ul>
+        <li>Předmět je příliš nový a ještě neprošel revizí, která by rozhodla o jeho uveřejnění.
+        <li>Předmět je osobního charakteru a jeho uveřejnění by napadalo soukromí původního nebo současného majitele.
+        <li>Předmět má viditelné klíče (např. na Steam), které zatím nebyly vyretušovány z fotky. 
+    </ul>
+
+    <p>V případě, že si myslíte, že se v tomto případě jedná o chybu, kontaktujte nás, prosím.
+{% endblock %}

@@ -3,7 +3,7 @@ from datetime import datetime
 from enum import EnumMeta
 import sys
 from math import ceil
-from typing import Optional, Union, Iterable
+from typing import Optional, Union, Iterable, override
 
 from flask import Response, redirect, request, flash, url_for, get_template_attribute
 from wtforms import RadioField, TextAreaField, Field
@@ -19,13 +19,13 @@ from flask_admin.helpers import get_form_data
 from flask_login import current_user
 from sqlalchemy import desc, nulls_last, func
 from sqlalchemy.sql.functions import coalesce
-from rhinventory.admin_views.utils import get_asset_list_from_request_args
+from rhinventory.admin_views.utils import get_asset_list_from_request_args, visible_to_current_user
 
 from rhinventory.extensions import db
 from rhinventory.admin_views.model_view import CustomModelView
 from rhinventory.db import Medium, Asset, get_next_file_batch_number, LogItem
 from rhinventory.models.asset import AssetCondition
-from rhinventory.models.enums import Privacy
+from rhinventory.models.enums import Privacy, PUBLIC_PRIVACIES
 from rhinventory.models.file import IMAGE_CATEGORIES, File
 from rhinventory.models.log import LogEvent, log
 from rhinventory.forms import FileForm
@@ -89,6 +89,7 @@ class AssetView(CustomModelView):
         'note',
         'privacy',
         'tags',
+        'privacy',
         'parent',
         'location',
         'contains',
@@ -184,6 +185,9 @@ class AssetView(CustomModelView):
     edit_template = "admin/asset/edit.html"
     create_template = "admin/asset/create.html"
 
+    def is_accessible(self):
+        return True
+
     def on_model_change(self, form, instance: Asset, is_created):
         if is_created:
             if not instance.custom_code:
@@ -271,6 +275,11 @@ class AssetView(CustomModelView):
         return self.get_url('.gallery_view', **kwargs)
 
     def get_list_value(context, model, column):
+        if not visible_to_current_user(model):
+            if column == "name":
+                return "(skrytý předmět)"
+            return ""
+        
         if column == "flags":
             return get_template_attribute("admin/asset/_macros.html", "render_flags")(model)
         elif column == "name":
@@ -299,6 +308,13 @@ class AssetView(CustomModelView):
             search = ""
         return super()._apply_search(query, count_query, joins, count_joins, search)
 
+    @override
+    def get_query(self):
+        if current_user.is_authenticated and current_user.read_access:
+            return self.session.query(self.model)
+        else:
+            return self.session.query(self.model).filter(Asset.privacy.in_(PUBLIC_PRIVACIES))
+    
     @expose('/gallery/')
     def gallery_view(self):
         """
@@ -440,6 +456,9 @@ class AssetView(CustomModelView):
         if model is None:
             flash('Record does not exist.', 'error')
             return redirect(return_url)
+        
+        if not visible_to_current_user(model):
+            return self.render('admin/asset/private.html', model_id=model.id)
 
         template = self.details_template
 
@@ -468,6 +487,8 @@ class AssetView(CustomModelView):
 
     @expose('/map/', methods=['GET'])
     def map_view(self):
+        if not current_user.is_authenticated:
+            return self.inaccessible_callback(None)
         # This code brought to you by GPT-4
 
         # First, create a subquery that returns the count of files for each asset

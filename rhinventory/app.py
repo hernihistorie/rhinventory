@@ -8,6 +8,7 @@ from flask_bootstrap import Bootstrap5
 from rhinventory.extensions import db, admin, debug_toolbar, github, login_manager
 from rhinventory.admin import add_admin_views
 from rhinventory.db import User, Asset, Location, File, log
+from rhinventory.admin_views.utils import visible_to_current_user
 
 from rhinventory.labels.labels import make_barcode, make_label, make_asset_label
 
@@ -56,7 +57,8 @@ def create_app(config_object='rhinventory.config'):
         return dict(
             isinstance=isinstance,
             list=list,
-            request_uri=request.url
+            request_uri=request.url,
+            visible_to_current_user=visible_to_current_user
         )
 
     @app.before_request
@@ -199,7 +201,6 @@ def create_app(config_object='rhinventory.config'):
 
         return send_file(open(label_filename, 'rb'), mimetype='image/png')
     
-    @login_required
     @app.route('/files/<int:file_id>/thumb', defaults={'thumb': True})
     @app.route('/files/<int:file_id>/thumb_<filename>', defaults={'thumb': True})
     @app.route('/files/<int:file_id>', defaults={'thumb': False})
@@ -210,6 +211,9 @@ def create_app(config_object='rhinventory.config'):
         file: typing.Optional[File] = File.query.get(file_id)
         if not file:
             abort(404)
+        
+        if not visible_to_current_user(file):
+            return abort(403)
 
         if thumb:
             if not file.has_thumbnail:

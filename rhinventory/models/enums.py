@@ -6,4 +6,5 @@ class Privacy(Enum):
     unlinked = 10
     public = 20
 
-HIDDEN_STATUSES = [Privacy.private, Privacy.unlinked]
+HIDDEN_PRIVACIES = [Privacy.private_implicit, Privacy.private, Privacy.unlinked]
+PUBLIC_PRIVACIES = [Privacy.public]
