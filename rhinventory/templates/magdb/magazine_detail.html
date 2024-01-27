@@ -13,13 +13,17 @@
 </div>
 
 {% for year, data in issues_by_year.items() %}
-<div class="card card-sm">
-    <div class="card-body">
-        <div>
-            <h2>{{ year or "Bez zadaného roku"}}</h2>
+<div id="accordion-{{ year }}" class="card card-sm accordion">
+    <div class="card-body accordion-item">
+        <div class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapse-{{ year }}" aria-expanded="false">
+            <h2>
+                {{ year or "Bez zadaného roku"}}
+            </h2>
         </div>
 
-        <div class="table-resposive">
+        <div id="collapse-{{ year }}" class="table-resposive accordion-collapse collapse" data-bs-parent="#accordion-{{ year }}">
             <table class="table table-vcenter">
                 <tr>
                     <th>Časpis</th>
@@ -73,14 +77,16 @@
                                 {% for version in issue.versions %}
                                     <tr id="version-{{ version.id }}">
                                         <td>
-                                            {% if version.name_suffix.lower() == 'cd' %}
-                                                S&nbsp;CD
-                                            {% elif version.name_suffix.lower() == 'standard' %}
-                                                Bez&nbsp;přílohy
-                                            {% elif version.name_suffix.lower() == 'dvd' %}
-                                                S&nbsp;DVD
-                                            {% else %}
-                                                {{ version.name_suffix }}
+                                            {% if version.name_suffix %}
+                                                {% if version.name_suffix.lower() == 'cd' %}
+                                                    S&nbsp;CD
+                                                {% elif version.name_suffix.lower() == 'standard' %}
+                                                    Bez&nbsp;přílohy
+                                                {% elif version.name_suffix.lower() == 'dvd' %}
+                                                    S&nbsp;DVD
+                                                {% else %}
+                                                    {{ version.name_suffix }}
+                                                {% endif %}
                                             {% endif %}
                                         </td>
                                         <td>
