@@ -68,7 +68,7 @@
                                     <th>Obsah</th>
                                     <th>Původní cena</th>
                                     <th>Stav</th>
-                                    <th>Přílohy</th>
+                                    {# <th>Přílohy</th> #}
                                 </tr>
                                 {% for version in issue.versions %}
                                     <tr id="version-{{ version.id }}">
@@ -123,7 +123,7 @@
                                         <td>
                                             {{ render_status(version.status) }}
                                         </td>
-                                        <td>
+                                        {# <td>
                                             {% if version.supplements|length > 0 %}
                                             <table class="table table-vcenter">
                                                 <tr>
@@ -144,7 +144,7 @@
                                             {% else %}
                                             Bez příloh
                                             {% endif %}
-                                        </td>
+                                        </td> #}
                                     </tr>
                                 {% endfor %}
 
