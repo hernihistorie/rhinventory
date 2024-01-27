@@ -3,7 +3,7 @@ from datetime import datetime
 from enum import EnumMeta
 import sys
 from math import ceil
-from typing import Optional, Union, Iterable, override
+from typing import Optional, Union, Iterable
 
 from flask import Response, redirect, request, flash, url_for, get_template_attribute
 from wtforms import RadioField, TextAreaField, Field
@@ -308,7 +308,6 @@ class AssetView(CustomModelView):
             search = ""
         return super()._apply_search(query, count_query, joins, count_joins, search)
 
-    @override
     def get_query(self):
         if current_user.is_authenticated and current_user.read_access:
             return self.session.query(self.model)
