@@ -226,6 +226,9 @@ class MagazineIssueVersionPrice(HistoryTrait):
     value = db.Column(db.Float())
     currency = db.Column(db.Enum(Currency))
 
+    def __str__(self):
+        return f"{self.value} {self.currency.name} (ID {self.id})"
+
 
 class MagazineIssueVersionFiles(HistoryTrait):
     __tablename__ = "magazine_issue_files"
@@ -238,6 +241,9 @@ class MagazineIssueVersionFiles(HistoryTrait):
     file = db.relationship("File", backref="magazine_issue_files")
 
     file_type = db.Column(db.Enum(MagDBFileType))
+
+    def __str__(self):
+        return f"{self.file_type.name} - {self.file.filename} (ID {self.id})"
 
 
 class MagazineSupplement(HistoryTrait):
