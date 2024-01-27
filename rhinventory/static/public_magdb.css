@@ -89,3 +89,7 @@ header.ha-header .logo {
   height: 25px; width: 25px; background-color: orange; border-radius: 50%; display: inline-block;
   border: 1px solid black;
 }
+
+.img-thumbnail {
+  max-height: 220px;
+}

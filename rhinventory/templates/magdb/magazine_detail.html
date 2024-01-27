@@ -81,11 +81,10 @@
                                                     data-lightbox="lightbox-{{file.path}}"
                                                     data-title="{{ issue.current_magazine_name }} {{ issue.calendar_id or ''}} Cover page"
                                                 >
-                                                    <img class="img-thumbnail" src="{{ file.thumbnail_path }}"
-                                                        class="img-rounded">
+                                                    <img class="img-thumbnail img-rounded" src="{{ file.thumbnail_path }}">
                                                 </a>
                                             {% else %}
-                                                    Chybí!
+                                                <img class="img-thumbnail img-rounded" src="{{ url_for('static', filename='magdb/missing-a4.png') }}">
                                             {% endfor %}
                                         </td>
                                         <td>
@@ -94,11 +93,10 @@
                                                     data-lightbox="lightbox-{{file.path}}"
                                                     data-title="{{ issue.current_magazine_name }} {{ issue.calendar_id or ''}} Index page"
                                                 >
-                                                  <img class="img-thumbnail" src="{{ file.thumbnail_path }}"
-                                                    class="img-rounded">
+                                                  <img class="img-thumbnail img-rounded" src="{{ file.thumbnail_path }}">
                                                 </a>
                                             {% else %}
-                                                Chybí!
+                                                <img class="img-thumbnail img-rounded" src="{{ url_for('static', filename='magdb/missing-a4.png') }}">
                                             {% endfor %}
                                         </td>
                                         <td>
@@ -154,6 +152,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox-plus-jquery.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css"  crossorigin="anonymous" referrerpolicy="no-referrer" />
+
 {% endfor %}
 
 {% endblock %}
