@@ -151,18 +151,19 @@ class PublicMagDBService:
                     thumbnail_path = url_for('file', file_id=file_id, filename=filepath.split('/')[-1], thumb=True)
                 else:
                     thumbnail_path = None
+                
+                public_file = PublicFile(
+                    path=real_filepath,
+                    thumbnail_path=thumbnail_path,
+                )
 
                 match file_type:
                     case MagDBFileType.index_page:
-                        version.index_pages.append(PublicFile(
-                            path=real_filepath,
-                            thumbnail_path=thumbnail_path,
-                        ))
+                        if public_file not in version.index_pages:
+                            version.index_pages.append(public_file)
                     case MagDBFileType.cover_page:
-                        version.cover_pages.append(PublicFile(
-                            path=real_filepath,
-                            thumbnail_path=thumbnail_path,
-                        ))
+                        if public_file not in version.cover_pages:
+                            version.cover_pages.append(public_file)
 
         supplements_query = (
             select(
