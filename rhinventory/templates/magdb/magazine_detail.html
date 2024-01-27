@@ -5,11 +5,18 @@
 <div class="card card-sm">
     <div class="card-body">
         <h1>{{ magazine.title }}</h1>
-    </div>
 
-    {% for logo in files.logos[magazine.id] %}
-        <img class="img-thumbnail" src="{{ logo.url }}" style="width: 200px;">
-    {% endfor %}
+        {% for logo in files.logos[magazine.id] %}
+            <img class="img-thumbnail" src="{{ logo.url }}" style="width: 200px;">
+        {% endfor %}
+
+        {% if magazine.description %}
+            <p>
+                {{ magazine.description }}
+            </p>
+        {% endif %}
+        <p>
+    </div>
 </div>
 
 {% for year, data in issues_by_year.items() %}
@@ -26,7 +33,7 @@
         <div id="collapse-{{ year }}" class="table-resposive accordion-collapse collapse" data-bs-parent="#accordion-{{ year }}">
             <table class="table table-vcenter">
                 <tr>
-                    <th>Časpis</th>
+                    <th></th>
                     <th>Číslo v pořadí</th>
                     <th>Datum vydání</th>
                     <th>Verze</th>

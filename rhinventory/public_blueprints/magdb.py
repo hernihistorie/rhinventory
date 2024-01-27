@@ -64,6 +64,16 @@ def magazine_detail(magazine_id):
 
     # get logos
 
+    logos = MagazineIssueVersionFiles.query \
+        .join(MagazineIssueVersion).join(MagazineIssue) \
+        .filter(MagazineIssueVersionFiles.file_type == MagDBFileType.logo) \
+        .filter(MagazineIssueVersion.magazine_issue_id.in_(issue_ids)) \
+        .all()
+
+    for logo in logos:
+        context["files"]["logos"][magazine_id].add(logo.file)
+
+
     return render_template("magdb/magazine_detail.html", **context)
 
 
