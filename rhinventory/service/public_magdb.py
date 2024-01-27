@@ -142,6 +142,7 @@ class PublicMagDBService:
                         currency=currency
                     )
                     version.prices.append(price)
+                    version.prices.sort(key=lambda p: p.currency.name)
                     price_index[price_id] = price
 
             if file_type is not None:
