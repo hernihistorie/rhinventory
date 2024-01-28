@@ -54,8 +54,8 @@ class PublicIssue:
 
 
 class PublicMagDBService:
-    def list_magazine(self, magazine_id):
-        issues = []
+    def list_magazine(self, magazine_id: int) -> list[PublicIssue]:
+        issues: list[PublicIssue] = []
 
         issue_index = {}
         version_index = {}
