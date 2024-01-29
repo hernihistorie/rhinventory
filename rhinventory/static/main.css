@@ -62,6 +62,14 @@ a:hover {
   text-decoration: underline;
 }
 
+a.text-link {
+  color: var(--color-text);
+}
+a.text-link:hover {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
 /* START HA HEADER */
 
 header.ha-header {
