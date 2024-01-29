@@ -106,9 +106,9 @@
                 {{ row('model') }}
                 {{ row('product_codes', 'Product codes') }}
                 {{ row('serial') }}
-                {% if model.condition %}
+                {% if model.condition_new %}
                     <tr><td><strong>Condition</strong></td>
-                    <td>{{ model.condition.name }}</td></tr>
+                    <td>{{ model.condition_new.name }}</td></tr>
                 {% endif %}
                 {{ row('tags') }}
                 <tr>
