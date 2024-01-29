@@ -119,6 +119,15 @@
                     Common Filters<b class="caret"></b>
                 </a>
                 <ul class="dropdown-menu field-filters">
+                    <li>
+                        <a href="{{ url_for_here(flt1_7='game') }}">Games</a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for_here(flt2_10='software,multimedia') }}">Software and multimedia</a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for_here(flt2_10='console,computer') }}">Consoles and computers</a>
+                    </li>
                     {% for organization in g.organizations %}
                         <li>
                             <a href="{{ url_for_here(flt1_0=organization.name) }}">From {{ organization_icon(organization) }} {{ organization }}</a>
