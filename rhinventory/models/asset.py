@@ -1,9 +1,11 @@
+from datetime import datetime
 import sys
 import enum
 
 from sqlalchemy import Column, Integer, Numeric, String, Text, \
     DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint, \
         ARRAY, desc
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref, Mapped, mapped_column
 from rhinventory.models.asset_attributes import AssetMedium, AssetPackaging, Company, Platform, Medium, Packaging, AssetTag, asset_tag_table, asset_platform_table, asset_company_table
 from rhinventory.models.enums import Privacy
@@ -121,8 +123,10 @@ class Asset(db.Model):
 
     condition_new: AssetCondition = Column(Enum(AssetCondition), default=AssetCondition.unknown, nullable=False)  # type: ignore
     
-    privacy: Mapped[Privacy] = mapped_column(Enum(Privacy), default=Privacy.private_implicit, nullable=False)
+    _privacy: Mapped[Privacy] = mapped_column('privacy', Enum(Privacy), default=Privacy.private_implicit, nullable=False)
 
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    made_public_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     #producers = relationship(Company, backref="assets_produced")
     #distributors = relationship(Company, backref="assets_distributed")
 
@@ -185,7 +189,16 @@ class Asset(db.Model):
         
         return string
 
+    @hybrid_property
+    def privacy(self) -> Privacy:
+        return self._privacy
 
+    @privacy.setter
+    def privacy(self, value: Privacy) -> None:
+        if self._privacy != Privacy.public and value == Privacy.public:
+            self.made_public_at = datetime.utcnow()
+
+        self._privacy = value
 
 
     def get_primary_image(self):

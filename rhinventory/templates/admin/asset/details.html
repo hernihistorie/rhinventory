@@ -77,7 +77,7 @@
                                 {% endfor %}
                             {% else %}
                                 <div {% if pre_line %}style="white-space: pre-line;"{% endif %}>
-                                    {{ model[key] }}
+                                    {{- model[key] }}
                                 </div>
                             {% endif %}
                         </td>
@@ -116,6 +116,10 @@
                     <td>
                         {{ render_privacy_flag(model.privacy) }}
                         {{ model.privacy.name }}
+                        {% if model.privacy == Privacy.public and model.made_public_at %}
+                            <br>
+                            <small>made public on {{ model.made_public_at.strftime('%Y-%m-%d') }}</small>
+                        {% endif %}
                     </td>
                 </tr>
                 {{ row('note', pre_line=True) }}
