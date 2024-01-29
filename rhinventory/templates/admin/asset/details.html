@@ -1,6 +1,7 @@
 {% extends 'admin/model/details.html' %}
 
 {% from '_macros.html' import organization_icon %}
+{% from 'admin/asset/_macros.html' import render_privacy_flag %}
 
 {# XXX https://github.com/flask-admin/flask-admin/blob/master/flask_admin/templates/bootstrap2/admin/model/details.html#L5 #}
 {% block navlinks %}
@@ -105,9 +106,18 @@
                 {{ row('model') }}
                 {{ row('product_codes', 'Product codes') }}
                 {{ row('serial') }}
-                {{ row('condition_new') }}
+                {% if model.condition %}
+                    <tr><td><strong>Condition</strong></td>
+                    <td>{{ model.condition.name }}</td></tr>
+                {% endif %}
                 {{ row('tags') }}
-                {{ row('privacy') }}
+                <tr>
+                    <td><strong>Privacy setting</strong></td>
+                    <td>
+                        {{ render_privacy_flag(model.privacy) }}
+                        {{ model.privacy.name }}
+                    </td>
+                </tr>
                 {{ row('note', pre_line=True) }}
                 {% if model.parent %}
                     <tr><td><strong>Parent</strong></td>

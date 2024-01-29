@@ -1,21 +1,25 @@
 {% from '_macros.html' import icon, organization_icon %}
 
-{% macro render_flags(asset) %}
-    <div class="flags">
+{% macro render_privacy_flag(privacy) %}
     {% set privacy_icon = {
         Privacy.private_implicit: 'eye-slash',
         Privacy.private: 'eye-slash',
         Privacy.unlisted: 'low-vision',
         Privacy.public: 'eye',
-    }[asset.privacy] %}
+    }[privacy] %}
     <span
-        rel="tooltip" title="{{ asset.privacy }}"
-        {% if asset.privacy == Privacy.public %}
+        rel="tooltip" title="{{ privacy.name }}"
+        {% if privacy == Privacy.public %}
             class="faded"
         {% endif %}
     >
         {{- icon(privacy_icon) -}}
     </span>
+{% endmacro %}
+
+{% macro render_flags(asset) %}
+    <div class="flags">
+        {{ render_privacy_flag(asset.privacy) }}
     {% set file = asset.get_primary_image() %}
     <span>
     {% if file %}
