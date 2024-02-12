@@ -77,9 +77,11 @@
                         <td>
                             <tt>{{ barcode.data.decode('utf-8') }}</tt>
                             {% if barcode.data.decode('utf-8').startswith('RH') %}
-                                <form method="POST" action="{{ url_for('file.auto_assign_view', id=model.id) }}" style="display: inline;">
-                                    <input type="submit" value="Auto assign" class="btn btn-primary">
-                                </form>
+                                {% if admin_view.can_edit %}
+                                    <form method="POST" action="{{ url_for('file.auto_assign_view', id=model.id) }}" style="display: inline;">
+                                        <input type="submit" value="Auto assign" class="btn btn-primary">
+                                    </form>
+                                {% endif %}
                             {% endif %}
                         </td>
                     </tr>
