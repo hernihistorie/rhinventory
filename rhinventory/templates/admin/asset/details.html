@@ -297,9 +297,11 @@
                     <tr>
                         {% if visible_to_current_user(file) %}
                             <td>
-                                <a href="{{ url_for('file.edit_view', id=file.id, url=url_for('asset.details_view', id=model.id)) }}">
-                                <span class="fa fa-pencil glyphicon icon-pencil"></span>
-                                </a>
+                                {% if admin_view.can_edit %}
+                                    <a href="{{ url_for('file.edit_view', id=file.id, url=url_for('asset.details_view', id=model.id)) }}">
+                                        <span class="fa fa-pencil glyphicon icon-pencil"></span>
+                                    </a>
+                                {% endif %}
 
                                 <a href="{{ url_for('file.details_view', id=file.id) }}">
                                     <span class="fa fa-eye glyphicon icon-eye-open"></span>
