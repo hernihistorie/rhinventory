@@ -106,7 +106,7 @@
         var selectedParam = urlParams.get('selected');
 
         if (selectedParam) {
-            selected = selectedParam.split(',').map(Number);
+            selected = selectedParam.split(',').map(String);
             console.log(selected);
         } else {
             var selected_local_storage = localStorage.getItem("selected")
