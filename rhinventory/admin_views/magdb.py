@@ -383,6 +383,7 @@ class MagDbMagazineIssueFileView(MagDbModelView):
         'magazine_issue_version.name_suffix',
         'magazine_issue_version.issn_or_isbn',
         'magazine_issue_version.barcode',
+        'file_type',
     ]
 
 
