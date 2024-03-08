@@ -40,7 +40,7 @@
                     <a href="{{ url_for('label_asset', asset_id=model.id, small=False, big=False) }}" class="btn btn-link">
                         Label:
                     </a>
-                    {% if current_user.organization.name.lower() == "ucm" %}
+                    {% if current_user.organization and current_user.organization.name.lower() == "ucm" %}
                         <a href="rhprint:{{model.id}}-ucm" id="print-label-ucm" class="btn btn-primary">
                             {{ icon("print") }} UCM label
                         </a>
