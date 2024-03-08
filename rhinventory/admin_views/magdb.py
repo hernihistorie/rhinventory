@@ -9,6 +9,7 @@ from wtforms import Form, FileField, SubmitField, BooleanField, ValidationError,
 from rhinventory.admin_views import CustomModelView
 from rhinventory.admin_views.file import upload_file, DuplicateFile
 from rhinventory.extensions import db
+from rhinventory.models.enums import Privacy
 from rhinventory.models.file import FileCategory
 from rhinventory.models.magdb import Issuer, Magazine, Periodicity, MagazineIssue, Format, MagazineIssueVersion, \
     MagazineIssueVersionPrice, MagazineIssueVersionFiles, MagDBFileType, MagazineSupplement, MagazineSupplementVersion
@@ -267,6 +268,8 @@ class MagDbMagazineIssueVersionView(MagDbModelView):
             except DuplicateFile as e:
                 flash("Uploaded file is a duplicate -> logo not added.", "error")
                 return self.render("magdb/magazine_issue_version/manage_files.html", **context)
+
+            file_entry.privacy = Privacy.public
 
             db.session.add(file_entry)
             db.session.commit()
