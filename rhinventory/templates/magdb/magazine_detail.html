@@ -87,7 +87,7 @@
                                             class="text-secondary"
                                         {% endif %}
                                     >
-                                        {% set date_text = (str(issue.published_day) or 'X') + '.' + (str(issue.published_month) or 'X') + '.' + (str(issue.published_year) or 'X') %}
+                                        {% set date_text = str(issue.published_day or 'X') + '.' + str(issue.published_month or 'X') + '.' + str(issue.published_year or 'X') %}
                                         <td>
                                             {{ render_version_name_suffix(version.name_suffix) }}
                                         </td>
