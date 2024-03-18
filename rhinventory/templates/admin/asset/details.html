@@ -102,7 +102,6 @@
                 {{ row('mediums') }}
                 {{ row('packaging') }}
                 {{ row('hardware_type') }}
-                {{ row('location') }}
                 {{ row('model') }}
                 {{ row('product_codes', 'Product codes') }}
                 {{ row('serial') }}
@@ -147,7 +146,7 @@
                 {% if model.location %}
                     <tr><td><strong>Location</strong></td>
                     <td>
-                        <a href="{{ url_for('asset.details_view', id=model.parent.id) }}">
+                        <a href="{{ url_for('asset.details_view', id=model.location.id) }}">
                             {{ model.location }}
                         </a>
                     </td></tr>
