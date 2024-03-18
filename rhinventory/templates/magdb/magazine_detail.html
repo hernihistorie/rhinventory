@@ -87,14 +87,15 @@
                                             class="text-secondary"
                                         {% endif %}
                                     >
+                                        {% set date_text = (str(issue.published_day) or 'X') + '.' + (str(issue.published_month) or 'X') + '.' + (str(issue.published_year) or 'X') %}
                                         <td>
                                             {{ render_version_name_suffix(version.name_suffix) }}
                                         </td>
                                         <td>
                                             {% for file in version.cover_pages %}
                                                 <a href="{{ file.path }}"
-                                                    data-lightbox="lightbox-{{file.path}}"
-                                                    data-title="{{ issue.current_magazine_name }} {{ issue.calendar_id or ''}} Cover page"
+                                                    data-lightbox="lightbox"
+                                                    data-title="{{ issue.current_magazine_name }} {{ date_text }} Cover page"
                                                 >
                                                     <img class="img-thumbnail img-rounded" src="{{ file.thumbnail_path }}">
                                                 </a>
@@ -105,8 +106,8 @@
                                         <td>
                                             {% for file in version.index_pages %}
                                                 <a href="{{ file.path }}"
-                                                    data-lightbox="lightbox-{{file.path}}"
-                                                    data-title="{{ issue.current_magazine_name }} {{ issue.calendar_id or ''}} Index page"
+                                                    data-lightbox="lightbox"
+                                                    data-title="{{ issue.current_magazine_name }} {{ date_text }} Index page"
                                                 >
                                                   <img class="img-thumbnail img-rounded" src="{{ file.thumbnail_path }}">
                                                 </a>

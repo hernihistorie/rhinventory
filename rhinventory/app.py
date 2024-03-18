@@ -52,6 +52,7 @@ def create_app(config_object='rhinventory.config'):
 
     app.jinja_env.globals['Privacy'] = Privacy
     app.jinja_env.globals['visible_to_current_user'] = visible_to_current_user
+    app.jinja_env.globals['str'] = str
 
     @app.context_processor
     def inject_variables():
