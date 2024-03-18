@@ -59,6 +59,10 @@
             .action-checkbox[name=rowid], .action-rowtoggle[name=rowtoggle] {
                 display: none;
             }
+            
+            .list-buttons-column {
+                padding: 0px;
+            }
         {% endif %}
 
         .icon-eye-open {
@@ -69,6 +73,13 @@
             position: relative; top: -2px;
         }
 
+        .table th, .table td {
+            padding: 4px;
+        }
+
+        .table td.span1, .table th.span1 {
+            width: 2px;
+        }
     </style>
     <div id="selected" class="selected">
         <div id="selected-list">
