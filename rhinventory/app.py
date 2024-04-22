@@ -3,7 +3,9 @@ import typing
 
 from flask import Flask, render_template, redirect, url_for, send_file, Response, abort, request, session, jsonify, g
 from flask_login import current_user, login_required, login_user, logout_user
+from flask_admin import AdminIndexView
 from flask_bootstrap import Bootstrap5
+from werkzeug.wrappers.response import Response
 
 from rhinventory.extensions import db, admin, debug_toolbar, github, login_manager
 from rhinventory.admin import add_admin_views
@@ -27,7 +29,12 @@ def create_app(config_object='rhinventory.config'):
     app.config.from_object(config_object)
 
     db.init_app(app)
-    admin.init_app(app)
+    admin.init_app(app, 
+        index_view=AdminIndexView(
+            name='Úvod',
+            url='/'
+        )
+    )
     debug_toolbar.init_app(app)
     github.init_app(app)
     login_manager.init_app(app)
@@ -222,5 +229,10 @@ def create_app(config_object='rhinventory.config'):
             return send_file(file.full_filepath_thumbnail)
         return send_file(file.full_filepath)
         
+    @app.route('/admin/<path:path>')
+    def admin_redirect(path: str):
+        # URLs in 2019-2024 started with admin, in 2024 this was public.
+        print(request.url.split('/', 5)[-1])
+        return redirect('/' + request.url.split('/', 4)[-1], code=308)
 
     return app

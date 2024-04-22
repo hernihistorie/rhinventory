@@ -1,6 +1,6 @@
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_sqlalchemy import SQLAlchemy
-from flask_admin import Admin
+from flask_admin import Admin, AdminIndexView
 from flask_github import GitHub
 from flask_login import LoginManager
 
