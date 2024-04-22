@@ -72,7 +72,8 @@ class FileView(CustomModelView):
     details_template = "admin/file/details.html"
 
     column_list = ('id', 'category', 'filepath', 'primary', 'asset', 'transaction', 'upload_date')
-    form_excluded_columns = ('user', 'filepath', 'storage', 'has_thumbnail', 'analyzed', 'md5', 'original_md5', 'sha256', 'original_sha256', 'upload_date')
+    #form_excluded_columns = ('user', 'filepath', 'storage', 'has_thumbnail', 'analyzed', 'md5', 'original_md5', 'sha256', 'original_sha256', 'upload_date')
+    form_excluded_columns = ['has_thumbnail', 'analyzed', 'md5', 'original_md5', 'sha256', 'original_sha256', 'upload_date']
     column_default_sort = ('id', True)
 
     column_searchable_list = [
