@@ -3,12 +3,11 @@ import typing
 
 from flask import Flask, render_template, redirect, url_for, send_file, Response, abort, request, session, jsonify, g
 from flask_login import current_user, login_required, login_user, logout_user
-from flask_admin import AdminIndexView
 from flask_bootstrap import Bootstrap5
 from werkzeug.wrappers.response import Response
 
 from rhinventory.extensions import db, admin, debug_toolbar, github, login_manager
-from rhinventory.admin import add_admin_views
+from rhinventory.admin import CustomIndexView, add_admin_views
 from rhinventory.db import User, Asset, Location, File, log
 from rhinventory.admin_views.utils import visible_to_current_user
 
@@ -30,7 +29,7 @@ def create_app(config_object='rhinventory.config'):
 
     db.init_app(app)
     admin.init_app(app, 
-        index_view=AdminIndexView(
+        index_view=CustomIndexView(
             name='Úvod',
             url='/'
         )
