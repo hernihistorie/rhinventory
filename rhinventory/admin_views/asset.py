@@ -664,8 +664,8 @@ class AssetView(CustomModelView):
         for rh_id in request.form['id_list'].lower().split():
             if not rh_id.strip():
                 continue
-            if not rh_id.startswith('rh'):
-                flash(f"Error: Some ID doesn't start with 'rh': {rh_id}", 'error')
+            if not rh_id.startswith('rh') and not rh_id.startswith('hh'):
+                flash(f"Error: Some ID doesn't start with 'rh'/'hh': {rh_id}", 'error')
                 return response
             
             try:
