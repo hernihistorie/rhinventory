@@ -201,12 +201,15 @@
         <div class="asset-images-files">
             {% set primary_dump = model.get_primary_dump() %}
             {% if primary_dump %}
-                <a href="{{ primary_dump.url }}" class="btn btn-primary" style="margin-bottom: 8px;">
-                    Download dump
-                    {% if primary_dump.size %}
-                        ({{ primary_dump.size | filesizeformat }})
-                    {% endif %}
-                </a>
+                <div style="text-align: center;">
+                    <a href="{{ primary_dump.url }}" class="btn btn-primary" style="margin-bottom: 8px;">
+                        <span class="fa fa-download"></span>
+                        Download dump
+                        {% if primary_dump.size %}
+                            ({{ primary_dump.size | filesizeformat }})
+                        {% endif %}
+                    </a>
+                </div>
             {% endif %}
             <style>
                 .asset-image-file {
