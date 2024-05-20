@@ -3,6 +3,11 @@
 {% from '_macros.html' import organization_icon %}
 {% from 'admin/asset/_macros.html' import render_privacy_flag %}
 
+{% block head_meta %}
+    {{ super() }}
+    <link rel="canonical" href="{{ model.url }}">
+{% endblock %}
+
 {# XXX https://github.com/flask-admin/flask-admin/blob/master/flask_admin/templates/bootstrap2/admin/model/details.html#L5 #}
 {% block navlinks %}
     {% from 'admin/asset/menu_bar.html' import asset_menu_bar with context %}

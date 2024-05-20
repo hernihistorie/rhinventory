@@ -12,6 +12,7 @@ from rhinventory.models.enums import Privacy
 
 from rhinventory.models.file import File, IMAGE_CATEGORIES, FileCategory
 from rhinventory.extensions import db
+from rhinventory.util import slugify
 
 TESTING = "pytest" in sys.modules
 
@@ -148,6 +149,15 @@ class Asset(db.Model):
         return f"{self.code} {self.name}"
 
     @property
+    def slug(self):
+        return slugify(self.name)
+
+    @property
+    def url(self) -> str:
+        import flask
+        return flask.url_for('asset.details_view', id=self.id, slug=self.slug)
+
+    @property
     def CATEGORY_PREFIX(self):
         return ASSET_CATEGORY_PREFIXES[self.category]
 
@@ -224,7 +234,6 @@ class Asset(db.Model):
             .filter(
                 File.asset_id==self.id, File.category == FileCategory.dump
             ).order_by(File.primary.desc(), File.filepath.asc()).all()
-
 
 
 class AssetMeta(db.Model):

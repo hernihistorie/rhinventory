@@ -133,7 +133,7 @@
 {% endmacro %}
 
 {% macro render_name_column(asset) %}
-    <a href="{{ url_for('asset.details_view', id=asset.id) }}" class="text-link">
+    <a href="{{ asset.url }}" class="text-link">
         <strong class="asset-category">{{ asset.category.name }}</strong> {{ asset.name }}
     </a>
 {% endmacro %}

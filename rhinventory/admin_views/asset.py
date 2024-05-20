@@ -440,10 +440,15 @@ class AssetView(CustomModelView):
     
     # Overridden https://flask-admin.readthedocs.io/en/latest/_modules/flask_admin/model/base/#BaseModelView.details_view
     @expose('/details/')
-    def details_view(self):
+    @expose('/details/<int:id>')
+    @expose('/details/<int:id>-<string:slug>')
+    def details_view(self, id=None, slug=None):
         return_url = get_redirect_target() or self.get_url('.index_view')
 
-        id = get_mdict_item_or_list(request.args, 'id')
+        if id is not None:
+            id = str(id)
+        else:
+            id = get_mdict_item_or_list(request.args, 'id')
         if id is None:
             return redirect(return_url)
         
