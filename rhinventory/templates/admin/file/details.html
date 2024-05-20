@@ -1,7 +1,7 @@
 {% extends 'admin/model/details.html' %}
 
 {% block details_table %}
-    <link href="/admin/static/vendor/select2/select2.css?v=3.5.2" rel="stylesheet">
+    <link href="/static/admin/vendor/select2/select2.css?v=3.5.2" rel="stylesheet">
     
     
     <h2>File: {{ model.filepath }}</h2>
@@ -111,6 +111,16 @@
         </tr>
         {{ row('category') }}
         {{ row('filepath') }}
+        <tr>
+            <td><strong>File size</strong></td>
+            <td>
+                {% if model.size %}
+                    {{ model.size | filesizeformat }}
+                {% else %}
+                    Unknown
+                {% endif %}
+            </td>
+        </tr>
         {{ row('primary') }}
         {{ row('title') }}
         {{ row('privacy') }}

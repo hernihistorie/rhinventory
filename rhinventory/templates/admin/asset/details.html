@@ -290,6 +290,7 @@
                     <th></th>
                     <th>Filename</th>
                     <th>Category</th>
+                    <th>Size</th>
                 </tr>
             {% for file in model.files %}
                 {% if not file.is_image %}
@@ -315,6 +316,13 @@
                                 </a>
                             </td>
                             <td>{{ file.category.name }}</td>
+                            <td>
+                                {% if file.size %}
+                                    {{ file.size | filesizeformat }}
+                                {% else %}
+                                    ?
+                                {% endif %}
+                            </td>
                         {% else %}
                             <td></td><td>(skrytý soubor)</td>
                         {% endif %}

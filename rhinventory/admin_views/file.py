@@ -57,6 +57,7 @@ def upload_file(file, category=0, batch_number=None):
         p[-2] += '_1'
         filepath = '.'.join(p)
     file.save(files_dir + "/" + filepath)
+    size = os.path.getsize(files_dir + "/" + filepath)
 
     category = FileCategory(category)
     if category == FileCategory.unknown and filename.split('.')[-1].lower() in ('jpg', 'jpeg', 'png', 'gif'):
@@ -64,7 +65,8 @@ def upload_file(file, category=0, batch_number=None):
 
     return File(filepath=filepath, storage=file_store, primary=False, category=category,
                    md5=md5, batch_number=batch_number,
-                   upload_date=datetime.datetime.now(), user_id=current_user.id)
+                   upload_date=datetime.datetime.now(), user_id=current_user.id,
+                   size=size)
 
 class FileView(CustomModelView):
     can_view_details = True

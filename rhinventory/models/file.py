@@ -43,6 +43,8 @@ class FileCategory(enum.Enum):
 
     test_result = 40
 
+    raw_scan    = 50
+
     collection  = 90
 
 IMAGE_CATEGORIES = [FileCategory.image, FileCategory.photo, FileCategory.scan,
@@ -79,6 +81,7 @@ class File(db.Model):
     sha256      = Column(LargeBinary(32))
     original_sha256 = Column(LargeBinary(32))
     is_deleted = Column(Boolean, default=False)
+    size: Mapped[int] = mapped_column(Integer, nullable=True)
 
     privacy: Mapped[Privacy] = mapped_column(Enum(Privacy), default=Privacy.private_implicit, nullable=False)
 
