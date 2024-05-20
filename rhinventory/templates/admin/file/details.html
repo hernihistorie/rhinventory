@@ -110,7 +110,7 @@
             <td><strong>Asset</strong></td>
             <td>
                 {% if model.asset %}
-                    <a href="{{ url_for('asset.details_view', id=model.asset.id) }}">{{ model.asset }}</a>
+                    <a href="{{ model.asset.url }}">{{ model.asset }}</a>
                 {% else %} - {% endif %}
             </td>
         </tr>

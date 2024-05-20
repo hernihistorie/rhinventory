@@ -660,7 +660,7 @@ class AssetView(CustomModelView):
         assert asset
 
         num_assets = 0
-        response = redirect(url_for('asset.details_view', id=asset_id))
+        response = redirect(asset.url)
         for rh_id in request.form['id_list'].lower().split():
             if not rh_id.strip():
                 continue

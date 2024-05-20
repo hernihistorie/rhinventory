@@ -35,7 +35,7 @@
     </span>
     <span>
     {% if asset.get_dumps() %}
-        <a href="{{ url_for('asset.details_view', id=asset.id) }}">
+        <a href="{{ asset.url }}">
             {{- icon("save") -}}
         </a>
     {% else %}
@@ -46,7 +46,7 @@
     <span>
     {% if asset.parent %}
         <a
-            href="{{ url_for('asset.details_view', id=asset.parent.id) }}"
+            href="{{ asset.url }}"
             rel="tooltip" title="<strong>Parent</strong><br>{{ asset.parent }}"
         >
             {{- icon("jar") -}}
@@ -59,7 +59,7 @@
     <span>
     {% if asset.children %}
         <a
-            href="{{ url_for('asset.details_view', id=asset.id) }}"
+            href="{{ asset.url }}"
             rel="tooltip" title="
                 {% if asset.children | count == 1 %}
                     <strong>Child</strong><br>
@@ -81,7 +81,7 @@
     <span>
     {% if asset.contents %}
         <a
-            href="{{ url_for('asset.details_view', id=asset.id) }}"
+            href="{{ asset.url}}"
             rel="tooltip" title="
                 <strong>{{ asset.contents | count }} contents</strong><br>
                 {% if asset.contents | count <= 5 %}
@@ -220,7 +220,7 @@
             <div style="border: 2px solid var(--color-secondary); border-radius: 2px;">
                 {% set file = asset.get_primary_image() %}
                 {% if file %}
-                    <a href="{{ url_for('asset.details_view', id=asset.id) }}">
+                    <a href="{{ asset.url }}">
                         {% if file.has_thumbnail %}
                             <img src="{{ file.url_thumbnail }}">
                         {% else %}
@@ -228,11 +228,11 @@
                         {% endif %}
                     </a>
                 {% else %}
-                    <a href="{{ url_for('asset.details_view', id=asset.id) }}" class="missing-asset-icon">✱</a>
+                    <a href="{{ asset.url }}" class="missing-asset-icon">✱</a>
                 {% endif %}
             </div>
             <div style="text-align: center;">
-                <a href="{{ url_for('asset.details_view', id=asset.id) }}">
+                <a href="{{ asset.url }}">
                     {{ asset.name or '???' }}
                 </a>
             </div>

@@ -213,7 +213,7 @@ class FileView(CustomModelView):
                 flash(f"{len(files)} files uploaded and attached to asset", 'success')
                 if duplicate_files:
                     flash(f"{len(files)} files skipped as duplicates", 'warning')
-                return redirect(url_for("asset.details_view", id=assign_asset.id))
+                return redirect(asset.url)
             else:
                 if request.form.get('xhr', False):
                     return jsonify(files=[f.id for f in files],

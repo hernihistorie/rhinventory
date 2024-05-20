@@ -19,7 +19,7 @@
 
     <ul>
     {% for asset in model.assets %}
-        <li><a href="{{ url_for('asset.details_view', id=asset.id) }}">{{asset.name}} (id: {{asset.id}})</a></li>
+        <li><a href="{{ asset.url }}">{{asset.name}} (id: {{asset.id}})</a></li>
     {% endfor %}
     </ul>
 

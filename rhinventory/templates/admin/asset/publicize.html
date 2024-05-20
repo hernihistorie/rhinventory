@@ -80,7 +80,7 @@
                             {{ asset.code }} <strong class="asset-category">{{ asset.category.name }}</strong>
                             <br>
                             <span style="font-size: 24px;">
-                                <a href="{{ url_for('asset.details_view', id=asset.id) }}">{{ asset.name }}</a>
+                                <a href="{{ asset.url }}">{{ asset.name }}</a>
                             </span>
                         </div>
                         <div style="display: flex; flex-wrap: wrap; gap: 4px;">

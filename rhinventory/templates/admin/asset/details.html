@@ -11,7 +11,7 @@
 {# XXX https://github.com/flask-admin/flask-admin/blob/master/flask_admin/templates/bootstrap2/admin/model/details.html#L5 #}
 {% block navlinks %}
     {% from 'admin/asset/menu_bar.html' import asset_menu_bar with context %}
-    {{ asset_menu_bar(return_url=url_for('asset.details_view', id=model.id)) }}
+    {{ asset_menu_bar(return_url=model.url) }}
 {% endblock %}
 
 {% block details_search %}
@@ -130,7 +130,7 @@
                 {% if model.parent %}
                     <tr><td><strong>Parent</strong></td>
                     <td>
-                        <a href="{{ url_for('asset.details_view', id=model.parent.id) }}">
+                        <a href="{{ model.parent.url }}">
                             {{ model.parent }}
                         </a>
                     </td></tr>
@@ -141,7 +141,7 @@
                         <ul>
                             {% for child in model.children %}
                                 <li>
-                                    <a href="{{ url_for('asset.details_view', id=child.id) }}">
+                                    <a href="{{ child.url }}">
                                         {{ child }}
                                     </a>
                             {% endfor %}
@@ -151,7 +151,7 @@
                 {% if model.location %}
                     <tr><td><strong>Location</strong></td>
                     <td>
-                        <a href="{{ url_for('asset.details_view', id=model.location.id) }}">
+                        <a href="{{ model.location.url }}">
                             {{ model.location }}
                         </a>
                     </td></tr>
@@ -162,7 +162,7 @@
                         <ul>
                             {% for child in model.contains %}
                                 <li>
-                                    <a href="{{ url_for('asset.details_view', id=child.id) }}">
+                                    <a href="{{ child.url }}">
                                         {{ child }}
                                     </a>
                             {% endfor %}
@@ -378,7 +378,7 @@
             <td>
                 <ul>
                 {% for asset in transaction.assets %}
-                    <li><a href="{{ url_for('asset.details_view', id=asset.id) }}">{{ asset.name }}</a></li>
+                    <li><a href="{{ asset.url }}">{{ asset.name }}</a></li>
                 {% endfor %}
                 </ul>
             </td>

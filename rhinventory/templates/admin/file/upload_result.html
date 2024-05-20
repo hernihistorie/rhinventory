@@ -75,7 +75,7 @@
                     </td>
                     <td>
                         {% if file.asset %}
-                            <a href="{{ url_for('asset.details_view', id=file.asset.id) }}">
+                            <a href="{{ file.asset.url }}">
                                 {{ file.asset }}
                             </a>
                         {% elif file.is_image and auto_assign %}
