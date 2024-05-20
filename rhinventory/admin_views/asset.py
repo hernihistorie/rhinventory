@@ -452,7 +452,7 @@ class AssetView(CustomModelView):
         if id is None:
             return redirect(return_url)
         
-        if id.startswith("RH"):
+        if id.startswith("RH") or id.startswith("HH"):
             id = id[2:]
 
         model: Asset = self.get_one(id)

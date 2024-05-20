@@ -80,7 +80,7 @@ def make_label(id, custom_code, name, subtitle="", medium="", small=False, logo_
     return filename+'.png'
 
 def make_asset_label(asset: Asset, small=False, logo_ha=False, big=False, logo_ucm=False):
-    id = f"RH{asset.id:05}"
+    id = f"HH{asset.id:05}"
     if asset.CATEGORY_EXPOSE_NUMBER:
         if asset.custom_code:
             code = f"{asset.CATEGORY_PREFIX} {asset.custom_code}"

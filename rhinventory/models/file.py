@@ -226,7 +226,7 @@ class File(db.Model):
         if not barcodes:
             return
         for barcode in barcodes:
-            if barcode.type == "CODE128" and barcode.data.decode('utf-8').startswith("RH"):
+            if barcode.type == "CODE128" and barcode.data.decode('utf-8').startswith("RH") or barcode.data.decode('utf-8').startswith("HH"):
                 try:
                     asset_id = int(barcode.data.decode('utf-8')[2:])
                 except Exception:
