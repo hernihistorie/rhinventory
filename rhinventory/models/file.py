@@ -3,7 +3,7 @@ import enum
 import subprocess
 
 from flask import current_app, url_for
-from sqlalchemy import Column, Integer, Numeric, String, Text, \
+from sqlalchemy import BigInteger, Column, Integer, Numeric, String, Text, \
     DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint
 from sqlalchemy.orm import relationship, backref, Mapped, mapped_column
 from PIL import Image, ImageEnhance, ImageOps
@@ -81,7 +81,7 @@ class File(db.Model):
     sha256      = Column(LargeBinary(32))
     original_sha256 = Column(LargeBinary(32))
     is_deleted = Column(Boolean, default=False)
-    size: Mapped[int] = mapped_column(Integer, nullable=True)
+    size: Mapped[int] = mapped_column(BigInteger, nullable=True)
 
     privacy: Mapped[Privacy] = mapped_column(Enum(Privacy), default=Privacy.private_implicit, nullable=False)
 
