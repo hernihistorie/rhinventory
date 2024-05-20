@@ -170,13 +170,13 @@
             </li>
             {%- if admin_view.can_edit -%}
             <li class="{{ 'active' if request.url_rule.endpoint == 'asset.edit_view' else '' }}">
-                <a href="{{ get_url('.edit_view', id=request.args.get('id'), url=return_url) }}">
+                <a href="{{ get_url('.edit_view', id=model.id, url=return_url) }}">
                     {{ icon("edit") }} {{ _gettext('Edit') }}
                 </a>
             </li>
             {%- endif -%}
             <li class="{{ 'active' if request.url_rule.endpoint == 'asset.details_view' else '' }}">
-                <a href="{{ get_url('.details_view', id=request.args.get('id')) }}">
+                <a href="{{ model.url }}">
                     {{ icon("eye") }} {{ _gettext('Details') }}
                 </a>
             </li>
