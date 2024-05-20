@@ -322,7 +322,7 @@
                     <th>Size</th>
                 </tr>
             {% for file in model.files %}
-                {% if not file.is_image %}
+                {% if not file.is_image and not file.is_deleted %}
                     <tr>
                         {% if visible_to_current_user(file) %}
                             <td>

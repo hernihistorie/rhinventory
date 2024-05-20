@@ -4,7 +4,7 @@ import enum
 
 from sqlalchemy import Column, Integer, Numeric, String, Text, \
     DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint, \
-        ARRAY, desc
+        ARRAY, desc, or_
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, backref, Mapped, mapped_column
 from rhinventory.models.asset_attributes import AssetMedium, AssetPackaging, Company, Platform, Medium, Packaging, AssetTag, asset_tag_table, asset_platform_table, asset_company_table
@@ -220,6 +220,7 @@ class Asset(db.Model):
     def get_sorted_images(self):
         return db.session.query(File) \
             .filter(
+                or_(File.is_deleted == False, File.is_deleted == None),
                 File.asset_id==self.id, File.category.in_(IMAGE_CATEGORIES)
             ).order_by(File.primary.desc(), File.has_thumbnail.desc(), File.filepath.asc()).all()
 
@@ -232,6 +233,7 @@ class Asset(db.Model):
     def get_dumps(self):
         return db.session.query(File) \
             .filter(
+                or_(File.is_deleted == False, File.is_deleted == None),
                 File.asset_id==self.id, File.category == FileCategory.dump
             ).order_by(File.primary.desc(), File.filepath.asc()).all()
 
