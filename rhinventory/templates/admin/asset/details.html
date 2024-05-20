@@ -3,9 +3,21 @@
 {% from '_macros.html' import organization_icon %}
 {% from 'admin/asset/_macros.html' import render_privacy_flag %}
 
+{% block title -%}
+    HH{{model.id}} {{ model.name }}
+{%- endblock %}
+
 {% block head_meta %}
     {{ super() }}
     <link rel="canonical" href="{{ model.url }}">
+
+    <meta property="og:title" content="HH{{model.id}} {{ model.name }}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ model.url }}">
+    {% set primary_image = model.get_primary_image() %}
+    {% if primary_image -%}
+        <meta property="og:image" content="{{ primary_image.url_thumbnail }}">
+    {%- endif %}
 {% endblock %}
 
 {# XXX https://github.com/flask-admin/flask-admin/blob/master/flask_admin/templates/bootstrap2/admin/model/details.html#L5 #}
