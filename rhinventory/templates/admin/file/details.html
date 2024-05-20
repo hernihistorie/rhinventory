@@ -19,7 +19,12 @@
                     File has thumbnail entry in DB, but file is missing!
                 </div>
             {% endif %}
-            <a href="{{ model.url }}" class="btn btn-secondary">Download</a>
+            <a href="{{ model.url }}" class="btn btn-secondary">
+                Download
+                {% if model.size %}
+                    ({{ model.size | filesizeformat }})
+                {% endif %}
+            </a>
             {% if model.is_image and admin_view.can_edit %}
                 {% if model.has_thumbnail and model.thumbnail_file_exists() %}
                     <a href="{{ model.url_thumbnail }}" class="btn btn-secondary">Thumbnail</a>

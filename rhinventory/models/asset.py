@@ -212,6 +212,12 @@ class Asset(db.Model):
             .filter(
                 File.asset_id==self.id, File.category.in_(IMAGE_CATEGORIES)
             ).order_by(File.primary.desc(), File.has_thumbnail.desc(), File.filepath.asc()).all()
+
+    def get_primary_dump(self):
+        sorted_dumps = self.get_dumps()
+        if sorted_dumps:
+            return sorted_dumps[0]
+        return None
     
     def get_dumps(self):
         return db.session.query(File) \

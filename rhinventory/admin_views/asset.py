@@ -450,7 +450,7 @@ class AssetView(CustomModelView):
         if id.startswith("RH"):
             id = id[2:]
 
-        model = self.get_one(id)
+        model: Asset = self.get_one(id)
 
         if model is None:
             flash('Record does not exist.', 'error')

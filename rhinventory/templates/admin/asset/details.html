@@ -182,6 +182,15 @@
                 </tbody></table>
         </div>
         <div class="asset-images-files">
+            {% set primary_dump = model.get_primary_dump() %}
+            {% if primary_dump %}
+                <a href="{{ primary_dump.url }}" class="btn btn-primary" style="margin-bottom: 8px;">
+                    Download dump
+                    {% if primary_dump.size %}
+                        ({{ primary_dump.size | filesizeformat }})
+                    {% endif %}
+                </a>
+            {% endif %}
             <style>
                 .asset-image-file {
                     max-width: 220px;
@@ -305,6 +314,10 @@
 
                                 <a href="{{ url_for('file.details_view', id=file.id) }}">
                                     <span class="fa fa-eye glyphicon icon-eye-open"></span>
+                                </a>
+
+                                <a href="{{ file.url }}">
+                                    <span class="fa fa-download"></span>
                                 </a>
                             </td>
                             <td>
