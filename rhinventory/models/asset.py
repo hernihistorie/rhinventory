@@ -155,7 +155,10 @@ class Asset(db.Model):
     @property
     def url(self) -> str:
         import flask
-        return flask.url_for('asset.details_view', id=self.id, slug=self.slug)
+        if self.slug:
+            return flask.url_for('asset.details_view', id=self.id, slug=self.slug)
+        else:
+            return flask.url_for('asset.details_view', id=self.id)
 
     @property
     def CATEGORY_PREFIX(self):
