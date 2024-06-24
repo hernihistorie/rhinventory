@@ -154,6 +154,9 @@ class Currency(enum.Enum):
     PLN = "PLN"
     GBP = "GBP"
 
+    def __str__(self):
+        return str(self.name)
+
 
 class Format(HistoryTrait):
     __tablename__ = "formats"
@@ -227,7 +230,7 @@ class MagazineIssueVersionPrice(HistoryTrait):
     currency = db.Column(db.Enum(Currency))
 
     def __str__(self):
-        return f"{self.value} {self.currency.name} (ID {self.id})"
+        return f"{self.value} {self.currency} (ID {self.id})"
 
 
 class MagazineIssueVersionFiles(HistoryTrait):
