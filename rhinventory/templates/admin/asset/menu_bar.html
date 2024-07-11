@@ -176,7 +176,7 @@
             </li>
             {%- endif -%}
             <li class="{{ 'active' if request.url_rule.endpoint == 'asset.details_view' else '' }}">
-                <a href="{{ model.url }}">
+                <a href="{{ model.url if model else '#' }}">
                     {{ icon("eye") }} {{ _gettext('Details') }}
                 </a>
             </li>
