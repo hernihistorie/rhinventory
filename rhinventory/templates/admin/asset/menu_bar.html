@@ -165,7 +165,7 @@
             </li>
             {% endif %}
             {% block model_menu_bar_after_filters %}{% endblock %}
-        {% elif request.url_rule.endpoint != 'asset.create_view' %}
+        {% elif request.url_rule.endpoint != 'asset.create_view' and model %}
             <li class="spacer">
             </li>
             {%- if admin_view.can_edit -%}
