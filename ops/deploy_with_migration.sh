@@ -8,4 +8,4 @@ ssh -t retroherna.org "\
     sudo -u flask poetry run alembic upgrade head && \
     sudo systemctl restart www_rhinventory \
 "
-echo "https://inventory.retroherna.org"
+echo "https://inventory.herniarchiv.cz/"
