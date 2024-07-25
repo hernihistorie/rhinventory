@@ -264,3 +264,8 @@ h2 small .organization-icon {
   height: 24px;
   vertical-align: text-bottom;
 }
+
+hr {
+  border-color: var(--color-secondary);
+  border-style: solid;
+}
