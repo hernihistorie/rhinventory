@@ -220,12 +220,15 @@ class Asset(db.Model):
             return sorted_images[0]
         return None
     
-    def get_sorted_images(self):
+    def get_files_in_categories(self, categories: list[FileCategory]):
         return db.session.query(File) \
             .filter(
                 or_(File.is_deleted == False, File.is_deleted == None),
-                File.asset_id==self.id, File.category.in_(IMAGE_CATEGORIES)
+                File.asset_id==self.id, File.category.in_(categories)
             ).order_by(File.primary.desc(), File.has_thumbnail.desc(), File.filepath.asc()).all()
+    
+    def get_sorted_images(self):
+        return self.get_files_in_categories(IMAGE_CATEGORIES)
 
     def get_primary_dump(self):
         sorted_dumps = self.get_dumps()
@@ -234,11 +237,13 @@ class Asset(db.Model):
         return None
     
     def get_dumps(self):
-        return db.session.query(File) \
-            .filter(
-                or_(File.is_deleted == False, File.is_deleted == None),
-                File.asset_id==self.id, File.category == FileCategory.dump
-            ).order_by(File.primary.desc(), File.filepath.asc()).all()
+        return self.get_files_in_categories([FileCategory.dump])
+
+    def get_primary_document(self):
+        sorted_documents = self.get_files_in_categories([FileCategory.document])
+        if sorted_documents:
+            return sorted_documents[0]
+        return None
 
 
 class AssetMeta(db.Model):

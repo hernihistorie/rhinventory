@@ -40,6 +40,7 @@ class FileCategory(enum.Enum):
     text        = 30
     prose       = 31
     transcription = 32
+    document    = 33
 
     test_result = 40
 
