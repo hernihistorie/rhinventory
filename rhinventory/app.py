@@ -86,6 +86,14 @@ def create_app(config_object='rhinventory.config'):
     def token_getter():
         if current_user.is_authenticated:
             return current_user.github_access_token
+    
+    @app.route('/robots.txt')
+    def robots():
+        text = """
+User-agent: *
+Disallow: /asset/export/csv/
+"""
+        return Response(text, mimetype='text/plain')
 
 
     @app.route('/github-callback')
