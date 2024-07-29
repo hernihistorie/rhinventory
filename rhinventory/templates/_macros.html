@@ -27,7 +27,13 @@
         </a>
         <nav class="halinks">
             <li>
-                <a href="https://herniarchiv.cz/">Informace o projektu</a>
+                <a href="https://herniarchiv.cz/about/">O nás</a>
+            </li>
+            <li>
+                <a href="https://herniarchiv.cz/projects/">Projekty</a>
+            </li>
+            <li>
+                <a href="https://herniarchiv.cz/interviews/">Rozhovory</a>
             </li>
             <li>
                 {% if '127.0.0.1' in request.url|string %}
@@ -36,7 +42,7 @@
                     <a href="https://inventory.herniarchiv.cz/"
                 {% endif %}
                         {% if section == 'inventory' %}class="active"{% endif %}
-                >Inventární systém</a>
+                >Sbírka</a>
             </li>
             <li>
                 {% if '127.0.0.1' in request.url|string %}
@@ -45,7 +51,13 @@
                     <a href="https://casopisy.herniarchiv.cz/"
                 {% endif %}
                     {% if section == 'magdb' %}class="active"{% endif %}
-                >Databáze časopisů</a>
+                >Časopisy</a>
+            </li>
+            <li>
+                <a href="https://herniarchiv.cz/blog/">Blog</a>
+            </li>
+            <li>
+                <a href="https://herniarchiv.cz/contact/">Kontakty</a>
             </li>
         </nav>
     </header>
