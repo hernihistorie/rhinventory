@@ -81,6 +81,15 @@
                 {{ model.organization.shortname }}{{ model.id }}<br>
             {% endif %}
 
+            {% for tag in model.tags %}
+                {% if tag.is_post %}
+                    <div style="border: 2px solid var(--color-secondary); margin: 8px; padding: 8px; font-size: 16px; text-align: center;">
+                        O tomto předmětu pojednává blogový příspěvek:<br>
+                        <strong><a href="{{ tag.url }}">{{ tag.name }}</a></strong>
+                    </div>
+                {% endif %}
+            {% endfor %}
+
             {% macro row(key, title=None, pre_line=False) %}
                 {% if model[key] %}
                     <tr>

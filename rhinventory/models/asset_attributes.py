@@ -34,10 +34,13 @@ class AssetTag(db.Model, SimpleAssetAttribute):
     id: int          = Column(Integer, primary_key=True)  # type: ignore
     name: str        = Column(String, nullable=False)  # type: ignore
     description: str = Column(String)  # type: ignore
+    url: Mapped[str] = mapped_column(String, nullable=True)
     last_used        = Column(DateTime, nullable=True)
 
     is_featured: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_collection: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_project: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
+    is_post: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
     order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
 asset_tag_table = asset_n_to_n_table(AssetTag)
