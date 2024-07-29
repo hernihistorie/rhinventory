@@ -82,8 +82,13 @@
             {% endif %}
 
             {% for tag in model.tags %}
-                {% if tag.is_post %}
-                    <div style="border: 2px solid var(--color-secondary); margin: 8px; padding: 8px; font-size: 16px; text-align: center;">
+                {% if tag.is_project %}
+                    <div class="infobox">
+                        Tento předmět náleží do projektu:<br>
+                        <strong><a href="{{ tag.url }}">{{ tag.link_title }}</a></strong>
+                    </div>
+                {% elif tag.is_post %}
+                    <div class="infobox">
                         O tomto předmětu pojednává blogový příspěvek:<br>
                         <strong><a href="{{ tag.url }}">{{ tag.link_title }}</a></strong>
                     </div>

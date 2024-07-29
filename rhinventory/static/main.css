@@ -269,3 +269,11 @@ hr {
   border-color: var(--color-secondary);
   border-style: solid;
 }
+
+.infobox {
+  border: 2px solid var(--color-secondary);
+  margin: 8px;
+  padding: 8px;
+  font-size: 16px;
+  text-align: center;
+}
