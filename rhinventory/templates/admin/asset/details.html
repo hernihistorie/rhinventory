@@ -85,7 +85,7 @@
                 {% if tag.is_post %}
                     <div style="border: 2px solid var(--color-secondary); margin: 8px; padding: 8px; font-size: 16px; text-align: center;">
                         O tomto předmětu pojednává blogový příspěvek:<br>
-                        <strong><a href="{{ tag.url }}">{{ tag.name }}</a></strong>
+                        <strong><a href="{{ tag.url }}">{{ tag.link_title }}</a></strong>
                     </div>
                 {% endif %}
             {% endfor %}
@@ -135,7 +135,21 @@
                     <tr><td><strong>Condition</strong></td>
                     <td>{{ model.condition_new.name }}</td></tr>
                 {% endif %}
-                {{ row('tags') }}
+                {% if model.tags %}
+                    <tr><td><strong>Tags</strong></td>
+                    <td>
+                        {% for tag in model.tags %}
+                            {% if not current_user.is_authenticated %}
+                                {{ tag.name -}}
+                                {%- if not loop.last -%},{% endif %}
+                            {% else %}
+                                <a href="{{ url_for('assettag.edit_view', id=tag.id) }}">
+                                    {{ tag.name -}}
+                                </a>{%- if not loop.last %},{% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    </td></tr>
+                {% endif %}
                 <tr>
                     <td><strong>Privacy setting</strong></td>
                     <td>

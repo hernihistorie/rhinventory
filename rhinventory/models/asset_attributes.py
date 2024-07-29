@@ -34,6 +34,7 @@ class AssetTag(db.Model, SimpleAssetAttribute):
     id: int          = Column(Integer, primary_key=True)  # type: ignore
     name: str        = Column(String, nullable=False)  # type: ignore
     description: str = Column(String)  # type: ignore
+    link_title: Mapped[str] = mapped_column(String, nullable=True)
     url: Mapped[str] = mapped_column(String, nullable=True)
     last_used        = Column(DateTime, nullable=True)
 
