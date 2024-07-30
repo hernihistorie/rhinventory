@@ -3,6 +3,7 @@ from sqlalchemy import Column, Integer, Numeric, String, Text, \
 from sqlalchemy.orm import relationship, backref
 
 from rhinventory.extensions import db
+from rhinventory.models.entities import Party
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -18,7 +19,7 @@ class User(db.Model):
     github_login = Column(String(255))
 
     party_id = Column(Integer, ForeignKey('parties.id'))
-    party = relationship("Party")
+    party = relationship(Party)
 
     organization_id = Column(Integer, ForeignKey('organizations.id'))
     organization = relationship("Organization", backref=backref("users", order_by=id))

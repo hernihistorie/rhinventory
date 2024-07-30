@@ -9,6 +9,7 @@ from sqlalchemy.orm import relationship, backref, Mapped, mapped_column
 from PIL import Image, ImageEnhance, ImageOps
 
 from rhinventory.models.enums import Privacy
+from rhinventory.models.user import User
 try:
     from pyzbar import pyzbar
 except Exception as ex:
@@ -86,7 +87,7 @@ class File(db.Model):
 
     privacy: Mapped[Privacy] = mapped_column(Enum(Privacy), default=Privacy.private_implicit, nullable=False)
 
-    user        = relationship("User", backref="files")
+    user        = relationship(User, backref="files")
     asset       = relationship("Asset", backref="files")
     transaction = relationship("Transaction", backref="files")
     #transaction = relationship("Benchmark", backref="files")

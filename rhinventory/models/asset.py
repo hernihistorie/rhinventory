@@ -12,6 +12,7 @@ from rhinventory.models.enums import Privacy
 
 from rhinventory.models.file import File, IMAGE_CATEGORIES, FileCategory
 from rhinventory.extensions import db
+from rhinventory.models.transaction import Transaction
 from rhinventory.util import slugify
 
 TESTING = "pytest" in sys.modules
@@ -117,7 +118,7 @@ class Asset(db.Model):
     #medium      = relationship("Medium", backref="assets")
     hardware_type = relationship("HardwareType", backref="assets")
 
-    transactions = relationship("Transaction", secondary='transaction_assets')
+    transactions = relationship(Transaction, secondary='transaction_assets')
 
     organization_id = Column(Integer, ForeignKey('organizations.id'), nullable=True)
     organization = relationship("Organization")
