@@ -299,6 +299,7 @@
                                 {% if file.primary %}
                                     <span class="fa fa-star"></span>
                                 {% endif %}
+                                {{ render_privacy_flag(file.privacy) }}
                                 <!--
                                     <a href="{{ url_for('file.details_view', id=file.id) }}">
                                         {{ file.filename }}
@@ -367,10 +368,6 @@
                                     </a>
                                 {% endif %}
 
-                                <a href="{{ url_for('file.details_view', id=file.id) }}">
-                                    <span class="fa fa-eye glyphicon icon-eye-open"></span>
-                                </a>
-
                                 <a href="{{ file.url }}">
                                     <span class="fa fa-download"></span>
                                 </a>
@@ -379,6 +376,7 @@
                                 {% if file.primary %}
                                     <span class="fa fa-eye glyphicon icon-star"></span>
                                 {% endif %}
+                                {{ render_privacy_flag(file.privacy) }}
                                 <a href="{{ url_for('file.details_view', id=file.id) }}">
                                     {{ file.filename }}
                                 </a>
