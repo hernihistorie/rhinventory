@@ -245,6 +245,26 @@ class Asset(db.Model):
             return sorted_documents[0]
         return None
 
+    @property
+    def parents(self):
+        parents = []
+        parent = self.parent
+        while parent:
+            parents.append(parent)
+            parent = parent.parent
+
+        return list(reversed(parents))
+
+    @property
+    def locations(self):
+        parents = []
+        parent = self.location
+        while parent:
+            parents.append(parent)
+            parent = parent.parent
+
+        return list(reversed(parents))
+
 
 class AssetMeta(db.Model):
     __tablename__ = 'assets_meta'

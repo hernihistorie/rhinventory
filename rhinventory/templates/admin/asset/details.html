@@ -1,7 +1,7 @@
 {% extends 'admin/model/details.html' %}
 
 {% from '_macros.html' import organization_icon %}
-{% from 'admin/asset/_macros.html' import render_privacy_flag %}
+{% from 'admin/asset/_macros.html' import render_privacy_flag, render_tree %}
 
 {% block title -%}
     HH{{model.id}} {{ model.name }}
@@ -167,52 +167,22 @@
                     </td>
                 </tr>
                 {{ row('note', pre_line=True) }}
-                {% if model.parent %}
-                    <tr><td><strong>Parent</strong></td>
-                    <td>
-                        <a href="{{ model.parent.url }}">
-                            {{ model.parent }}
-                        </a>
-                    </td></tr>
-                {% endif %}
-                {% if model.children %}
-                    <tr><td><strong>Children</strong></td>
-                    <td>
-                        <ul>
-                            {% for child in model.children %}
-                                <li>
-                                    <a href="{{ child.url }}">
-                                        {{ child }}
-                                    </a>
-                            {% endfor %}
-                        </ul>
-                    </td></tr>
-                {% endif %}
-                {% if model.location %}
-                    <tr><td><strong>Location</strong></td>
-                    <td>
-                        <a href="{{ model.location.url }}">
-                            {{ model.location }}
-                        </a>
-                    </td></tr>
-                {% endif %}
-                {% if model.category == AssetCategory.location %}
-                    <tr><td><strong>Contains</strong></td>
-                    <td>
-                        <ul>
-                            {% for child in model.contains %}
-                                <li>
-                                    <a href="{{ child.url }}">
-                                        {{ child }}
-                                    </a>
-                            {% endfor %}
-                        </ul>
+                <tr><td><strong>Relationship tree</strong></td>
+                <td>
+                    {{ render_tree(model, model.parents, model.children) }}
+                </td>
+                </tr>
+                <tr><td><strong>Location and contents</strong></td>
+                <td>
+                    {{ render_tree(model, model.locations, model.contains) }}
+                    {% if model.category == AssetCategory.location %}
                         <details>
                             <summary class="btn-link" style="text-align: center;">
                                 Add contents
                             </summary>
                             <form method="POST" action="{{ url_for('asset.add_contents_view') }}">
                                 <input type="hidden" name="asset_id" value="{{ model.id }}">
+                                Enter newline-separated list of RH ids.
                                 <textarea style="width: 80%; height: 80px;" name="id_list">
                                     {#- -#}
                                 </textarea>
@@ -221,8 +191,8 @@
                                 </div>
                             </form>
                         </details>
-                    </td></tr>
-                {% endif %}
+                    {% endif %}
+                </td></tr>
                 
                 </tbody></table>
         </div>

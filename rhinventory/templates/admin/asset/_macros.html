@@ -239,3 +239,33 @@
         {% endif %}
     </div>
 {% endmacro %}
+
+{% macro render_tree(model, parents, children) %}
+    {% for parent in parents %}
+        <div style="margin-left: {{ loop.index * 12 }}px;">
+            {% if not loop.first %}
+                └
+            {% endif %}
+            <a href="{{ parent.url }}">
+                {{ parent }}
+            </a>
+        </div>
+    {% endfor %}
+    {% set parents_count = (parents | count) %}
+    <div style="margin-left: {{ (parents_count + 1) * 12 }}px;">
+        {% if parents_count > 0 %}
+            └
+        {% endif %}
+        <strong>
+            {{ model }}
+        </strong>
+    </div>
+    {% for child in children %}
+        <div style="margin-left: {{ (parents_count + 2) * 12 }}px;">
+            └
+            <a href="{{ child.url }}">
+                {{ child }}
+            </a>
+        </div>
+    {% endfor %}
+{% endmacro %}
