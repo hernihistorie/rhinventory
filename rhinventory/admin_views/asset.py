@@ -281,7 +281,7 @@ class AssetView(CustomModelView):
             return ""
         
         if column == "flags":
-            return get_template_attribute("admin/asset/_macros.html", "render_flags")(model)
+            return get_template_attribute("admin/asset/_macros.html", "render_flags")(model, show_transactions=current_user.write_access)
         elif column == "name":
             return get_template_attribute("admin/asset/_macros.html", "render_name_column")(model)
         elif column == "code":

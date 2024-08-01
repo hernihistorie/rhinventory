@@ -17,7 +17,7 @@
     </span>
 {% endmacro %}
 
-{% macro render_flags(asset) %}
+{% macro render_flags(asset, show_transactions=True) %}
     <div class="flags">
         {{ render_privacy_flag(asset.privacy) }}
     {% set file = asset.get_primary_image() %}
@@ -96,35 +96,37 @@
     {% endif %}
     </span>
 
-    <span>
-    {% for transaction in asset.transactions %}
-        <a
-            href="{{ url_for('transaction.details_view', id=transaction.id) }}"
-            {% if transaction.transaction_type and transaction.transaction_type.value < 0 %}
-                style="color: brown;"
-            {% endif %}
-            style=""
-            rel="tooltip" title="
-                <strong>Transaction</strong> #{{ transaction.id }}<br>
-                {% if transaction.transaction_type %}
-                    {{ transaction.transaction_type.name }}<br>
-                {% endif %}
-                {% if transaction.counterparty_new %}
-                    with {{ transaction.counterparty_new.name }}<br>
-                {% endif %}
-                {% if not transaction.finalized %}
-                    (not finalized)<br>
-                {% endif %}
-                {{ transaction.assets | count }} assets"
-        >
-            {% if transaction.finalized %}
-                {{- icon("handshake") -}}
-            {% else %}
-                <i class="far fa-handshake"></i>
-            {% endif %}
-        </a>
-    {% endfor %}
-    </span>
+    {% if show_transactions %}
+        <span>
+            {% for transaction in asset.transactions %}
+                <a
+                    href="{{ url_for('transaction.details_view', id=transaction.id) }}"
+                    {% if transaction.transaction_type and transaction.transaction_type.value < 0 %}
+                        style="color: brown;"
+                    {% endif %}
+                    style=""
+                    rel="tooltip" title="
+                        <strong>Transaction</strong> #{{ transaction.id }}<br>
+                        {% if transaction.transaction_type %}
+                            {{ transaction.transaction_type.name }}<br>
+                        {% endif %}
+                        {% if transaction.counterparty_new %}
+                            with {{ transaction.counterparty_new.name }}<br>
+                        {% endif %}
+                        {% if not transaction.finalized %}
+                            (not finalized)<br>
+                        {% endif %}
+                        {{ transaction.assets | count }} assets"
+                >
+                    {% if transaction.finalized %}
+                        {{- icon("handshake") -}}
+                    {% else %}
+                        <i class="far fa-handshake"></i>
+                    {% endif %}
+                </a>
+            {% endfor %}
+        </span>
+    {% endif %}
     </div>
 {% endmacro %}
 
