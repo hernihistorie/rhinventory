@@ -273,5 +273,5 @@
 {% endmacro %}
 
 {% macro render_asset_code(model) %}
-    {{ organization_icon(model.organization) -}}{{- model.code_without_organization -}}
-{%- endmacro %}
+    {{ organization_icon(model.organization) -}}{{- model.code_without_organization }}
+{% endmacro %}
