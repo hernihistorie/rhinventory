@@ -249,7 +249,7 @@
                 └
             {% endif %}
             <a href="{{ parent.url }}">
-                {{ parent }}
+                {{ render_asset_code(parent) }} {{ parent.name }}
             </a>
         </div>
     {% endfor %}
@@ -259,7 +259,7 @@
             └
         {% endif %}
         <strong>
-            {{ model }}
+            {{ render_asset_code(model) }} {{ model.name }}
         </strong>
     </div>
     {% for child in children %}
@@ -271,3 +271,7 @@
         </div>
     {% endfor %}
 {% endmacro %}
+
+{% macro render_asset_code(model) %}
+    {{ organization_icon(model.organization) -}}{{- model.code_without_organization -}}
+{%- endmacro %}

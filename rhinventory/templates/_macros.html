@@ -67,10 +67,10 @@
     <span
         rel="tooltip" title="{{ organization.name }}"
     >
-        {% if organization.icon_url %}
+        {%- if organization.icon_url -%}
             <img src="{{ organization.icon_url }}" class="organization-icon">
-        {% else %}
+        {%- else -%}
             {{ organization.shortname }}
-        {% endif %}
+        {%- endif -%}
     </span>
-{% endmacro %}
+{%- endmacro %}

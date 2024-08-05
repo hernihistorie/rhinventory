@@ -1,7 +1,7 @@
 {% extends 'admin/model/details.html' %}
 
 {% from '_macros.html' import organization_icon %}
-{% from 'admin/asset/_macros.html' import render_privacy_flag, render_tree %}
+{% from 'admin/asset/_macros.html' import render_privacy_flag, render_tree, render_asset_code %}
 
 {% block title -%}
     HH{{model.id}} {{ model.name }}
@@ -44,7 +44,7 @@
             padding-left: 12px;
         }
     </style>
-    <h2><small>{{ organization_icon(model.organization) }}{{ model.code_without_organization }}</small> {{ model.name }}</h2>
+    <h2><small>{{ render_asset_code(model) }}</small> {{ model.name }}</h2>
     <div class="asset-split">
         <div class="asset-data">
             {% if admin_view.can_edit %}
@@ -76,9 +76,6 @@
                         </a>
                     {% endif %}
                 </div>
-            {% endif %}
-            {% if model.EXPORE_CATEGORY_NUMBER %}
-                {{ model.organization.shortname }}{{ model.id }}<br>
             {% endif %}
 
             {% for tag in model.tags %}
@@ -136,7 +133,7 @@
                 {{ row('model') }}
                 {{ row('product_codes', 'Product codes') }}
                 {{ row('serial') }}
-                {% if model.condition_new %}
+                {% if model.condition_new and model.condition_new.name != 'unknown' %}
                     <tr><td><strong>Condition</strong></td>
                     <td>{{ model.condition_new.name }}</td></tr>
                 {% endif %}
@@ -167,32 +164,41 @@
                     </td>
                 </tr>
                 {{ row('note', pre_line=True) }}
-                <tr><td><strong>Relationship tree</strong></td>
-                <td>
-                    {{ render_tree(model, model.parents, model.children) }}
-                </td>
-                </tr>
-                <tr><td><strong>Location and contents</strong></td>
-                <td>
-                    {{ render_tree(model, model.locations, model.contains) }}
-                    {% if model.category == AssetCategory.location %}
-                        <details>
-                            <summary class="btn-link" style="text-align: center;">
-                                Add contents
-                            </summary>
-                            <form method="POST" action="{{ url_for('asset.add_contents_view') }}">
-                                <input type="hidden" name="asset_id" value="{{ model.id }}">
-                                Enter newline-separated list of RH ids.
-                                <textarea style="width: 80%; height: 80px;" name="id_list">
-                                    {#- -#}
-                                </textarea>
-                                <div>
-                                    <button type="submit" class="btn btn-primary">Submit</button>
-                                </div>
-                            </form>
-                        </details>
-                    {% endif %}
-                </td></tr>
+                {% set parents = model.parents %}
+                {% set children = model.children %}
+                {% if parents or children %}
+                    <tr><td><strong>Relationship tree</strong></td>
+                    <td>
+                        {{ render_tree(model, parents, children) }}
+                    </td>
+                    </tr>
+                {% endif %}
+
+                {% set locations = model.locations %}
+                {% set contains = model.contains %}
+                {% if model.location or model.contains or model.category == AssetCategory.location %}
+                    <tr><td><strong>Location and contents</strong></td>
+                    <td>
+                        {{ render_tree(model, model.locations, model.contains) }}
+                        {% if model.category == AssetCategory.location %}
+                            <details>
+                                <summary class="btn-link" style="text-align: center;">
+                                    Add contents
+                                </summary>
+                                <form method="POST" action="{{ url_for('asset.add_contents_view') }}">
+                                    <input type="hidden" name="asset_id" value="{{ model.id }}">
+                                    Enter newline-separated list of RH ids.
+                                    <textarea style="width: 80%; height: 80px;" name="id_list">
+                                        {#- -#}
+                                    </textarea>
+                                    <div>
+                                        <button type="submit" class="btn btn-primary">Submit</button>
+                                    </div>
+                                </form>
+                            </details>
+                        {% endif %}
+                    </td></tr>
+                {% endif %}
                 
                 </tbody></table>
         </div>
@@ -396,7 +402,7 @@
             <td>
                 <ul>
                 {% for asset in transaction.assets %}
-                    <li><a href="{{ asset.url }}">{{ asset.name }}</a></li>
+                    <li><a href="{{ asset.url }}">{{ render_asset_code(asset) }}{{ asset.name }}</a></li>
                 {% endfor %}
                 </ul>
             </td>
