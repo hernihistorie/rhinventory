@@ -114,6 +114,10 @@
             {% endmacro %}
 
             <table class="table table-hover table-bordered searchable">
+                {% if model.CATEGORY_EXPOSE_NUMBER %}
+                    <tr><td><strong>ID</strong></td>
+                    <td>{{ organization_icon(model.organization) }}{{ model.id }}</td></tr>
+                {% endif %}
                 <tr><td><strong>Organization</strong></td>
                 <td>{{ organization_icon(model.organization) }}{{ model.organization }}</td></tr>
                 <tr><td><strong>Category</strong></td>
