@@ -474,6 +474,8 @@ class AssetView(CustomModelView):
             LogItem.object_id == model.id
         ).order_by(LogItem.datetime.desc()).all()
 
+        private_implicit_files = model._query_files.filter(File.privacy == Privacy.private_implicit).count()
+
         return self.render(template,
                             model=model,
                             details_columns=self._details_columns,
@@ -481,7 +483,8 @@ class AssetView(CustomModelView):
                             return_url=return_url,
                             file_form=file_form,
                             logs=logs,
-                            AssetCategory=AssetCategory)
+                            AssetCategory=AssetCategory,
+                            private_implicit_files=private_implicit_files)
     
     @expose('/new2/', methods=['GET'])
     @require_write_access

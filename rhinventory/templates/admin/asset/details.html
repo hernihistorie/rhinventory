@@ -161,6 +161,12 @@
                             <br>
                             <small>made public on {{ model.made_public_at.strftime('%Y-%m-%d') }}</small>
                         {% endif %}
+                        {% if current_user.is_authenticated and current_user.write_access %}
+                            {% if model.privacy != Privacy.private_implicit and private_implicit_files %}
+                                <br>
+                                <strong>Note:</strong> This asset has <strong>{{ private_implicit_files }}</strong> files set to private_implicit.
+                            {% endif %}
+                        {% endif %}
                     </td>
                 </tr>
                 {{ row('note', pre_line=True) }}

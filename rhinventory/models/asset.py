@@ -220,12 +220,19 @@ class Asset(db.Model):
             return sorted_images[0]
         return None
     
-    def get_files_in_categories(self, categories: list[FileCategory]):
+    @property
+    def _query_files(self):
         return db.session.query(File) \
             .filter(
                 or_(File.is_deleted == False, File.is_deleted == None),
-                File.asset_id==self.id, File.category.in_(categories)
-            ).order_by(File.primary.desc(), File.has_thumbnail.desc(), File.filepath.asc()).all()
+                File.asset_id==self.id
+            ).order_by(File.primary.desc(), File.has_thumbnail.desc(), File.filepath.asc())
+
+    def get_files_in_categories(self, categories: list[FileCategory]):
+        return self._query_files \
+            .filter(
+                File.category.in_(categories)
+            ).all()
     
     def get_sorted_images(self):
         return self.get_files_in_categories(IMAGE_CATEGORIES)
@@ -264,7 +271,6 @@ class Asset(db.Model):
             parent = parent.parent
 
         return list(reversed(parents))
-
 
 class AssetMeta(db.Model):
     __tablename__ = 'assets_meta'
