@@ -11,10 +11,15 @@
     </ul>
 
     <p>This is the workflow for file/image upload:
+    </p>
     <p><strong>Upload</strong> → <strong>Processing</strong> → <strong>Review</strong>
+    </p>
     <p>To <strong>upload</strong> files, you may use the form below.  It is recommended to upload in batches of at most approximately 200 images at once.
+    </p>
     <p>After uploading, images get <strong>processed</strong>, which means thumbnails get made and barcodes get read.  Duplicate uploads get discarded in this step.
+    </p>
     <p>Finally, processed images should be <strong>reviewed</strong>, since barcode assignment can fail in ~20% of cases.  The interface also allows for simple image rotation.
+    </p>
 
     <hr>
 
@@ -102,6 +107,8 @@
                                 uploadSlice()
                             } else {
                                 fail = true;
+                                document.querySelector("#progressText").innerHTML = uploadedCount + "/" + totalFileCount + " - ERROR: " + xhr.status;
+                                document.querySelector("#progressText").classList.add('text-error')
                             }
                         }
                         
@@ -134,4 +141,10 @@
             })
         })
     </script>
+    <style>
+        .text-error {
+            color: rgb(156, 0, 0);
+            font-weight: bold;
+        }
+    </style>
 {% endblock %}
