@@ -64,7 +64,7 @@
     </div>
     {% if model.is_image and not model.is_deleted %}
         <img src="{{ model.url}}" style="margin-bottom: 8px;">
-        {% set barcodes = model.read_barcodes() %}
+        {# {% set barcodes = model.read_barcodes() %} #}
         {% if barcodes %}
             <h3>Decoded barcodes</h3>
             <table class="table table-hover table-bordered">
