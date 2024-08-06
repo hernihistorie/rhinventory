@@ -8,6 +8,14 @@
             (batch number {{ batch_number }})
         {% endif %}
     </h2>
+    {% macro order_by_link(target) %}
+        {% if order_by == target %}
+            <strong>{{ target }}</strong>
+        {% else %}
+            <a href="{{ url_for_here(order_by=target) }}">{{ target }}</a>
+        {% endif %}
+    {% endmacro %}
+    <strong>Order by</strong>: {{ order_by_link('upload_date') }} | {{ order_by_link('filename') }}
     <table class="table table-hover table-bordered">
         <thead>
             <tr>

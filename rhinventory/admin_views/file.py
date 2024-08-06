@@ -6,7 +6,7 @@ import multiprocessing as mp
 import random
 import string
 
-from flask import get_template_attribute, request, flash, redirect, url_for, current_app, jsonify
+from flask import abort, get_template_attribute, request, flash, redirect, url_for, current_app, jsonify
 from flask_login import current_user
 from flask_admin import expose
 from flask_admin.helpers import get_redirect_target
@@ -229,12 +229,20 @@ class FileView(CustomModelView):
     @expose('/upload/result', methods=['GET'])
     @require_write_access
     def upload_result_view(self):
+        order_by_str = request.args.get('order_by', 'upload_date')
+        if order_by_str == "upload_date":
+            order_by = File.upload_date
+        elif order_by_str == "filename":
+            order_by = File.filepath
+        else:
+            abort(403)
+        
         if 'batch_number' in request.args:
             batch_number = request.args['batch_number']
             assert 'files' not in request.args
 
             files = db.session.query(File).filter(File.batch_number == batch_number) \
-                .order_by(File.upload_date).all()
+                .order_by(order_by).all()
         else:
             batch_number = None
             files = []
@@ -257,7 +265,7 @@ class FileView(CustomModelView):
         else:
             duplicate_count = None
         
-        return self.render('admin/file/upload_result.html', files=files, duplicate_files=duplicate_files, auto_assign=auto_assign, batch_number=batch_number, duplicate_count=duplicate_count)
+        return self.render('admin/file/upload_result.html', files=files, duplicate_files=duplicate_files, auto_assign=auto_assign, batch_number=batch_number, duplicate_count=duplicate_count, order_by=order_by_str)
 
 
     @expose('/make_thumbnail/', methods=['POST'])
