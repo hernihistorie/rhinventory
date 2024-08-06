@@ -11,7 +11,7 @@
             (not finalized)
         {% endif %}
         <br>
-        <small>{{ transaction.date }}</small>
+        <small>{{ transaction.date or "" }}</small>
     </div>
     <div class="transaction-box">
         <div>
@@ -24,7 +24,7 @@
             {% endif %}
         </div>
         <div class="transaction-type">
-            {% if transaction.transaction_type.value == 0 %}
+            {% if transaction.transaction_type == None or transaction.transaction_type.value == 0 %}
                 ???
             {% elif transaction.transaction_type.value > 0 %}
                 ←
