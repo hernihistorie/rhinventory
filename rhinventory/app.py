@@ -2,6 +2,7 @@ import os
 import typing
 
 from flask import Flask, render_template, redirect, url_for, send_file, Response, abort, request, session, jsonify, g
+import sentry_sdk
 from flask_login import current_user, login_required, login_user, logout_user
 from flask_bootstrap import Bootstrap5
 from werkzeug.wrappers.response import Response
@@ -24,6 +25,23 @@ simple_eval = EvalWithCompoundTypes()
 add_admin_views(admin)
 
 def create_app(config_object='rhinventory.config'):
+    config = __import__(config_object, globals(), locals(), ['config'], 0)
+
+    if config.SENTRY_DSN:
+        print("Initializing Sentry")
+        sentry_sdk.init(
+            config.SENTRY_DSN,
+            # Set traces_sample_rate to 1.0 to capture 100%
+            # of transactions for performance monitoring.
+            traces_sample_rate=1.0,
+            # Set profiles_sample_rate to 1.0 to profile 100%
+            # of sampled transactions.
+            # We recommend adjusting this value in production.
+            profiles_sample_rate=1.0,
+        )
+    else:
+        print("Not initializing Sentry")
+
     app = Flask(__name__.split('.')[0], template_folder='templates')
     app.config.from_object(config_object)
 
@@ -241,5 +259,9 @@ Disallow: /asset/export/csv/
         # URLs in 2019-2024 started with admin, in 2024 this was public.
         print(request.url.split('/', 5)[-1])
         return redirect('/' + request.url.split('/', 4)[-1], code=308)
+
+    @app.route('/divide-by-zero')
+    def divide_by_zero():
+        return 1 / 0
 
     return app
