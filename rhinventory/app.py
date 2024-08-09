@@ -25,9 +25,10 @@ simple_eval = EvalWithCompoundTypes()
 add_admin_views(admin)
 
 def create_app(config_object='rhinventory.config'):
-    config = __import__(config_object, globals(), locals(), ['config'], 0)
+    if isinstance(config_object, str):
+        config_object = __import__(config_object, globals(), locals(), ['config'], 0)
 
-    if config.SENTRY_DSN:
+    if config_object.SENTRY_DSN:
         print("Initializing Sentry")
         sentry_sdk.init(
             config.SENTRY_DSN,
