@@ -31,7 +31,7 @@ def create_app(config_object='rhinventory.config'):
     if config_object.SENTRY_DSN:
         print("Initializing Sentry")
         sentry_sdk.init(
-            config.SENTRY_DSN,
+            config_object.SENTRY_DSN,
             # Set traces_sample_rate to 1.0 to capture 100%
             # of transactions for performance monitoring.
             traces_sample_rate=1.0,
