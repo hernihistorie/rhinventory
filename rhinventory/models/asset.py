@@ -215,11 +215,8 @@ class Asset(db.Model):
 
 
     def get_primary_image(self):
-        sorted_images = self.get_sorted_images()
-        if sorted_images:
-            return sorted_images[0]
-        return None
-    
+        return self.get_sorted_images().first()
+        
     @property
     def _query_files(self):
         return db.session.query(File) \
@@ -232,25 +229,19 @@ class Asset(db.Model):
         return self._query_files \
             .filter(
                 File.category.in_(categories)
-            ).all()
+            )
     
     def get_sorted_images(self):
         return self.get_files_in_categories(IMAGE_CATEGORIES)
 
     def get_primary_dump(self):
-        sorted_dumps = self.get_dumps()
-        if sorted_dumps:
-            return sorted_dumps[0]
-        return None
+        return self.get_dumps().first()
     
     def get_dumps(self):
         return self.get_files_in_categories([FileCategory.dump])
 
     def get_primary_document(self):
-        sorted_documents = self.get_files_in_categories([FileCategory.document])
-        if sorted_documents:
-            return sorted_documents[0]
-        return None
+        return self.get_files_in_categories([FileCategory.document]).first()
 
     @property
     def parents(self):

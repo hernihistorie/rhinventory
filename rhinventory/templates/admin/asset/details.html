@@ -300,7 +300,7 @@
                     </div>
                 {% endif %}
             {% endmacro %}
-            {% set images = model.get_sorted_images() %}
+            {% set images = list(model.get_sorted_images()) %}
             {% if images %}
                 {{ render_asset_image(images[0], primary=True) }}
                 {% set secondary_images = images[1:] %}

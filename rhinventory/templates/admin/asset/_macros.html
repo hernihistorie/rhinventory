@@ -34,7 +34,7 @@
     {% endif %}
     </span>
     <span>
-    {% if asset.get_dumps() %}
+    {% if asset.get_primary_dump() %}
         <a href="{{ asset.url }}">
             {{- icon("save") -}}
         </a>
