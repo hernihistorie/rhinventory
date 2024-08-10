@@ -309,10 +309,11 @@ class AssetView(CustomModelView):
         return super()._apply_search(query, count_query, joins, count_joins, search)
 
     def get_query(self):
+        query = self.session.query(self.model).options(db.joinedload(Asset.files))
         if current_user.is_authenticated and current_user.read_access:
-            return self.session.query(self.model)
+            return query
         else:
-            return self.session.query(self.model).filter(Asset.privacy.in_(PUBLIC_PRIVACIES))
+            return query.filter(Asset.privacy.in_(PUBLIC_PRIVACIES))
     
     @expose('/gallery/')
     def gallery_view(self):
