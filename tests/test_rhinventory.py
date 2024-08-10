@@ -16,6 +16,7 @@ class TestAppConfig:
     GITHUB_CLIENT_SECRET = None
     FILES_DIR = "files"
     SECRET_KEY = "abc"
+    SENTRY_DSN = None
 
 
 @pytest.fixture()
