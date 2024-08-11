@@ -8,6 +8,8 @@ from flask_login import current_user
 from sqlalchemy import func
 from bokeh.plotting import figure
 import bokeh.embed
+from sqlalchemy.orm import Query
+
 
 # From https://matthieu.io/blog/2019/02/09/bokeh-sqlalchemy/
 def figure_counter(
@@ -103,3 +105,8 @@ def slugify(value, allow_unicode=False):
         value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
     value = re.sub(r'[^\w\s-]', '', value.lower()).strip()
     return re.sub(r'[-\s]+', '-', value)
+
+
+def print_sql_query(query: Query):
+    compiled_query = query.compile(compile_kwargs={"literal_binds": True})
+    print(str(compiled_query))
