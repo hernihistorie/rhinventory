@@ -334,8 +334,10 @@ class FileView(CustomModelView):
             flash('Record does not exist.', 'error')
             return redirect(url_for("file.details_view", id=id))
 
-        asset_id = get_mdict_item_or_list(request.args, 'asset_id')
-        assert isinstance(asset_id, int)
+        if 'asset_id' in request.form:
+            asset_id = int(request.form['asset_id'])
+        else:
+            asset_id = int(request.args['asset_id'])
 
         try:
             model.assign(asset_id)

@@ -120,6 +120,14 @@
                                 </button>
                             {% endif %}
                         {% endif %}
+                        {% if not file.asset %}
+                            <form class="inline-form" hx-post="{{ url_for('file.assign_view', id=file.id, refresh=True) }}">
+                                HH<input type="text" name="asset_id" style="width: 4em;" placeholder="1234">
+                                <button type="submit" class="btn btn-secondary">
+                                    Assign
+                                </button>
+                            </form>
+                        {% endif %}
                     </td>
                 {% endif %}
             </tr>
