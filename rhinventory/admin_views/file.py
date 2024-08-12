@@ -96,7 +96,7 @@ class FileView(CustomModelView):
         if id is None:
             return redirect(return_url)
 
-        model = self.get_one(id)
+        model: File | None = self.get_one(id)
 
         if model is None:
             flash('Record does not exist.', 'error')
@@ -116,7 +116,12 @@ class FileView(CustomModelView):
         file_assign_form.process(request.form)
 
         if request.method == "POST" and file_assign_form.validate():
-            model.assign(file_assign_form.asset.data)
+            try:
+                model.assign(file_assign_form.asset.data)
+            except ValueError as e:
+                flash(f"Failed to assign file to asset: {e}", 'error')
+                return redirect(url_for("file.details_view", id=id))
+            
             db.session.add(model)
             log("Update", model, user=current_user)
             db.session.commit()
@@ -184,7 +189,12 @@ class FileView(CustomModelView):
                     else:
                         asset_ids = [File.read_rh_barcode(file) for file in image_files]
                     for file, asset_id in zip(image_files, asset_ids):
-                        file.assign(asset_id)
+                        try:
+                            file.assign(asset_id)
+                        except ValueError:
+                            # Probably failed to assign file to asset because asset doesn't exist
+                            # Ignore this
+                            pass
 
             print("Creating thumbnails...")
             # Create thumbnails in parallel
@@ -314,11 +324,20 @@ class FileView(CustomModelView):
     @require_write_access
     def assign_view(self):
         id = get_mdict_item_or_list(request.args, 'id')
-        model = self.get_one(id)
+        model: File | None = self.get_one(id)
+        if not model:
+            flash('Record does not exist.', 'error')
+            return redirect(url_for("file.details_view", id=id))
 
         asset_id = get_mdict_item_or_list(request.args, 'asset_id')
+        assert isinstance(asset_id, int)
 
-        model.assign(asset_id)
+        try:
+            model.assign(asset_id)
+        except ValueError as e:
+            flash(f"Failed to assign file to asset: {e}", 'error')
+            return redirect(url_for("file.details_view", id=id))
+        
         db.session.add(model)
         log("Update", model, user=current_user)
         db.session.commit()
