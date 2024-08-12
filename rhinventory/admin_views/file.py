@@ -49,12 +49,17 @@ def upload_file(file, category=0, batch_number=None):
     file_store = FileStore(current_app.config['DEFAULT_FILE_STORE'])
     files_dir = current_app.config['FILE_STORE_LOCATIONS'][file_store.value]
     filename = secure_filename(file.filename)
+    if not filename.strip():
+        filename = str(datetime.datetime.now().timestamp()) + str(random.randint(0, 1000))
     directory = 'uploads'
     os.makedirs(files_dir + "/" + directory, exist_ok=True)
     filepath = f'{directory}/{filename}'
     while os.path.exists(os.path.join(files_dir, filepath)):
         p = filepath.split('.')
-        p[-2] += '_1'
+        if len(p) < 2:
+            p[0] += '_1'
+        else:
+            p[-2] += '_1'
         filepath = '.'.join(p)
     file.save(files_dir + "/" + filepath)
     size = os.path.getsize(files_dir + "/" + filepath)
