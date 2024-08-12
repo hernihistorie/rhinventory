@@ -51,7 +51,7 @@
     </p>
     
     {% macro render_privacy_buttons(name, id, value, small) %}
-        <div class="btn-group" data-toggle="buttons-radio">
+        <div class="btn-group submit-btn-group" data-toggle="buttons-radio">
             <button type="button" name="{{ name }}-{{id}}-public"
                 class="btn btn-secondary btn-public {% if small %}btn-small{% endif %}
                     {% if value == Privacy.public %} active {% endif %}" 
@@ -157,7 +157,7 @@
         /* Thanks GPT-4! */
         document.querySelector('form').addEventListener('submit', function(event) {
             let form = event.target;
-            let buttonGroups = form.querySelectorAll('.btn-group');
+            let buttonGroups = form.querySelectorAll('.submit-btn-group');
             
             // Remove any old hidden fields to avoid duplications
             let oldHiddenFields = form.querySelectorAll('.hiddenField');
