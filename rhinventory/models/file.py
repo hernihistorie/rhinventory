@@ -1,11 +1,12 @@
 import os
 import enum
 import subprocess
+from datetime import datetime
 
 from flask import current_app, url_for
-from sqlalchemy import BigInteger, Column, Integer, Numeric, String, Text, \
+from sqlalchemy import JSON, BigInteger, Column, Integer, Numeric, String, Text, \
     DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint
-from sqlalchemy.orm import relationship, backref, Mapped, mapped_column
+from sqlalchemy.orm import relationship, backref, Mapped, mapped_column, Relationship
 from PIL import Image, ImageEnhance, ImageOps
 
 from rhinventory.models.enums import Privacy
@@ -59,6 +60,22 @@ def get_next_file_batch_number():
         return 1
     else:
         return largest_batch_file.batch_number + 1
+
+class FileVersion(db.Model):
+    __tablename__ = 'file_versions'
+    id             : Mapped[int]           = mapped_column(Integer, primary_key=True)
+    file_id        : Mapped[int]           = mapped_column(Integer, ForeignKey('files.id'))
+    file           : Relationship["File"]  = relationship("File", backref="file_versions")
+    version_number : Mapped[int]           = mapped_column(Integer, nullable=False)
+
+    upload_date    : Mapped[datetime]      = mapped_column(DateTime)
+    user_id        : Mapped[int]           = mapped_column(Integer, ForeignKey('users.id'))
+    user           : Relationship["User"]  = relationship("User")
+
+    md5            : Mapped[bytes]         = mapped_column(LargeBinary(16))
+    sha256         : Mapped[bytes]         = mapped_column(LargeBinary(32))
+
+    exif           : Mapped[dict]          = mapped_column(JSON)
 
 class File(db.Model):
     __tablename__ = 'files'
