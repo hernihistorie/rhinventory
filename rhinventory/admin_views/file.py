@@ -115,7 +115,7 @@ class FileView(CustomModelView):
 
         file_assign_form = FileAssignForm()
         assets = [(0, "No asset")]
-        assets += [(a.id, str(a)) for a in self.session.query(Asset).order_by(Asset.id.asc())]
+        #assets += [(a.id, str(a)) for a in self.session.query(Asset).order_by(Asset.id.asc())]
         file_assign_form.asset.choices = assets
         file_assign_form.asset.default = model.asset_id or 0
         file_assign_form.process(request.form)

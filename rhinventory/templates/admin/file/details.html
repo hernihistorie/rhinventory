@@ -36,14 +36,15 @@
             {% endif %}
             {% if admin_view.can_edit %}
                 <form method="POST" action="" style="display: inline;">
-                    {{ file_assign_form.asset(style='margin-bottom: 0px; width: 400px;') }}
+                    {# {{ file_assign_form.asset(style='margin-bottom: 0px; width: 400px;') }}
                     <input type="submit" value="
                         {%- if not model.asset -%}
                             Assign
                         {%- else -%}
                             Re-assign
                         {%- endif -%}
-                    " class="btn btn-primary">
+                    " class="btn btn-primary"> #}
+                    Sorry the form for assigning the file will be back soon.
                 </form>
             {% endif %}
         </div>
