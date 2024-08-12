@@ -177,7 +177,7 @@ class FileView(CustomModelView):
                 files.append(file_db)
 
             if current_app.config["MULTIPROCESSING_ENABLED"]:
-                pool = mp.Pool(mp.cpu_count())
+                pool = mp.Pool(mp.cpu_count(), maxtasksperchild=1)
             else:
                 pool = None
 
