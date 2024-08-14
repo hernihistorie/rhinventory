@@ -281,3 +281,53 @@ hr {
 .inline-form input {
   margin-bottom: 0;
 }
+
+
+.selected {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  margin: 4px;
+  padding: 4px;
+  border: 1px solid #ccc;
+  background: white;
+  border-radius: 3px;
+  max-width: 60%;
+}
+
+.selected-buttons {
+  /* text-align: right; */
+}
+.selected-buttons input[type=text] {
+  margin: 0; padding: 2px; width: 100px;
+}
+
+.selected form {
+  /*
+  display: inline-block; border: 1px solid #bbb; padding: 2px; border-radius: 4px; margin: 0;
+  */    
+}
+.selected .btn {
+  font-size: 12px;
+}
+.selected .btn:not(a) {
+  height: 25px;
+}
+.selected a.btn {
+  height: 16px;
+}
+.selected input {
+  height: 19.5px;
+}
+.selected .input-append {
+  margin: 0;
+}
+.col-id {width: 42px;}
+.col-code {width: 72px;}
+.col-flags {width: 82px;}
+.flags {display: flex; gap: 4px; width: 100%;}
+.asset-category {font-size: 12px; min-width: 90px; display: inline-block;}
+
+.selected .nav {
+  margin-bottom: 2px;
+}

@@ -13,48 +13,6 @@
         body {
             margin-bottom: 32px;
         }
-        .selected {
-            position: fixed;
-            bottom: 0;
-            right: 0;
-            margin: 4px;
-            padding: 4px;
-            border: 1px solid #ccc;
-            background: white;
-            border-radius: 3px;
-            max-width: 60%;
-        }
-
-        .selected-buttons {
-            text-align: right;
-        }
-
-        .selected form {
-            /*
-            display: inline-block; border: 1px solid #bbb; padding: 2px; border-radius: 4px; margin: 0;
-            */    
-        }
-        .selected .btn {
-            font-size: 12px;
-        }
-        .selected .btn:not(a) {
-            height: 25px;
-        }
-        .selected a.btn {
-            height: 16px;
-        }
-        .selected input {
-            height: 19.5px;
-        }
-        .selected .input-append {
-            margin: 0;
-        }
-        .col-id {width: 42px;}
-        .col-code {width: 72px;}
-        .col-flags {width: 82px;}
-        .flags {display: flex; gap: 4px; width: 100%;}
-        .asset-category {font-size: 12px; min-width: 90px; display: inline-block;}
-
         {% if not current_user.write_access %}
             .action-checkbox[name=rowid], .action-rowtoggle[name=rowtoggle] {
                 display: none;
@@ -82,39 +40,72 @@
         }
     </style>
     <div id="selected" class="selected">
-        <div id="selected-list">
-        </div>
-        <div class="selected-buttons">
+        <div style="display: flex; align-items: center; gap: 8px">
             <span id="selected-count" style="font-style:italic;"></span>
             <button id="selected-clear" class="btn">{{ icon('broom') }}</button>
-            <button id="selected-show-sheet" class="btn">Show sheet</button>
-            <a id="selected-print-labels" href="#" class="btn">Print labels</a>
-            <button id="selected-create-transaction" class="btn">Create transaction</button>
-            <form
-                id="selected-add-to-transaction-form"
-                class="input-append"
-                action="{{ get_url('transaction.add_to_view') }}"
-                method="POST"
-            >
-                <input id="selected-add-transaction-id-asset-id" type="hidden" name="asset_id" value="">
-                <input id="selected-add-transaction-id-transaction-id" name="transaction_id" type="text" placeholder="Transaction ID" style="margin: 0; padding: 2px; width: 120px;">
-                <div class="btn-group">
-                    <input type="submit" value="Add to transaction" class="btn">
+            <div id="selected-list">
+            </div>
+        </div>
+        <div class="selected-buttons">
+            <ul class="nav nav-tabs">
+                <li class="active"><a href="#selected-tab-labels" data-toggle="tab">
+                    {{ icon('print') }} Labels
+                </a></li>
+                <li><a href="#selected-tab-transactions" data-toggle="tab">
+                    {{ icon("handshake") }} Transactions
+                </a></li>
+                <li><a href="#selected-tab-parent" data-toggle="tab">
+                    {{ icon("jar") }} Parent
+                </a></li>
+                <li><a href="#selected-tab-location" data-toggle="tab">
+                    {{ icon('cubes') }} Location
+                </a></li>
+                <li><a href="#selected-tab-tag" data-toggle="tab">
+                    {{ icon('tag') }} Tag
+                </a></li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane active" id="selected-tab-labels">
+                    <button id="selected-show-sheet" class="btn">Show sheet</button>
+                    <a id="selected-print-labels" href="#" class="btn">Print labels</a>
                 </div>
-            </form>
-            <form
-                id="selected-set-parent-bulk-form"
-                class="input-append"
-                action="{{ get_url('asset.set_parent_bulk') }}"
-                method="POST"
-            >
-                {{ icon('jar') }}
-                <input id="selected-set-parent-bulk-asset-id" type="hidden" name="asset_id" value="">
-                <input id="selected-set-parent-bulk-parent-asset-id" name="parent_asset_id" type="text" placeholder="Parent asset ID" style="margin: 0; padding: 2px; width: 120px;">
-                <div class="btn-group">
-                    <input type="submit" value="Set parent" class="btn">
+                <div class="tab-pane" id="selected-tab-transactions">
+                    <button id="selected-create-transaction" class="btn">Create transaction</button>
+                    <form
+                        id="selected-add-to-transaction-form"
+                        class="input-append"
+                        action="{{ get_url('transaction.add_to_view') }}"
+                        method="POST"
+                    >
+                        <input id="selected-add-transaction-id-asset-id" type="hidden" name="asset_id" value="">
+                        <input id="selected-add-transaction-id-transaction-id" name="transaction_id" type="text" placeholder="Transaction ID" style="margin: 0; padding: 2px; width: 100px;">
+                        <div class="btn-group">
+                            <input type="submit" value="Add to transaction" class="btn">
+                        </div>
+                    </form>
                 </div>
-            </form>
+                <div class="tab-pane" id="selected-tab-parent">
+                    <form
+                        id="selected-set-parent-bulk-form"
+                        class="input-append"
+                        action="{{ get_url('asset.set_parent_bulk') }}"
+                        method="POST"
+                    >
+                        {{ icon('jar') }}
+                        <input id="selected-set-parent-bulk-asset-id" type="hidden" name="asset_id" value="">
+                        <input id="selected-set-parent-bulk-parent-asset-id" name="parent_asset_id" type="text" placeholder="Parent asset ID" >
+                        <div class="btn-group">
+                            <input type="submit" value="Set parent" class="btn">
+                        </div>
+                    </form>
+                </div>
+                <div class="tab-pane" id="selected-tab-location">
+                    TODO
+                </div>
+                <div class="tab-pane" id="selected-tab-tag">
+                    TODO
+                </div>
+            </div>
         </div>
     </div>
     <script>
