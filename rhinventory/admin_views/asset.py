@@ -5,7 +5,7 @@ import sys
 from math import ceil
 from typing import Optional, Union, Iterable
 
-from flask import Response, redirect, request, flash, url_for, get_template_attribute
+from flask import Response, abort, redirect, request, flash, url_for, get_template_attribute
 from wtforms import RadioField, TextAreaField, Field
 import wtforms.validators
 from flask_admin import expose
@@ -30,7 +30,7 @@ from rhinventory.models.file import IMAGE_CATEGORIES, File
 from rhinventory.models.log import LogEvent, log
 from rhinventory.forms import FileForm
 from rhinventory.models.asset import AssetCategory
-from rhinventory.models.asset_attributes import Company
+from rhinventory.models.asset_attributes import AssetTag, Company
 from rhinventory.util import require_write_access
 
 TESTING = "pytest" in sys.modules
@@ -715,6 +715,23 @@ class AssetView(CustomModelView):
         message = f"Parent for {len(assets)} assets set to be {parent_asset}."
 
         flash(message, "success")
+
+        return redirect(url_for('.index_view'))
+    
+    @expose('/add_tag_bulk/', methods=['POST'])
+    @require_write_access
+    def add_tag_bulk(self) -> Response:
+        asset_tag: AssetTag | None = db.session.query(AssetTag).get(int(request.form['tag_id']))
+        if not asset_tag:
+            abort(404)
+        
+        bulk_datetime = datetime.utcnow()
+        assets: list[Asset] = get_asset_list_from_request_args()
+        for asset in assets:
+            asset.tags.append(asset_tag)
+            db.session.add(asset)
+        db.session.commit()
+        flash(f"Given {len(assets)} assets the tag {asset_tag}.", 'success')
 
         return redirect(url_for('.index_view'))
 

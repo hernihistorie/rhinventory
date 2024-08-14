@@ -77,8 +77,8 @@
                         action="{{ get_url('transaction.add_to_view') }}"
                         method="POST"
                     >
-                        <input id="selected-add-transaction-id-asset-id" type="hidden" name="asset_id" value="">
-                        <input id="selected-add-transaction-id-transaction-id" name="transaction_id" type="text" placeholder="Transaction ID" style="margin: 0; padding: 2px; width: 100px;">
+                        <input type="hidden" name="asset_id" value="">
+                        <input name="transaction_id" type="text" placeholder="Transaction ID" style="margin: 0; padding: 2px; width: 100px;">
                         <div class="btn-group">
                             <input type="submit" value="Add to transaction" class="btn">
                         </div>
@@ -92,8 +92,8 @@
                         method="POST"
                     >
                         {{ icon('jar') }}
-                        <input id="selected-set-parent-bulk-asset-id" type="hidden" name="asset_id" value="">
-                        <input id="selected-set-parent-bulk-parent-asset-id" name="parent_asset_id" type="text" placeholder="Parent asset ID" >
+                        <input type="hidden" name="asset_id" value="">
+                        <input name="parent_asset_id" type="text" placeholder="Parent asset ID" >
                         <div class="btn-group">
                             <input type="submit" value="Set parent" class="btn">
                         </div>
@@ -103,7 +103,18 @@
                     TODO
                 </div>
                 <div class="tab-pane" id="selected-tab-tag">
-                    TODO
+                    <form
+                        id="selected-add-tag-bulk-form"
+                        class="input-append"
+                        action="{{ get_url('asset.add_tag_bulk') }}"
+                        method="POST"
+                    >
+                        <input type="hidden" name="asset_id" value="">
+                        <input name="tag_id" type="text" placeholder="Tag ID" >
+                        <div class="btn-group">
+                            <input type="submit" value="Add tag" class="btn">
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -210,27 +221,25 @@
             document.location.href = "{{ get_url('transaction.create_view') }}?asset_id=[" + selected + "]";
         }
 
-        document.getElementById("selected-add-to-transaction-form").addEventListener('submit', function(event) {
-            var transaction_id = document.getElementById("selected-add-transaction-id-transaction-id").value;
-            if (transaction_id == "") {
-                alert("Transaction ID is required");
-                event.preventDefault()
-                return false;
-            }
+        function makeSelectedForm(action, object_name) {
+            document.getElementById(`selected-${action}-form`).addEventListener('submit', function(event) {
+                console.log(`#selected-${action}-form input[name="${object_name}_id"]`)
+                var id = document.querySelector(`#selected-${action}-form input[name="${object_name}_id"]`).value;
+                if (id == "") {
+                    alert(`${object_name} ID is required`);
+                    event.preventDefault()
+                    return false;
+                }
 
-            document.getElementById("selected-add-transaction-id-asset-id").value = selected;
-        })
+                document.querySelector(`#selected-${action}-form input[name="asset_id"]`).value = selected;
+            })
+        }
 
-        document.getElementById("selected-set-parent-bulk-form").addEventListener('submit', function(event) {
-            var transaction_id = document.getElementById("selected-set-parent-bulk-parent-asset-id").value;
-            if (transaction_id == "") {
-                alert("Parent asset ID is required");
-                event.preventDefault()
-                return false;
-            }
+        makeSelectedForm('add-to-transaction', 'transaction');
 
-            document.getElementById("selected-set-parent-bulk-asset-id").value = selected;
-        })
+        makeSelectedForm('set-parent-bulk', 'parent_asset');
+
+        makeSelectedForm('add-tag-bulk', 'tag');
 
         /* Select multiple checkboxes with shift */
 

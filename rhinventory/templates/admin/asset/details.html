@@ -145,6 +145,7 @@
                     <tr><td><strong>Tags</strong></td>
                     <td>
                         {% for tag in model.tags %}
+                            {{ icon('tag') }} 
                             {% if not current_user.is_authenticated %}
                                 {{ tag.name -}}
                                 {%- if not loop.last -%},{% endif %}
