@@ -146,13 +146,15 @@
                     <td>
                         {% for tag in model.tags %}
                             {{ icon('tag') }} 
+                            <a href="{{ url_for('asset.index_view', flt1_45=tag.name) }}">{{ icon('search') }}</a>
                             {% if not current_user.is_authenticated %}
                                 {{ tag.name -}}
                                 {%- if not loop.last -%},{% endif %}
                             {% else %}
                                 <a href="{{ url_for('assettag.edit_view', id=tag.id) }}">
                                     {{ tag.name -}}
-                                </a>{%- if not loop.last %},{% endif %}
+                                </a>
+                                {%- if not loop.last %},{% endif %}
                             {% endif %}
                         {% endfor %}
                     </td></tr>
