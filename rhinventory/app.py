@@ -88,16 +88,17 @@ def create_app(config_object='rhinventory.config'):
         if not label_printer:
             label_printer = db.session.query(LabelPrinter).filter(LabelPrinter.is_default == True).first()
 
-        assert label_printer
-        assert label_printer.method == LabelPrinterMethod.hhprint
+        query: dict[str, str] = {}
+        if label_printer:
+            assert label_printer.method == LabelPrinterMethod.hhprint
 
-        query = {
-            'printer': label_printer.printer,
-            'model': label_printer.model,
-            'label': label_printer.label
-        }
-        if label_printer.backend:
-            query['backend'] = label_printer.backend
+            query.update({
+                'printer': label_printer.printer,
+                'model': label_printer.model,
+                'label': label_printer.label
+            })
+            if label_printer.backend:
+                query['backend'] = label_printer.backend
         if codes:
             query['codes'] = ';'.join(codes)
 
