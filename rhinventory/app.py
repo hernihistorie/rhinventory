@@ -81,7 +81,7 @@ def create_app(config_object='rhinventory.config'):
         if isinstance(codes, str):
             codes = [codes]
         
-        label_printer: LabelPrinter | None
+        label_printer: LabelPrinter | None = None
         if current_user.is_authenticated:
             label_printer = current_user.label_printer
 
