@@ -111,6 +111,8 @@ def create_app(config_object='rhinventory.config'):
         text = """
 User-agent: *
 Disallow: /asset/export/csv/
+Disallow: /*?flt*
+Disallow: /*?*&flt*
 """
         return Response(text, mimetype='text/plain')
 
