@@ -9,6 +9,7 @@ from rhinventory.extensions import db, admin, simple_eval
 from rhinventory.db import LogItem, Medium, Location, Organization, log, LogItem, Asset, User, Transaction, File, Party
 from rhinventory.models.asset_attributes import AssetTag, Company, CompanyAlias, Packaging
 from rhinventory.admin_views import CustomModelView, AdminModelView, AssetView, TransactionView, FileView
+from rhinventory.models.label_printer import LabelPrinter
 from rhinventory.util import figure_counter
 from rhinventory.admin_views.magdb import add_magdb_views
 
@@ -68,6 +69,8 @@ def add_admin_views(admin):
     admin.add_view(AdminModelView(Organization, db.session, category="People"))
 
     admin.add_view(UserView(User, db.session, category="Admin"))
+
+    admin.add_view(CustomModelView(LabelPrinter, db.session, category="Admin"))
     
     #path = os.path.join(os.path.dirname(__file__), app.config['FILES_DIR'])
     #admin.add_view(FileAdmin(path, '/files/', name='File management'))

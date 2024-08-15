@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import asyncio
 from io import BytesIO
 import sys

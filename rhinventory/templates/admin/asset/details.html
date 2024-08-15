@@ -58,20 +58,20 @@
                         Label:
                     </a>
                     {% if current_user.organization and current_user.organization.name.lower() == "ucm" %}
-                        <a href="rhprint:{{model.id}}-ucm" id="print-label-ucm" class="btn btn-primary">
+                        <a href="{{ hhprint_url(str(model.id) + '-ucm') }}" id="print-label-ucm" class="btn btn-primary">
                             {{ icon("print") }} UCM label
                         </a>
                     {% else %}
-                        <a href="rhprint:{{model.id}}" id="print-label" class="btn btn-primary">
+                        <a href="{{ hhprint_url(str(model.id)) }}" id="print-label" class="btn btn-primary">
                             {{ icon("print") }} RH label
                         </a>
-                        <a href="rhprint:{{model.id}}-ha" id="print-label-ha" class="btn btn-primary">
+                        <a href="{{ hhprint_url(str(model.id) + '-ha') }}" id="print-label-ha" class="btn btn-primary">
                             {{ icon("print") }} HA label
                         </a>
-                        <a href="rhprint:{{model.id}}-small" id="print-label-small" class="btn btn-primary">
+                        <a href="{{ hhprint_url(str(model.id) + '-small') }}" id="print-label-small" class="btn btn-primary">
                             {{ icon("print") }} small label
                         </a>
-                        <a href="rhprint:{{model.id}}-big-ha" id="print-label-big-ha" class="btn btn-primary">
+                        <a href="{{ hhprint_url(str(model.id) + '-big-ha') }}" id="print-label-big-ha" class="btn btn-primary">
                             {{ icon("print") }} BIG label
                         </a>
                     {% endif %}

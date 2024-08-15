@@ -1,5 +1,6 @@
 import os
 import typing
+import urllib.parse
 
 from flask import Flask, render_template, redirect, url_for, send_file, Response, abort, request, session, jsonify, g
 import sentry_sdk
@@ -18,6 +19,7 @@ from simpleeval import EvalWithCompoundTypes
 from rhinventory.models.entities import Organization
 from rhinventory.models.enums import Privacy
 
+from rhinventory.models.label_printer import LabelPrinter, LabelPrinterMethod
 from rhinventory.models.user import AnynomusUser
 
 simple_eval = EvalWithCompoundTypes()
@@ -74,6 +76,34 @@ def create_app(config_object='rhinventory.config'):
         return url_for(request.endpoint, **args)
 
     app.jinja_env.globals['url_for_here'] = url_for_here
+
+    def hhprint_url(codes: str | list[str] | None = None) -> str:
+        if isinstance(codes, str):
+            codes = [codes]
+        
+        label_printer: LabelPrinter | None
+        if current_user.is_authenticated:
+            label_printer = current_user.label_printer
+
+        if not label_printer:
+            label_printer = db.session.query(LabelPrinter).filter(LabelPrinter.is_default == True).first()
+
+        assert label_printer
+        assert label_printer.method == LabelPrinterMethod.hhprint
+
+        query = {
+            'printer': label_printer.printer,
+            'model': label_printer.model,
+            'label': label_printer.label
+        }
+        if label_printer.backend:
+            query['backend'] = label_printer.backend
+        if codes:
+            query['codes'] = ';'.join(codes)
+
+        return f"hhprint:print?" + urllib.parse.urlencode(query)
+
+    app.jinja_env.globals['hhprint_url'] = hhprint_url
 
     app.jinja_env.globals['Privacy'] = Privacy
     app.jinja_env.globals['visible_to_current_user'] = visible_to_current_user
