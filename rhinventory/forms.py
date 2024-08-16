@@ -8,6 +8,7 @@ class FileForm(Form):
     category = Select2Field("Category", choices=[(el.value, el.name) for el in FileCategory], coerce=int)
     batch_number = IntegerField("Batch number", render_kw={'readonly': True})
     auto_assign = BooleanField("Auto assign", render_kw={'checked':''})
+    sort_by_filename = BooleanField("Sort uploads by filename", render_kw={'checked':''})
 
 class FileAssignForm(Form):
     asset = Select2Field("asset", coerce=int)

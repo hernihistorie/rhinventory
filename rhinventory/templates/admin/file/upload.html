@@ -66,6 +66,10 @@
                 const uploadPromises = []
 
                 uploadedCount = 0;
+                files = Array.from(fileUploadElem.files);
+                if (formElem.querySelector('[name=sort_by_filename]').checked) {
+                    files.sort((a, b) => a.name.localeCompare(b.name))
+                }
                 totalFileCount = fileUploadElem.files.length;
                 fail = false;
 
@@ -75,7 +79,7 @@
                 fileSlices = [];
 
                 for (let i=0; i < Math.ceil(totalFileCount / sliceBy); i++) {
-                    fileSlices.push(Array.from(fileUploadElem.files).slice(i*sliceBy, (i+1)*sliceBy));
+                    fileSlices.push(files.slice(i*sliceBy, (i+1)*sliceBy));
                 }
 
                 function uploadSlice() {
