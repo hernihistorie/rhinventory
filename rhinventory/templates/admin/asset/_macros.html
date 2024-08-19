@@ -96,6 +96,15 @@
     {% endif %}
     </span>
 
+    {% for tag in asset.tags %}
+        <span
+            style="color: hsl({{ tag.id * 11.5249 }}turn 80% 40%)"
+            rel="tooltip" title="{{ tag.name }}"
+        >
+            {{- icon("tag") -}}
+        </span>
+    {% endfor %}
+
     {% if show_transactions %}
         <span>
             {% for transaction in asset.transactions %}
