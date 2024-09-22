@@ -281,7 +281,7 @@ class FileView(CustomModelView):
                     duplicate_files.append((filepath.name, e.matching_file))
                     continue
 
-                asset_id = parse_hh_code(filepath.name.split('.')[0])
+                asset_id = parse_hh_code(filepath.name.split('.')[0].split('_')[0])
                 if asset_id and dropzone_form.auto_assign.data:
                     try:
                         file.assign(asset_id)
