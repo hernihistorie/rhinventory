@@ -41,14 +41,16 @@ def upload_file(file: FileStorage | Path, category: int | FileCategory=0, batch_
     :return: object of type File, not committed to database.
     """
     if isinstance(file, Path):
-        file_io = open(file, 'rb')
         filename = file.name
+
+        with open(file, 'rb', buffering=0) as f:
+            md5 = hashlib.file_digest(f, 'md5').digest()
+
     else:
-        file_io = file
         filename = file.filename
     
-    md5 = hashlib.md5(file_io.read()).digest()
-    file_io.seek(0)
+        md5 = hashlib.file_digest(file, 'md5').digest()
+        file.seek(0)
 
     matching_file = db.session.query(File).filter(
             (File.md5 == md5) | (File.original_md5 == md5)
