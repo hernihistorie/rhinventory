@@ -10,5 +10,9 @@ class FileForm(Form):
     auto_assign = BooleanField("Auto assign", render_kw={'checked':''})
     sort_by_filename = BooleanField("Sort uploads by filename", render_kw={'checked':''})
 
+class DropzoneFileForm(Form):
+    batch_number = IntegerField("Batch number", render_kw={'readonly': True})
+    auto_assign = BooleanField("Auto assign", render_kw={'checked':''})
+
 class FileAssignForm(Form):
     asset = Select2Field("asset", coerce=int)

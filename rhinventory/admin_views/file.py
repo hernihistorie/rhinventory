@@ -16,7 +16,8 @@ from rhinventory.admin_views.utils import visible_to_current_user
 
 from rhinventory.db import log, Asset, File, FileCategory, get_next_file_batch_number
 from rhinventory.extensions import db, simple_eval
-from rhinventory.forms import FileForm, FileAssignForm
+from rhinventory.files.utils import get_dropzone_path, get_dropzone_files
+from rhinventory.forms import DropzoneFileForm, FileForm, FileAssignForm
 from rhinventory.admin_views.model_view import CustomModelView
 from rhinventory.models.file import FileStore
 from rhinventory.util import require_write_access
@@ -143,6 +144,9 @@ class FileView(CustomModelView):
     @expose('/upload/', methods=['GET', 'POST'])
     @require_write_access
     def upload_view(self):
+        dropzone_path = get_dropzone_path()
+        dropzone_files = get_dropzone_files()
+
         id = get_mdict_item_or_list(request.args, 'id')
         if id:
             assign_asset = db.session.query(Asset).get(id)
@@ -152,6 +156,7 @@ class FileView(CustomModelView):
         batch_number = get_next_file_batch_number()
 
         form = FileForm(request.form, batch_number=batch_number)
+        dropzone_form = DropzoneFileForm(request.form, batch_number=batch_number)
         if request.method == 'POST' and form.validate():
             files = []
             image_files = []
@@ -239,7 +244,7 @@ class FileView(CustomModelView):
                     return redirect(url_for("file.upload_result_view", files=repr([f.id for f in files]),
                                 duplicate_files=repr([(f0, f1.id) for f0, f1 in duplicate_files]),
                                 auto_assign=form.auto_assign.data))
-        return self.render('admin/file/upload.html', form=form)
+        return self.render('admin/file/upload.html', form=form, dropzone_path=dropzone_path, dropzone_files=dropzone_files, dropzone_form=dropzone_form)
     
     @expose('/upload/result', methods=['GET'])
     @require_write_access

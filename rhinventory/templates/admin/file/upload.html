@@ -14,7 +14,7 @@
     </p>
     <p><strong>Upload</strong> → <strong>Processing</strong> → <strong>Review</strong>
     </p>
-    <p>To <strong>upload</strong> files, you may use the form below.  It is recommended to upload in batches of at most approximately 200 images at once.
+    <p>To <strong>upload</strong> files, you may use the form below.  It is recommended to upload in batches of at most approximately 200 images at once.<br>  Alternatively, you can put files in the configured dropzone path <code>{{ dropzone_path }}</code>.
     </p>
     <p>After uploading, images get <strong>processed</strong>, which means thumbnails get made and barcodes get read.  Duplicate uploads get discarded in this step.
     </p>
@@ -23,22 +23,42 @@
 
     <hr>
 
-    <form id="upload-form" method="POST" enctype="multipart/form-data" action="" class="admin-form form-horizontal">
-        {% if form.errors %}
-            <div class="text-error">
-                Form errors: {{ form.errors }}
-            </div>
-        {% endif %}
-        {% for control in form %}
-            <div class="control-group">
-                <div class="control-label">{{ control.label }}</div>
-                <div class="controls">{{ control }}</div>
-            </div>
-        {% endfor %}
-        <input id="upload-form-submit" type="submit" value="Submit" class="btn btn-primary" style="vertical-align: top;">
-        <progress id="progress" value="0" max="100"></progress>
-        <span id="progressText"></span>
-    </form>
+    <div class="col-2">
+        {% macro render_form_elements(form) %}
+            {% if form.errors %}
+                <div class="text-error">
+                    Form errors: {{ form.errors }}
+                </div>
+            {% endif %}
+            {% for control in form %}
+                <div class="control-group">
+                    <div class="control-label">{{ control.label }}</div>
+                    <div class="controls">{{ control }}</div>
+                </div>
+            {% endfor %}
+        {% endmacro %}
+        <form id="upload-form" method="POST" enctype="multipart/form-data" action="" class="admin-form form-horizontal">
+            <h3>Upload in browser</h3>
+            {{ render_form_elements(form) }}
+            <input id="upload-form-submit" type="submit" value="Submit" class="btn btn-primary" style="vertical-align: top;">
+            <progress id="progress" value="0" max="100"></progress>
+            <span id="progressText"></span>
+        </form>
+        <form id="dropzone-form" method="POST" action="" class="admin-form form-horizontal">
+            <h3>Use {{ dropzone_files | length }} dropzone files</h3>
+            {% if dropzone_files %}
+                <textarea disabled style="height: 160px;">
+{%- for file in dropzone_files -%}
+{{- file.name + "\n" -}}
+{%- endfor -%}
+                </textarea>
+            {% else %}
+                <p>There are no files in the dropzone directory (<code>{{ dropzone_path }}</code>).
+            {% endif %}
+            {{ render_form_elements(dropzone_form) }}
+            <input type="submit" value="Submit" class="btn btn-primary" style="vertical-align: top;">
+        </form>
+    </div>
 
     <ul id="file-list">
     </ul>
@@ -149,6 +169,20 @@
         .text-error {
             color: rgb(156, 0, 0);
             font-weight: bold;
+        }
+
+        p {
+            text-indent: 0%;
+        }
+
+        .col-2 {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+        }
+
+        @media only screen and (max-width: 800px) {
+            .col-2 {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 {% endblock %}
