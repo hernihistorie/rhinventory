@@ -1,3 +1,4 @@
+import os
 import pytest
 
 from flask import Flask
@@ -25,6 +26,8 @@ def app():
     app = create_app(config_object=TestAppConfig)
 
     with app.app_context():
+        os.makedirs(app.config['DROPZONE_PATH'], exist_ok=True)
+
         db.create_all()
 
         user = User(username="pytest", read_access=True, write_access=True, admin=True)
