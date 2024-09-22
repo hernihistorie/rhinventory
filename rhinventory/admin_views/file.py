@@ -30,6 +30,7 @@ class DuplicateFile(RuntimeError):
         super().__init__(message)
         self.matching_file = matching_file
 
+MAX_SIZE_FOR_HASH_GENERATION = 100 * 1024 * 1024
 
 def upload_file(file: FileStorage | Path, category: int | FileCategory=0, batch_number: int | None=None) -> File:
     """
@@ -43,21 +44,30 @@ def upload_file(file: FileStorage | Path, category: int | FileCategory=0, batch_
     if isinstance(file, Path):
         filename = file.name
 
-        with open(file, 'rb', buffering=0) as f:
-            md5 = hashlib.file_digest(f, 'md5').digest()
+        size = os.path.getsize(file)
+        if size > MAX_SIZE_FOR_HASH_GENERATION:
+            # We just can't handle files >100MB well rn so bail
+            md5 = None
+        else:
+            with open(file, 'rb', buffering=0) as f:
+                md5 = hashlib.file_digest(f, 'md5').digest()
 
     else:
         filename = file.filename
-    
-        md5 = hashlib.file_digest(file, 'md5').digest()
-        file.seek(0)
+        size = file.content_length
+        if size > MAX_SIZE_FOR_HASH_GENERATION:
+            md5 = None
+        else:
+            md5 = hashlib.file_digest(file, 'md5').digest()
+            file.seek(0)
 
-    matching_file = db.session.query(File).filter(
-            (File.md5 == md5) | (File.original_md5 == md5)
-        ).filter(File.is_deleted == False).first()
+    if md5:
+        matching_file = db.session.query(File).filter(
+                (File.md5 == md5) | (File.original_md5 == md5)
+            ).filter(File.is_deleted == False).first()
     
-    if matching_file:
-        raise DuplicateFile("Duplicate file", matching_file)
+        if matching_file:
+            raise DuplicateFile("Duplicate file", matching_file)
 
     # Save the file, partially accounting for filename collisions
     file_store = FileStore(current_app.config['DEFAULT_FILE_STORE'])
