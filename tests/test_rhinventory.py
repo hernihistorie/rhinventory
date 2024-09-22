@@ -5,7 +5,6 @@ from flask.testing import FlaskClient
 from flask_login import login_user
 
 from rhinventory.app import create_app
-from rhinventory.config import DROPZONE_PATH
 from rhinventory.extensions import db
 from rhinventory.db import User, Organization
 from rhinventory.models.asset import Asset, AssetCategory

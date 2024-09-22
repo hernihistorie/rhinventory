@@ -110,7 +110,7 @@ venv.bak/
 
 .vscode
 
-files/
-files2/
+/files/
+/files2/
 alembic.ini
 dropzone/
