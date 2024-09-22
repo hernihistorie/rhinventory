@@ -103,3 +103,13 @@ def slugify(value, allow_unicode=False):
         value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
     value = re.sub(r'[^\w\s-]', '', value.lower()).strip()
     return re.sub(r'[-\s]+', '-', value)
+
+def parse_hh_code(value: str) -> int | None:
+    code: int | None = None
+    if value.lower().startswith('rh') or value.lower().startswith('hh'):
+        try:
+            code = int(value[2:])
+        except ValueError:
+            pass
+    
+    return code

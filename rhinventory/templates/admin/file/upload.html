@@ -44,8 +44,8 @@
             <progress id="progress" value="0" max="100"></progress>
             <span id="progressText"></span>
         </form>
-        <form id="dropzone-form" method="POST" action="" class="admin-form form-horizontal">
-            <h3>Use {{ dropzone_files | length }} dropzone files</h3>
+        <form id="dropzone-form" method="POST" action="{{ url_for('.process_dropzone_view') }}" class="admin-form form-horizontal">
+            <h3>Process {{ dropzone_files | length }} dropzone files</h3>
             {% if dropzone_files %}
                 <textarea disabled style="height: 160px;">
 {%- for file in dropzone_files -%}
@@ -56,7 +56,10 @@
                 <p>There are no files in the dropzone directory (<code>{{ dropzone_path }}</code>).
             {% endif %}
             {{ render_form_elements(dropzone_form) }}
-            <input type="submit" value="Submit" class="btn btn-primary" style="vertical-align: top;">
+            <input
+                type="submit" value="Submit" class="btn btn-primary" style="vertical-align: top;"
+                {% if not dropzone_files %} disabled {% endif %}
+            >
         </form>
     </div>
 

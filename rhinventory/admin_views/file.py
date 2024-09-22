@@ -3,6 +3,7 @@ import os.path
 import datetime
 import hashlib
 import multiprocessing as mp
+from pathlib import Path
 import random
 import string
 
@@ -11,6 +12,7 @@ from flask_login import current_user
 from flask_admin import expose
 from flask_admin.helpers import get_redirect_target
 from flask_admin.model.helpers import get_mdict_item_or_list
+from werkzeug.datastructures.file_storage import FileStorage
 from werkzeug.utils import secure_filename
 from rhinventory.admin_views.utils import visible_to_current_user
 
@@ -20,7 +22,7 @@ from rhinventory.files.utils import get_dropzone_path, get_dropzone_files
 from rhinventory.forms import DropzoneFileForm, FileForm, FileAssignForm
 from rhinventory.admin_views.model_view import CustomModelView
 from rhinventory.models.file import FileStore
-from rhinventory.util import require_write_access
+from rhinventory.util import parse_hh_code, require_write_access
 
 
 class DuplicateFile(RuntimeError):
@@ -29,7 +31,7 @@ class DuplicateFile(RuntimeError):
         self.matching_file = matching_file
 
 
-def upload_file(file, category=0, batch_number=None):
+def upload_file(file: FileStorage | Path, category: int | FileCategory=0, batch_number: int | None=None) -> File:
     """
     Handles file upload, check for duplicacy and save the file, but doesn't commit File object data to database.
 
@@ -38,18 +40,27 @@ def upload_file(file, category=0, batch_number=None):
     :param batch_number:
     :return: object of type File, not committed to database.
     """
-    md5 = hashlib.md5(file.read()).digest()
-    file.seek(0)
+    if isinstance(file, Path):
+        file_io = open(file, 'rb')
+        filename = file.name
+    else:
+        file_io = file
+        filename = file.filename
+    
+    md5 = hashlib.md5(file_io.read()).digest()
+    file_io.seek(0)
+
     matching_file = db.session.query(File).filter(
             (File.md5 == md5) | (File.original_md5 == md5)
         ).filter(File.is_deleted == False).first()
+    
     if matching_file:
         raise DuplicateFile("Duplicate file", matching_file)
 
     # Save the file, partially accounting for filename collisions
     file_store = FileStore(current_app.config['DEFAULT_FILE_STORE'])
     files_dir = current_app.config['FILE_STORE_LOCATIONS'][file_store.value]
-    filename = secure_filename(file.filename)
+    filename = secure_filename(filename)
     if not filename.strip():
         filename = str(datetime.datetime.now().timestamp()) + str(random.randint(0, 1000))
     directory = 'uploads'
@@ -62,10 +73,16 @@ def upload_file(file, category=0, batch_number=None):
         else:
             p[-2] += '_1'
         filepath = '.'.join(p)
-    file.save(files_dir + "/" + filepath)
+
+    if isinstance(file, FileStorage):
+        file.save(files_dir + "/" + filepath)
+    else:
+        # move the file
+        os.rename(file, files_dir + "/" + filepath)
     size = os.path.getsize(files_dir + "/" + filepath)
 
-    category = FileCategory(category)
+    if isinstance(category, int):
+        category = FileCategory(category)
     if category == FileCategory.unknown and filename.split('.')[-1].lower() in ('jpg', 'jpeg', 'png', 'gif'):
         category = FileCategory.image
 
@@ -163,7 +180,7 @@ class FileView(CustomModelView):
             num_files = len(request.files.getlist("files"))
             print(f"Saving {num_files} files...")
 
-            file_list = request.files.getlist("files")
+            file_list: list[FileStorage] = request.files.getlist("files")
             file_list.sort(key=lambda f: f.filename)
 
             duplicate_files = []
@@ -246,6 +263,42 @@ class FileView(CustomModelView):
                                 auto_assign=form.auto_assign.data))
         return self.render('admin/file/upload.html', form=form, dropzone_path=dropzone_path, dropzone_files=dropzone_files, dropzone_form=dropzone_form)
     
+    @expose('/process-dropzone/', methods=['POST', 'GET'])
+    @require_write_access
+    def process_dropzone_view(self):
+        dropzone_files = get_dropzone_files()
+
+        batch_number = get_next_file_batch_number()
+
+        dropzone_form = DropzoneFileForm(request.form, batch_number=batch_number)
+
+        if request.method == 'POST' and dropzone_form.validate():
+            duplicate_files = []
+            for filepath in dropzone_files:
+                try:
+                    file: File = upload_file(file=filepath, batch_number=batch_number)
+                except DuplicateFile as e:
+                    duplicate_files.append((filepath.name, e.matching_file))
+                    continue
+
+                asset_id = parse_hh_code(filepath.name.split('.')[0])
+                if asset_id and dropzone_form.auto_assign.data:
+                    try:
+                        file.assign(asset_id)
+                    except ValueError:
+                        # Probably failed to assign file to asset because asset doesn't exist
+                        # Ignore this
+                        pass
+
+                db.session.add(file)
+            db.session.commit()
+            flash(f"{len(dropzone_files)} files processed", 'success')
+
+            return redirect(url_for("file.upload_result_view", batch_number=batch_number, 
+                                duplicate_files=repr([(f0, f1.id) for f0, f1 in duplicate_files]),))
+        
+        return redirect(url_for("file.upload_view"))
+
     @expose('/upload/result', methods=['GET'])
     @require_write_access
     def upload_result_view(self):
