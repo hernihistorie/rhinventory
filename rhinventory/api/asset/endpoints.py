@@ -11,11 +11,9 @@ router = APIRouter()
 
 @router.get("/get/{asset_id}")
 def get_asset(asset_id: int, db: Session = Depends(get_db)):
-    asset = db.query(Asset).get(asset_id)
+    asset = AssetService.get_single(db_session=db, asset_id=asset_id)
     if not asset:
         return {"error": "Asset not found"}
-
-    # TODO: Hide private
 
     return AssetSchema.model_validate(asset, from_attributes=True)
 
@@ -32,7 +30,7 @@ def list_assets(limit: int = 20, offset: int = 0, db: Session = Depends(get_db))
     assets = AssetService.list_all(db, limit, offset, private=False)
 
     return AssetListOutputSchema(
-        assets=[AssetSchema.model_validate(asset, from_attributes=True) for asset in assets],
+        assets=[AssetSchema(**asset_row._mapping) for asset_row in assets],
     )
 
 
@@ -50,5 +48,5 @@ def list_assets_by_tag(tag: str, db: Session = Depends(get_db)):
     assets = AssetService.list_by_tag(db, tag, private=False)
 
     return AssetListOutputSchema(
-        assets=[AssetSchema.model_validate(asset, from_attributes=True) for asset in assets]
+        assets=[AssetSchema(**asset_row._mapping) for asset_row in assets],
     )
