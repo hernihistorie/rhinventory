@@ -62,7 +62,7 @@ def runner(app):
 def test_index(client: FlaskClient):
     response = client.get("/")
     assert response.status_code == 200
-    assert "Inventární systém" in response.data.decode('utf-8')
+    assert "O naší sbírce" in response.data.decode('utf-8')
 
 
 def test_asset_list(client: FlaskClient):
