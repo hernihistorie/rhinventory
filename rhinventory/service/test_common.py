@@ -1,5 +1,6 @@
+from sqlalchemy import text
 
 
-def test_db_running(db_session):
+def test_db_running(test_db_session):
     """Test whether testing DB is running."""
-    assert db_session.execute('SELECT 1')
+    assert test_db_session.execute(text('SELECT 1'))
