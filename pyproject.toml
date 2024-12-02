@@ -41,6 +41,7 @@ mypy = "^0.950"
 
 [tool.poetry.group.dev.dependencies]
 flask-sqlalchemy = "^3.1.1"
+psycopg2-binary = "^2.9.10"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
