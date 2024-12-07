@@ -8,7 +8,7 @@ from flask_login import current_user, login_required, login_user, logout_user
 from flask_bootstrap import Bootstrap5
 from werkzeug.wrappers.response import Response
 
-from rhinventory.extensions import db, admin, debug_toolbar, github, login_manager
+from rhinventory.extensions import db, admin, github, login_manager
 from rhinventory.admin import CustomIndexView, add_admin_views
 from rhinventory.db import User, Asset, Location, File, log
 from rhinventory.admin_views.utils import visible_to_current_user
@@ -55,7 +55,6 @@ def create_app(config_object='rhinventory.config'):
             url='/'
         )
     )
-    debug_toolbar.init_app(app)
     github.init_app(app)
     login_manager.init_app(app)
     login_manager.anonymous_user = AnynomusUser

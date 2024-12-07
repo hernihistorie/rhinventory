@@ -1,4 +1,3 @@
-from flask_debugtoolbar import DebugToolbarExtension
 from flask_sqlalchemy import SQLAlchemy
 from flask_admin import Admin, AdminIndexView
 from flask_github import GitHub
@@ -13,7 +12,6 @@ db.Model.asdict = lambda self: {c.name: getattr(self, c.name) for c in self.__ta
 db.Model.__allow_unmapped__ = True
 
 admin = Admin(name="Sbírka Herní Archiv")
-debug_toolbar = DebugToolbarExtension()
 github = GitHub()
 login_manager = LoginManager()
 
