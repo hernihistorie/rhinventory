@@ -106,7 +106,7 @@ class AssetService:
             Asset.id,
             Asset.name,
             Asset.model,
-            Asset.note,
+            Asset.description,
             Asset.serial
         ).limit(limit).offset(offset)
         query = AssetService._ensure_privacy(query, private)
@@ -137,7 +137,7 @@ class AssetService:
                 Asset.id,
                 Asset.name,
                 Asset.model,
-                Asset.note,
+                Asset.description,
                 Asset.serial
             )
             .join(asset_tag_table, asset_tag_table.c.asset_id == Asset.id)
