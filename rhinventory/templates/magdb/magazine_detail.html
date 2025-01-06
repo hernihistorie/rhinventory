@@ -12,7 +12,7 @@
 
         {% if magazine.description %}
             <p>
-                {{ magazine.description }}
+                {{ magazine.description | markdown }}
             </p>
         {% endif %}
         <p>

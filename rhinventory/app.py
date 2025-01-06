@@ -3,9 +3,11 @@ import typing
 import urllib.parse
 
 from flask import Flask, render_template, redirect, url_for, send_file, Response, abort, request, session, jsonify, g
+from markupsafe import Markup
 import sentry_sdk
 from flask_login import current_user, login_required, login_user, logout_user
 from flask_bootstrap import Bootstrap5
+import markdown
 from werkzeug.wrappers.response import Response
 
 from rhinventory.extensions import db, admin, github, login_manager
@@ -75,6 +77,9 @@ def create_app(config_object='rhinventory.config'):
         return url_for(request.endpoint, **args)
 
     app.jinja_env.globals['url_for_here'] = url_for_here
+
+    md = markdown.Markdown(extensions=['meta'])
+    app.jinja_env.filters['markdown'] = lambda text: Markup(md.convert(text))
 
     def hhprint_url(codes: str | list[str] | None = None) -> str:
         if isinstance(codes, str):

@@ -5,7 +5,7 @@
     {% for tag in featured_tags %}
         <h3> {{ tag.name }}</h3>
         {% if tag.description %}
-            <p>{{ tag.description }}</p>
+            <p>{{ tag.description | markdown }}</p>
         {% endif %}
         <div style="display: flex; flex-wrap: wrap; justify-content: space-evenly">
             {% for asset in tag.assets %}
