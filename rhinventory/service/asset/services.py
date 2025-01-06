@@ -79,7 +79,7 @@ class AssetService:
             Asset.id,
             Asset.name,
             Asset.model,
-            Asset.note,
+            Asset.description,
             Asset.serial
         ).where(Asset.id == asset_id)
         query = AssetService._ensure_privacy(query, private)
