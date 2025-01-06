@@ -34,9 +34,7 @@ fastapi dev rhinventory/api/app.py
 ## Jak se Alembic?
 
 ```bash
-    # Řeknu si Sankymu aby mi vysvětlil alembic.ini...
-
-    source .venv/bin/activate
+    poetry shell
 
     # Jako git status
     alembic current

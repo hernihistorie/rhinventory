@@ -92,6 +92,9 @@ class Asset(db.Model):
     model       = Column(String)
     custom_code = Column(Integer)
     note        = Column(Text)
+    ''' Internal notes for this asset '''
+    description = Column(Text)
+    ''' Public description of the asset '''
     serial      = Column(String)
 
     # ARRAY was a great idea... 

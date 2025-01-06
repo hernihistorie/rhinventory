@@ -86,6 +86,7 @@ class AssetView(CustomModelView):
         'condition_new',
 #        'functionality',
 #        'status',
+        'description',
         'note',
         'privacy',
         'tags',

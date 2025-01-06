@@ -6,6 +6,7 @@ ssh -t retroherna.org "\
     sudo -u flask git pull && \
     sudo -u flask poetry install && \
     sudo -u flask poetry run alembic upgrade head && \
-    sudo systemctl restart www_rhinventory \
+    sudo systemctl restart www_rhinventory && \
+    sudo systemctl restart www_rhinventory_api \
 "
 echo "https://inventory.herniarchiv.cz/"

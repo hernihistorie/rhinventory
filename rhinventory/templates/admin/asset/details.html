@@ -92,6 +92,10 @@
                 {% endif %}
             {% endfor %}
 
+            <p>
+                {{ model.description }}
+            </p>
+
             {% macro row(key, title=None, pre_line=False) %}
                 {% if model[key] %}
                     <tr>
