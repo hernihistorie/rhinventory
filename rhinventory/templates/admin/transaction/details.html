@@ -1,6 +1,64 @@
 {% extends 'admin/model/details.html' %}
 
 {% block details_table %}
+    {% set transaction = model %}
+    <div style="text-align: center; font-size: 20px; margin: 20px;">
+        <strong>
+            Transaction #{{ transaction.id }}
+        </strong>
+        <br>
+        {% if not transaction.finalized %}
+            (not finalized)
+        {% endif %}
+        <br>
+        <small>{{ transaction.date or "" }}</small>
+    </div>
+    <div class="transaction-box">
+        <div>
+            <strong>
+                {{ transaction.our_party }}
+            </strong>
+            <br>
+            {% if transaction.our_party %}
+                ({{ transaction.our_party.organization }})
+            {% endif %}
+        </div>
+        <div class="transaction-type">
+            {% if transaction.transaction_type == None or transaction.transaction_type.value == 0 %}
+                ???
+            {% elif transaction.transaction_type.value > 0 %}
+                ←
+            {% else %}
+                →
+            {% endif %}
+            <br>
+            {{ transaction.transaction_type.name }}
+            <br>
+            <small>{{ model.assets | count }} assets</small>
+        </div>
+        <div>
+            {% if transaction.counterparty_new %}
+                {% set counterparty = transaction.counterparty_new %}
+                <strong>
+                    {{ counterparty.legal_name or counterparty.name }}
+                </strong>
+                    {% if counterparty.legal_name and counterparty.name %}
+                        <br>"{{ counterparty.name }}"
+                    {% endif %}
+                {% if counterparty.organization %}
+                    <br>
+                    ({{ counterparty.organization }})
+                {% endif %}
+                {% if counterparty.email %}
+                    <br>
+                    <small>{{ counterparty.email }}</small>
+                {% endif %}
+
+            {% else %}
+                {{ transaction.counterparty }}
+            {% endif %}
+        </div>
+    </div>
     {{ super() }}
     <h2>Contains assets</h2>
 
@@ -23,4 +81,21 @@
     {% endfor %}
     </ul>
 
+
+    <style>
+        .transaction-box {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            /*align-items: center;*/
+            text-align: center;
+            margin: 32px auto;
+            font-size: 20px;
+            max-width: 600px;
+        }
+
+        .transaction-type {
+            align-self: center;
+        }
+    </style>
 {% endblock %}

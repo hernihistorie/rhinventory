@@ -21,14 +21,10 @@
     <div class="row">
         <div class="col-sm-10 col-sm-offset-1">
             <div style="max-width: 800px; margin: auto; margin-top: 24px;">
-                <h1>Inventární systém</h1>
+                <h1>O naší sbírce</h1>
                 <p>
-                    Na tomto webu naleznete předměty, které jsou vedené v rámci evidence Herní historie, z.s.  Spolek zastřešuje dva projekty: <a href="https://retroherna.org/">RetroHerna</a> a <a href="https://herniarchiv.cz/">Československý herní archiv</a>.  Předměty se využívají k výstavním, výukovým, archivářským, a badatelským účelům v závislosti na charakteru.  V evidenci vedeme v současnosti více než 7000 předmětů zahrnující herní konzole a počítače, periferie, hry na původních nosičích, přepisovatelná média s uživatelskými programy, a literaturu, včetně časopisů a knih souvisejících s hrami či počítači.
+                    Na tomto webu naleznete předměty, které jsou vedené v rámci evidence Herní historie, z.s. Spolek zastřešuje dva projekty: <a href="https://retroherna.org/">RetroHerna</a> a <a href="https://herniarchiv.cz/">Československý herní archiv</a>.  Předměty se využívají k výstavním, výukovým, archivářským, a badatelským účelům v závislosti na charakteru.  V evidenci vedeme v současnosti více než 7000 předmětů zahrnující herní konzole a počítače, periferie, hry na původních nosičích, přepisovatelná média s uživatelskými programy, a literaturu, včetně časopisů a knih souvisejících s hrami či počítači.
                     <p>V rámci transparentnosti umožňujeme od roku 2024 široké veřejnosti nahlédnout do databáze, negarantujeme ovšem korektnost či úplnost informací.  Na inventarizaci naší sbírky se neustále pracuje a ne všechny předměty zatím mají položku v databázi.  V případě, že máte zájem o specifický předmět, či kategorii předmětů, a nenaleznete požadované informace v databázi, neváhejte nás <a href="https://herniarchiv.cz/contact">kontaktovat</a> a rádi vám pomůžeme.
-                </p>
-                <h2>O naší sbírce</h2>
-                <p>
-                    Videohry bereme jako umění a součást lidské kultury, která si zaslouží zachování pro další generace. Proto budujeme obsáhlou sbírku herních a počítačových materiálů, a to předně těch z Česka a Slovenska. Zejména se zabýváme shromažďováním psaných materiálů, her na původních nosičích, a dobových strojů. Všechny předměty v naší sbírce inventarizujeme, třídíme, a bezpečně uchováváme.
                 </p>
                 <h2>Psané materiály</h2>
                 <img src="https://herniarchiv.cz/photos/pocitac_pritel_cloveka.jpg" alt="Fotka časopisů Počítač přítel člověka">
@@ -48,7 +44,6 @@
                 <p>
                     Všechny hry jsou navrženy pro technologii své doby. Pokrok ovšem nelze zastavit, a tak jsou časem stroje nahrazeny. Podpora se časem vytratí a staré hry nelze na moderních zařízeních jednoduše přehrát. A i pokud to možné je, jedná se o odlišný zážitek. Staré stroje chátrají a jejich správa vyžaduje určité know-how. V naší sbírce najdete přes 100 strojů, včetně těch československé výroby. Také zakomponováváme zajímavé a vzácné periferie i moderní doplňky.
                 </p>
-                <hr>
                 <p>
                     Sbírka Československého herního archivu zahrnuje také zahraniční hry a stroje. Ty jsou využívané mimo jiné v rámci projektu <a href="https://retroherna.cz/">RetroHerna</a>, který zpřístupňuje herní historii veřejnosti.
                 </p>
@@ -64,13 +59,13 @@
                     <p class="text-warning">Nemáte práva, požádejte si o ně.
                 {% endif %}
                 <h2>Pro přihlášené uživatele</h2>
-                <p>Omrkni další info <a href="https://retroherna.org/wiki/doku.php?id=inventar">na wiki</a>.
+                <p>Omrkni další info <a href="https://retroherna.org/wiki/doku.php?id=inventar:navod">na wiki</a>.
 
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/bokeh/2.4.1/bokeh.min.js" integrity="sha512-2Eg0zNXJlBmICBS/KO67OamNxpln5shamyEK7UiUjvLdtYyCoAhzeAgUWYjJxilTZiPrGYZzlqWfiH1+8DBmVg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+                {# <script src="https://cdnjs.cloudflare.com/ajax/libs/bokeh/2.4.1/bokeh.min.js" integrity="sha512-2Eg0zNXJlBmICBS/KO67OamNxpln5shamyEK7UiUjvLdtYyCoAhzeAgUWYjJxilTZiPrGYZzlqWfiH1+8DBmVg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> #}
                 
-                {{ plot_div | safe }}
+                {# {{ plot_div | safe }}
 
-                {{ plot_script | safe }}
+                {{ plot_script | safe }} #}
 
             {% endif %}
         </div>

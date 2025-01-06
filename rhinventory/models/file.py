@@ -243,10 +243,19 @@ class File(db.Model):
         if asset_id:
             self.assign(asset_id)
     
-    def assign(self, asset_id):
+    def assign(self, asset_id: int):
         '''Assigns File to a given Asset and renames file and thumbnail'''
+
+        from rhinventory.models.asset import Asset # avoid circular import
+
         if not asset_id:
             return
+        
+        # check that asset exists
+        asset = Asset.query.get(asset_id)
+        if not asset:
+            raise ValueError("Trying to assign to asset that does not exist")
+
         self.asset_id = asset_id
 
         files_dir = current_app.config['FILE_STORE_LOCATIONS'][self.storage.value]

@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship, backref
 
 from rhinventory.extensions import db
 from rhinventory.models.entities import Party
+from rhinventory.models.label_printer import LabelPrinter
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -23,6 +24,9 @@ class User(db.Model):
 
     organization_id = Column(Integer, ForeignKey('organizations.id'))
     organization = relationship("Organization", backref=backref("users", order_by=id))
+
+    label_printer_id = Column(Integer, ForeignKey(LabelPrinter.id))
+    label_printer = relationship(LabelPrinter)
 
     @property
     def is_authenticated(self):

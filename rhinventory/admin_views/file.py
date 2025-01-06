@@ -3,23 +3,26 @@ import os.path
 import datetime
 import hashlib
 import multiprocessing as mp
+from pathlib import Path
 import random
 import string
 
-from flask import get_template_attribute, request, flash, redirect, url_for, current_app, jsonify
+from flask import abort, get_template_attribute, request, flash, redirect, url_for, current_app, jsonify
 from flask_login import current_user
 from flask_admin import expose
 from flask_admin.helpers import get_redirect_target
 from flask_admin.model.helpers import get_mdict_item_or_list
+from werkzeug.datastructures.file_storage import FileStorage
 from werkzeug.utils import secure_filename
 from rhinventory.admin_views.utils import visible_to_current_user
 
 from rhinventory.db import log, Asset, File, FileCategory, get_next_file_batch_number
 from rhinventory.extensions import db, simple_eval
-from rhinventory.forms import FileForm, FileAssignForm
+from rhinventory.files.utils import get_dropzone_path, get_dropzone_files
+from rhinventory.forms import DropzoneFileForm, FileForm, FileAssignForm
 from rhinventory.admin_views.model_view import CustomModelView
 from rhinventory.models.file import FileStore
-from rhinventory.util import require_write_access
+from rhinventory.util import parse_hh_code, require_write_access
 
 
 class DuplicateFile(RuntimeError):
@@ -27,8 +30,9 @@ class DuplicateFile(RuntimeError):
         super().__init__(message)
         self.matching_file = matching_file
 
+MAX_SIZE_FOR_HASH_GENERATION = 100 * 1024 * 1024
 
-def upload_file(file, category=0, batch_number=None):
+def upload_file(file: FileStorage | Path, category: int | FileCategory=0, batch_number: int | None=None) -> File:
     """
     Handles file upload, check for duplicacy and save the file, but doesn't commit File object data to database.
 
@@ -37,29 +41,60 @@ def upload_file(file, category=0, batch_number=None):
     :param batch_number:
     :return: object of type File, not committed to database.
     """
-    md5 = hashlib.md5(file.read()).digest()
-    file.seek(0)
-    matching_file = db.session.query(File).filter(
-            (File.md5 == md5) | (File.original_md5 == md5)
-        ).filter(File.is_deleted == False).first()
-    if matching_file:
-        raise DuplicateFile("Duplicate file", matching_file)
+    if isinstance(file, Path):
+        filename = file.name
+
+        size = os.path.getsize(file)
+        if size > MAX_SIZE_FOR_HASH_GENERATION:
+            # We just can't handle files >100MB well rn so bail
+            md5 = None
+        else:
+            with open(file, 'rb', buffering=0) as f:
+                md5 = hashlib.file_digest(f, 'md5').digest()
+
+    else:
+        filename = file.filename
+        size = file.content_length
+        if size > MAX_SIZE_FOR_HASH_GENERATION:
+            md5 = None
+        else:
+            md5 = hashlib.file_digest(file, 'md5').digest()
+            file.seek(0)
+
+    if md5:
+        matching_file = db.session.query(File).filter(
+                (File.md5 == md5) | (File.original_md5 == md5)
+            ).filter(File.is_deleted == False).first()
+    
+        if matching_file:
+            raise DuplicateFile("Duplicate file", matching_file)
 
     # Save the file, partially accounting for filename collisions
     file_store = FileStore(current_app.config['DEFAULT_FILE_STORE'])
     files_dir = current_app.config['FILE_STORE_LOCATIONS'][file_store.value]
-    filename = secure_filename(file.filename)
+    filename = secure_filename(filename)
+    if not filename.strip():
+        filename = str(datetime.datetime.now().timestamp()) + str(random.randint(0, 1000))
     directory = 'uploads'
     os.makedirs(files_dir + "/" + directory, exist_ok=True)
     filepath = f'{directory}/{filename}'
     while os.path.exists(os.path.join(files_dir, filepath)):
         p = filepath.split('.')
-        p[-2] += '_1'
+        if len(p) < 2:
+            p[0] += '_1'
+        else:
+            p[-2] += '_1'
         filepath = '.'.join(p)
-    file.save(files_dir + "/" + filepath)
+
+    if isinstance(file, FileStorage):
+        file.save(files_dir + "/" + filepath)
+    else:
+        # move the file
+        os.rename(file, files_dir + "/" + filepath)
     size = os.path.getsize(files_dir + "/" + filepath)
 
-    category = FileCategory(category)
+    if isinstance(category, int):
+        category = FileCategory(category)
     if category == FileCategory.unknown and filename.split('.')[-1].lower() in ('jpg', 'jpeg', 'png', 'gif'):
         category = FileCategory.image
 
@@ -96,7 +131,7 @@ class FileView(CustomModelView):
         if id is None:
             return redirect(return_url)
 
-        model = self.get_one(id)
+        model: File | None = self.get_one(id)
 
         if model is None:
             flash('Record does not exist.', 'error')
@@ -110,13 +145,18 @@ class FileView(CustomModelView):
 
         file_assign_form = FileAssignForm()
         assets = [(0, "No asset")]
-        assets += [(a.id, str(a)) for a in self.session.query(Asset).order_by(Asset.id.asc())]
+        #assets += [(a.id, str(a)) for a in self.session.query(Asset).order_by(Asset.id.asc())]
         file_assign_form.asset.choices = assets
         file_assign_form.asset.default = model.asset_id or 0
         file_assign_form.process(request.form)
 
         if request.method == "POST" and file_assign_form.validate():
-            model.assign(file_assign_form.asset.data)
+            try:
+                model.assign(file_assign_form.asset.data)
+            except ValueError as e:
+                flash(f"Failed to assign file to asset: {e}", 'error')
+                return redirect(url_for("file.details_view", id=id))
+            
             db.session.add(model)
             log("Update", model, user=current_user)
             db.session.commit()
@@ -133,6 +173,9 @@ class FileView(CustomModelView):
     @expose('/upload/', methods=['GET', 'POST'])
     @require_write_access
     def upload_view(self):
+        dropzone_path = get_dropzone_path()
+        dropzone_files = get_dropzone_files()
+
         id = get_mdict_item_or_list(request.args, 'id')
         if id:
             assign_asset = db.session.query(Asset).get(id)
@@ -142,13 +185,14 @@ class FileView(CustomModelView):
         batch_number = get_next_file_batch_number()
 
         form = FileForm(request.form, batch_number=batch_number)
+        dropzone_form = DropzoneFileForm(request.form, batch_number=batch_number)
         if request.method == 'POST' and form.validate():
             files = []
             image_files = []
             num_files = len(request.files.getlist("files"))
             print(f"Saving {num_files} files...")
 
-            file_list = request.files.getlist("files")
+            file_list: list[FileStorage] = request.files.getlist("files")
             file_list.sort(key=lambda f: f.filename)
 
             duplicate_files = []
@@ -167,7 +211,7 @@ class FileView(CustomModelView):
                 files.append(file_db)
 
             if current_app.config["MULTIPROCESSING_ENABLED"]:
-                pool = mp.Pool(mp.cpu_count())
+                pool = mp.Pool(mp.cpu_count(), maxtasksperchild=1)
             else:
                 pool = None
 
@@ -184,7 +228,12 @@ class FileView(CustomModelView):
                     else:
                         asset_ids = [File.read_rh_barcode(file) for file in image_files]
                     for file, asset_id in zip(image_files, asset_ids):
-                        file.assign(asset_id)
+                        try:
+                            file.assign(asset_id)
+                        except ValueError:
+                            # Probably failed to assign file to asset because asset doesn't exist
+                            # Ignore this
+                            pass
 
             print("Creating thumbnails...")
             # Create thumbnails in parallel
@@ -213,7 +262,7 @@ class FileView(CustomModelView):
                 flash(f"{len(files)} files uploaded and attached to asset", 'success')
                 if duplicate_files:
                     flash(f"{len(files)} files skipped as duplicates", 'warning')
-                return redirect(asset.url)
+                return redirect(location=assign_asset.url)
             else:
                 if request.form.get('xhr', False):
                     return jsonify(files=[f.id for f in files],
@@ -224,17 +273,61 @@ class FileView(CustomModelView):
                     return redirect(url_for("file.upload_result_view", files=repr([f.id for f in files]),
                                 duplicate_files=repr([(f0, f1.id) for f0, f1 in duplicate_files]),
                                 auto_assign=form.auto_assign.data))
-        return self.render('admin/file/upload.html', form=form)
+        return self.render('admin/file/upload.html', form=form, dropzone_path=dropzone_path, dropzone_files=dropzone_files, dropzone_form=dropzone_form)
     
+    @expose('/process-dropzone/', methods=['POST', 'GET'])
+    @require_write_access
+    def process_dropzone_view(self):
+        dropzone_files = get_dropzone_files()
+
+        batch_number = get_next_file_batch_number()
+
+        dropzone_form = DropzoneFileForm(request.form, batch_number=batch_number)
+
+        if request.method == 'POST' and dropzone_form.validate():
+            duplicate_files = []
+            for filepath in dropzone_files:
+                try:
+                    file: File = upload_file(file=filepath, batch_number=batch_number)
+                except DuplicateFile as e:
+                    duplicate_files.append((filepath.name, e.matching_file))
+                    continue
+
+                asset_id = parse_hh_code(filepath.name.split('.')[0].split('_')[0])
+                if asset_id and dropzone_form.auto_assign.data:
+                    try:
+                        file.assign(asset_id)
+                    except ValueError:
+                        # Probably failed to assign file to asset because asset doesn't exist
+                        # Ignore this
+                        pass
+
+                db.session.add(file)
+            db.session.commit()
+            flash(f"{len(dropzone_files)} files processed", 'success')
+
+            return redirect(url_for("file.upload_result_view", batch_number=batch_number, 
+                                duplicate_files=repr([(f0, f1.id) for f0, f1 in duplicate_files]),))
+        
+        return redirect(url_for("file.upload_view"))
+
     @expose('/upload/result', methods=['GET'])
     @require_write_access
     def upload_result_view(self):
+        order_by_str = request.args.get('order_by', 'upload_date')
+        if order_by_str == "upload_date":
+            order_by = File.upload_date
+        elif order_by_str == "filename":
+            order_by = File.filepath
+        else:
+            abort(403)
+        
         if 'batch_number' in request.args:
             batch_number = request.args['batch_number']
             assert 'files' not in request.args
 
             files = db.session.query(File).filter(File.batch_number == batch_number) \
-                .order_by(File.upload_date).all()
+                .order_by(order_by).all()
         else:
             batch_number = None
             files = []
@@ -257,7 +350,7 @@ class FileView(CustomModelView):
         else:
             duplicate_count = None
         
-        return self.render('admin/file/upload_result.html', files=files, duplicate_files=duplicate_files, auto_assign=auto_assign, batch_number=batch_number, duplicate_count=duplicate_count)
+        return self.render('admin/file/upload_result.html', files=files, duplicate_files=duplicate_files, auto_assign=auto_assign, batch_number=batch_number, duplicate_count=duplicate_count, order_by=order_by_str)
 
 
     @expose('/make_thumbnail/', methods=['POST'])
@@ -306,11 +399,22 @@ class FileView(CustomModelView):
     @require_write_access
     def assign_view(self):
         id = get_mdict_item_or_list(request.args, 'id')
-        model = self.get_one(id)
+        model: File | None = self.get_one(id)
+        if not model:
+            flash('Record does not exist.', 'error')
+            return redirect(url_for("file.details_view", id=id))
 
-        asset_id = get_mdict_item_or_list(request.args, 'asset_id')
+        if 'asset_id' in request.form:
+            asset_id = int(request.form['asset_id'])
+        else:
+            asset_id = int(request.args['asset_id'])
 
-        model.assign(asset_id)
+        try:
+            model.assign(asset_id)
+        except ValueError as e:
+            flash(f"Failed to assign file to asset: {e}", 'error')
+            return redirect(url_for("file.details_view", id=id))
+        
         db.session.add(model)
         log("Update", model, user=current_user)
         db.session.commit()

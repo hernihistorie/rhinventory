@@ -8,6 +8,14 @@
             (batch number {{ batch_number }})
         {% endif %}
     </h2>
+    {% macro order_by_link(target) %}
+        {% if order_by == target %}
+            <strong>{{ target }}</strong>
+        {% else %}
+            <a href="{{ url_for_here(order_by=target) }}">{{ target }}</a>
+        {% endif %}
+    {% endmacro %}
+    <strong>Order by</strong>: {{ order_by_link('upload_date') }} | {{ order_by_link('filename') }}
     <table class="table table-hover table-bordered">
         <thead>
             <tr>
@@ -111,6 +119,14 @@
                                     ⇟
                                 </button>
                             {% endif %}
+                        {% endif %}
+                        {% if not file.asset %}
+                            <form class="inline-form" hx-post="{{ url_for('file.assign_view', id=file.id, refresh=True) }}">
+                                HH<input type="text" name="asset_id" style="width: 4em;" placeholder="1234">
+                                <button type="submit" class="btn btn-secondary">
+                                    Assign
+                                </button>
+                            </form>
                         {% endif %}
                     </td>
                 {% endif %}

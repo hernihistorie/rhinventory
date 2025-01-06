@@ -5,7 +5,7 @@ import sys
 from math import ceil
 from typing import Optional, Union, Iterable
 
-from flask import Response, redirect, request, flash, url_for, get_template_attribute
+from flask import Response, abort, redirect, request, flash, url_for, get_template_attribute
 from wtforms import RadioField, TextAreaField, Field
 import wtforms.validators
 from flask_admin import expose
@@ -30,7 +30,7 @@ from rhinventory.models.file import IMAGE_CATEGORIES, File
 from rhinventory.models.log import LogEvent, log
 from rhinventory.forms import FileForm
 from rhinventory.models.asset import AssetCategory
-from rhinventory.models.asset_attributes import Company
+from rhinventory.models.asset_attributes import AssetTag, Company
 from rhinventory.util import require_write_access
 
 TESTING = "pytest" in sys.modules
@@ -281,7 +281,7 @@ class AssetView(CustomModelView):
             return ""
         
         if column == "flags":
-            return get_template_attribute("admin/asset/_macros.html", "render_flags")(model)
+            return get_template_attribute("admin/asset/_macros.html", "render_flags")(model, show_transactions=current_user.write_access)
         elif column == "name":
             return get_template_attribute("admin/asset/_macros.html", "render_name_column")(model)
         elif column == "code":
@@ -309,10 +309,11 @@ class AssetView(CustomModelView):
         return super()._apply_search(query, count_query, joins, count_joins, search)
 
     def get_query(self):
+        query = self.session.query(self.model).options(db.joinedload(Asset.files))
         if current_user.is_authenticated and current_user.read_access:
-            return self.session.query(self.model)
+            return query
         else:
-            return self.session.query(self.model).filter(Asset.privacy.in_(PUBLIC_PRIVACIES))
+            return query.filter(Asset.privacy.in_(PUBLIC_PRIVACIES))
     
     @expose('/gallery/')
     def gallery_view(self):
@@ -474,6 +475,8 @@ class AssetView(CustomModelView):
             LogItem.object_id == model.id
         ).order_by(LogItem.datetime.desc()).all()
 
+        private_implicit_files = model._query_files.filter(File.privacy == Privacy.private_implicit).count()
+
         return self.render(template,
                             model=model,
                             details_columns=self._details_columns,
@@ -481,7 +484,8 @@ class AssetView(CustomModelView):
                             return_url=return_url,
                             file_form=file_form,
                             logs=logs,
-                            AssetCategory=AssetCategory)
+                            AssetCategory=AssetCategory,
+                            private_implicit_files=private_implicit_files)
     
     @expose('/new2/', methods=['GET'])
     @require_write_access
@@ -711,6 +715,23 @@ class AssetView(CustomModelView):
         message = f"Parent for {len(assets)} assets set to be {parent_asset}."
 
         flash(message, "success")
+
+        return redirect(url_for('.index_view'))
+    
+    @expose('/add_tag_bulk/', methods=['POST'])
+    @require_write_access
+    def add_tag_bulk(self) -> Response:
+        asset_tag: AssetTag | None = db.session.query(AssetTag).get(int(request.form['tag_id']))
+        if not asset_tag:
+            abort(404)
+        
+        bulk_datetime = datetime.utcnow()
+        assets: list[Asset] = get_asset_list_from_request_args()
+        for asset in assets:
+            asset.tags.append(asset_tag)
+            db.session.add(asset)
+        db.session.commit()
+        flash(f"Given {len(assets)} assets the tag {asset_tag}.", 'success')
 
         return redirect(url_for('.index_view'))
 

@@ -216,36 +216,53 @@ class Asset(db.Model):
 
 
     def get_primary_image(self):
-        sorted_images = self.get_sorted_images()
-        if sorted_images:
-            return sorted_images[0]
-        return None
-    
-    def get_files_in_categories(self, categories: list[FileCategory]):
+        return self.get_sorted_images().first()
+        
+    @property
+    def _query_files(self):
         return db.session.query(File) \
             .filter(
                 or_(File.is_deleted == False, File.is_deleted == None),
-                File.asset_id==self.id, File.category.in_(categories)
-            ).order_by(File.primary.desc(), File.has_thumbnail.desc(), File.filepath.asc()).all()
+                File.asset_id==self.id
+            ).order_by(File.primary.desc(), File.has_thumbnail.desc(), File.filepath.asc())
+
+    def get_files_in_categories(self, categories: list[FileCategory]):
+        return self._query_files \
+            .filter(
+                File.category.in_(categories)
+            )
     
     def get_sorted_images(self):
         return self.get_files_in_categories(IMAGE_CATEGORIES)
 
     def get_primary_dump(self):
-        sorted_dumps = self.get_dumps()
-        if sorted_dumps:
-            return sorted_dumps[0]
-        return None
+        return self.get_dumps().first()
     
     def get_dumps(self):
         return self.get_files_in_categories([FileCategory.dump])
 
     def get_primary_document(self):
-        sorted_documents = self.get_files_in_categories([FileCategory.document])
-        if sorted_documents:
-            return sorted_documents[0]
-        return None
+        return self.get_files_in_categories([FileCategory.document]).first()
 
+    @property
+    def parents(self):
+        parents = []
+        parent = self.parent
+        while parent:
+            parents.append(parent)
+            parent = parent.parent
+
+        return list(reversed(parents))
+
+    @property
+    def locations(self):
+        parents = []
+        parent = self.location
+        while parent:
+            parents.append(parent)
+            parent = parent.parent
+
+        return list(reversed(parents))
 
 class AssetMeta(db.Model):
     __tablename__ = 'assets_meta'

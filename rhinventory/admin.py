@@ -9,27 +9,27 @@ from rhinventory.extensions import db, admin, simple_eval
 from rhinventory.db import LogItem, Medium, Location, Organization, log, LogItem, Asset, User, Transaction, File, Party
 from rhinventory.models.asset_attributes import AssetTag, Company, CompanyAlias, Packaging
 from rhinventory.admin_views import CustomModelView, AdminModelView, AssetView, TransactionView, FileView
-from rhinventory.util import figure_counter
+from rhinventory.models.label_printer import LabelPrinter
 from rhinventory.admin_views.magdb import add_magdb_views
 
 class CustomIndexView(AdminIndexView):
     @expose('/')
     def index(self):
-        plot_script, plot_div = figure_counter(
-            db.session,
-            LogItem.id,
-            LogItem.datetime,
-            LogItem.table == "Asset" and LogItem.event == "Create",
-            ['year', 'month', 'day'],
-            lambda x: datetime.datetime(int(x.year), int(x.month), int(x.day)),
-            count_total=True,
-            title='Total assets')
+        # plot_script, plot_div = figure_counter(
+        #     db.session,
+        #     LogItem.id,
+        #     LogItem.datetime,
+        #     LogItem.table == "Asset" and LogItem.event == "Create",
+        #     ['year', 'month', 'day'],
+        #     lambda x: datetime.datetime(int(x.year), int(x.month), int(x.day)),
+        #     count_total=True,
+        #     title='Total assets')
 
         next = request.args.get('next')
 
         featured_tags = db.session.query(AssetTag).filter(AssetTag.is_featured == True).all()
 
-        return self.render('admin/index.html', plot_script=plot_script, plot_div=plot_div, featured_tags=featured_tags, next=next)
+        return self.render('admin/index.html',  featured_tags=featured_tags, next=next)
 
 admin._set_admin_index_view(CustomIndexView()) # XXX this is not great
 
@@ -68,6 +68,8 @@ def add_admin_views(admin):
     admin.add_view(AdminModelView(Organization, db.session, category="People"))
 
     admin.add_view(UserView(User, db.session, category="Admin"))
+
+    admin.add_view(CustomModelView(LabelPrinter, db.session, category="Admin"))
     
     #path = os.path.join(os.path.dirname(__file__), app.config['FILES_DIR'])
     #admin.add_view(FileAdmin(path, '/files/', name='File management'))

@@ -23,4 +23,8 @@ FILE_STORE_LOCATIONS: typing.Dict[str, typing.Optional[str]] = {
 DEFAULT_FILE_STORE: str = env.str('DEFAULT_FILE_STORE', default='local')
 assert DEFAULT_FILE_STORE in FILE_STORE_LOCATIONS, f"Invalid DEFAULT_FILE_STORE: {DEFAULT_FILE_STORE}"
 
+DROPZONE_PATH: str = env.str('DROPZONE_PATH', default='dropzone')
+
 MULTIPROCESSING_ENABLED: bool = env.bool("MULTIPROCESSING_ENABLED")
+
+SENTRY_DSN = env.str('SENTRY_DSN', None)

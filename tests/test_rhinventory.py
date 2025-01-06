@@ -1,3 +1,4 @@
+import os
 import pytest
 
 from flask import Flask
@@ -16,6 +17,8 @@ class TestAppConfig:
     GITHUB_CLIENT_SECRET = None
     FILES_DIR = "files"
     SECRET_KEY = "abc"
+    SENTRY_DSN = None
+    DROPZONE_PATH = "dropzone"
 
 
 @pytest.fixture()
@@ -23,6 +26,8 @@ def app():
     app = create_app(config_object=TestAppConfig)
 
     with app.app_context():
+        os.makedirs(app.config['DROPZONE_PATH'], exist_ok=True)
+
         db.create_all()
 
         user = User(username="pytest", read_access=True, write_access=True, admin=True)
@@ -57,7 +62,7 @@ def runner(app):
 def test_index(client: FlaskClient):
     response = client.get("/")
     assert response.status_code == 200
-    assert "Inventární systém" in response.data.decode('utf-8')
+    assert "O naší sbírce" in response.data.decode('utf-8')
 
 
 def test_asset_list(client: FlaskClient):

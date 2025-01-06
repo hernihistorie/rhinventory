@@ -22,6 +22,11 @@
             background: rgba(0, 0, 0, 0.05);
         }
 
+        .btn.btn-public.active:hover, .btn.btn-private.active:hover,
+        .btn.btn-public.active:focus, .btn.btn-private.active:focus {
+            color: #444;
+        }
+
         .asset-row .btn.btn-public.active {
             background: rgb(98, 255, 95) !important;
         }
@@ -33,14 +38,20 @@
     {{ asset_menu_bar() }}
 
     <h2><em>Publicize!</em></h2>
-    <p>Using this interface, judge whether the following {{ assets | count }} assets and their photos should be displayed publicly or not.
-    <p>Note: This currently doesn't show dumps, so don't put any "pesonal" floppies or cassettes that you don't know the contents of.
-    <p>Total unjudged assets:
+    <p>
+        Using this interface, judge whether the following {{ assets | count }} assets and their photos should be displayed publicly or not.
+    </p>
+    <p>
+        Note: This currently doesn't show dumps, so don't put any "pesonal" floppies or cassettes that you don't know the contents of.
+    </p>
+    <p>
+        Total unjudged assets:
         {{ private_implicit_count }} / {{ all_assets_count }}
         (<strong>{{ "{:3.1f}".format((private_implicit_count / all_assets_count)*100) }}%</strong>)
+    </p>
     
     {% macro render_privacy_buttons(name, id, value, small) %}
-        <div class="btn-group" data-toggle="buttons-radio">
+        <div class="btn-group submit-btn-group" data-toggle="buttons-radio">
             <button type="button" name="{{ name }}-{{id}}-public"
                 class="btn btn-secondary btn-public {% if small %}btn-small{% endif %}
                     {% if value == Privacy.public %} active {% endif %}" 
@@ -52,7 +63,7 @@
                 {% endif %}
             </button>
             <button type="button" name="{{ name }}-{{id}}-default"
-                class="btn btn-secondary {% if small %}btn-small{% endif %}
+                class="btn btn-secondary btn-default {% if small %}btn-small{% endif %}
                     {% if value == Privacy.private_implicit %} active {% endif %}" 
                 data-value="default">
                     &nbsp;
@@ -72,6 +83,27 @@
 
     <form method="POST">
         <div class="assets">
+            <div class="asset-row">
+                <div class="btn-group">
+                    <button type="button"
+                        class="btn btn-secondary btn-public btn-setall" data-value="public">
+                            Public
+                    </button>
+                    <button type="button"
+                        class="btn btn-secondary btn-setall" 
+                        data-value="default">
+                            &nbsp;
+                    </button>
+                    <button type="button"
+                        class="btn btn-secondary btn-private btn-setall"
+                        data-value="private">
+                            Private
+                    </button>
+                </div>
+                <div>
+                    <strong>Set all to this value</strong>
+                </div>
+            </div>
             {% for asset in assets %}
                 <div class="asset-row">
                     {{ render_privacy_buttons('asset', asset.id, asset.privacy, False) }}
@@ -110,10 +142,22 @@
         </div>
     </form>
     <script>
+        document.querySelectorAll('.btn-setall').forEach(
+            button => button.addEventListener('click', function() {
+                let value = this.dataset.value;
+                document.querySelectorAll(`.btn:not(.btn-small)`).forEach(button => {
+                    button.classList.remove('active');
+                });
+                document.querySelectorAll(`.btn-${value}:not(.btn-small)`).forEach(button => {
+                    button.classList.add('active');
+                });
+            })
+        )
+
         /* Thanks GPT-4! */
         document.querySelector('form').addEventListener('submit', function(event) {
             let form = event.target;
-            let buttonGroups = form.querySelectorAll('.btn-group');
+            let buttonGroups = form.querySelectorAll('.submit-btn-group');
             
             // Remove any old hidden fields to avoid duplications
             let oldHiddenFields = form.querySelectorAll('.hiddenField');

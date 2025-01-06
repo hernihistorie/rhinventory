@@ -1,12 +1,14 @@
 import os
 import typing
+import urllib.parse
 
 from flask import Flask, render_template, redirect, url_for, send_file, Response, abort, request, session, jsonify, g
+import sentry_sdk
 from flask_login import current_user, login_required, login_user, logout_user
 from flask_bootstrap import Bootstrap5
 from werkzeug.wrappers.response import Response
 
-from rhinventory.extensions import db, admin, debug_toolbar, github, login_manager
+from rhinventory.extensions import db, admin, github, login_manager
 from rhinventory.admin import CustomIndexView, add_admin_views
 from rhinventory.db import User, Asset, Location, File, log
 from rhinventory.admin_views.utils import visible_to_current_user
@@ -17,6 +19,7 @@ from simpleeval import EvalWithCompoundTypes
 from rhinventory.models.entities import Organization
 from rhinventory.models.enums import Privacy
 
+from rhinventory.models.label_printer import LabelPrinter, LabelPrinterMethod
 from rhinventory.models.user import AnynomusUser
 
 simple_eval = EvalWithCompoundTypes()
@@ -24,6 +27,24 @@ simple_eval = EvalWithCompoundTypes()
 add_admin_views(admin)
 
 def create_app(config_object='rhinventory.config'):
+    if isinstance(config_object, str):
+        config_object = __import__(config_object, globals(), locals(), ['config'], 0)
+
+    if config_object.SENTRY_DSN:
+        print("Initializing Sentry")
+        sentry_sdk.init(
+            config_object.SENTRY_DSN,
+            # Set traces_sample_rate to 1.0 to capture 100%
+            # of transactions for performance monitoring.
+            traces_sample_rate=0.0,
+            # Set profiles_sample_rate to 1.0 to profile 100%
+            # of sampled transactions.
+            # We recommend adjusting this value in production.
+            profiles_sample_rate=0.0,
+        )
+    else:
+        print("Not initializing Sentry")
+
     app = Flask(__name__.split('.')[0], template_folder='templates')
     app.config.from_object(config_object)
 
@@ -34,7 +55,6 @@ def create_app(config_object='rhinventory.config'):
             url='/'
         )
     )
-    debug_toolbar.init_app(app)
     github.init_app(app)
     login_manager.init_app(app)
     login_manager.anonymous_user = AnynomusUser
@@ -55,6 +75,35 @@ def create_app(config_object='rhinventory.config'):
         return url_for(request.endpoint, **args)
 
     app.jinja_env.globals['url_for_here'] = url_for_here
+
+    def hhprint_url(codes: str | list[str] | None = None) -> str:
+        if isinstance(codes, str):
+            codes = [codes]
+        
+        label_printer: LabelPrinter | None = None
+        if current_user.is_authenticated:
+            label_printer = current_user.label_printer
+
+        if not label_printer:
+            label_printer = db.session.query(LabelPrinter).filter(LabelPrinter.is_default == True).first()
+
+        query: dict[str, str] = {}
+        if label_printer:
+            assert label_printer.method == LabelPrinterMethod.hhprint
+
+            query.update({
+                'printer': label_printer.printer,
+                'model': label_printer.model,
+                'label': label_printer.label
+            })
+            if label_printer.backend:
+                query['backend'] = label_printer.backend
+        if codes:
+            query['codes'] = ';'.join(codes)
+
+        return f"hhprint:print?" + urllib.parse.urlencode(query)
+
+    app.jinja_env.globals['hhprint_url'] = hhprint_url
 
     app.jinja_env.globals['Privacy'] = Privacy
     app.jinja_env.globals['visible_to_current_user'] = visible_to_current_user
@@ -92,6 +141,8 @@ def create_app(config_object='rhinventory.config'):
         text = """
 User-agent: *
 Disallow: /asset/export/csv/
+Disallow: /*?flt*
+Disallow: /*?*&flt*
 """
         return Response(text, mimetype='text/plain')
 
@@ -241,5 +292,9 @@ Disallow: /asset/export/csv/
         # URLs in 2019-2024 started with admin, in 2024 this was public.
         print(request.url.split('/', 5)[-1])
         return redirect('/' + request.url.split('/', 4)[-1], code=308)
+
+    @app.route('/divide-by-zero')
+    def divide_by_zero():
+        return 1 / 0
 
     return app
