@@ -21,6 +21,16 @@ The first registered user should be given admin permissions.
 
 Run with `poetry run flask run`.
 
+## Run rhinventory
+```bash
+poetry run flask run --debug
+```
+
+## Run rhinventory-api
+```bash
+fastapi dev rhinventory/api/app.py
+```
+
 ## Jak se Alembic?
 
 ```bash

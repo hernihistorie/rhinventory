@@ -119,13 +119,13 @@ class AssetService:
         return assets.fetchall()
 
     @staticmethod
-    def list_by_tag(db_session: Session, tag: str, limit: int = 100, offset: int = 0, private=False):
+    def list_by_tag(db_session: Session, tag_id: int, limit: int = 100, offset: int = 0, private=False):
         """
         List all assets with concrete tag.
 
         Respects publicity of given assets.
 
-        :param tag: Concrete Asset tag.
+        :param tag_id: Asset tag to look up by id.
         :param limit: How much assets to return (defaut 100).
         :param offset: With what offset (defaults to 0).
         :param private: If True, shows even private items (defaults to False).
@@ -142,9 +142,10 @@ class AssetService:
             )
             .join(asset_tag_table, asset_tag_table.c.asset_id == Asset.id)
             .join(AssetTag, AssetTag.id == asset_tag_table.c.assettag_id)
-            .where(AssetTag.name == tag)
+            .where(AssetTag.id == tag_id)
             .limit(limit).offset(offset)
         )
+
         query = AssetService._ensure_privacy(query, private)
         query = AssetService._get_asset_files(query, private)
 
