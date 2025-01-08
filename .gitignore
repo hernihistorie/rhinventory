@@ -108,8 +108,6 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-.vscode
-
 /files/
 /files2/
 alembic.ini

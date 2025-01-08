@@ -52,16 +52,7 @@ fastapi dev rhinventory/api/app.py
 
 If there are no database migrations: run the script `./ops/deploy.sh`
 
-If there are database migrations:
-
-```sh
-ssh retroherna.org
-cd /var/www/rhinventory
-sudo -u flask  git pull
-sudo -u flask  poetry run  alembic upgrade head
-# Correct any issues should they arise
-sudo systemctl restart www_rhinventory
-```
+If there are database migrations: run the script `./ops/deploy_with_migration.sh`
 
 ## How to run scripts
 
