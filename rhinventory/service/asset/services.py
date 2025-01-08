@@ -1,4 +1,4 @@
-from sqlalchemy import select, and_, func
+from sqlalchemy import select, and_, func, case
 from sqlalchemy.orm import Session, Query, aliased
 
 from rhinventory.api.asset.schemas import AssetSchema
@@ -47,7 +47,13 @@ class AssetService:
                 image_file.privacy.in_(file_privacies),
             ))
             .order_by(image_file.primary.desc(), image_file.has_thumbnail.desc(), image_file.filepath.asc())
-            .add_columns(func.concat(FILE_URL_PREFIX, image_file.id, '/thumb_', func.regexp_replace(image_file.filepath, '.*/', '')).label("primary_image_path"))
+            .add_columns(case(
+                (
+                    image_file.filepath != None,
+                    func.concat(FILE_URL_PREFIX, image_file.id, '/thumb_', func.regexp_replace(image_file.filepath, '.*/', ''))
+                ),
+                else_=None
+            ).label("primary_image_path"))
 
             # Outer join for document
             # TODO replicate behavior for image above
