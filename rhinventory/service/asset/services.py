@@ -44,10 +44,9 @@ class AssetService:
             .outerjoin(image_file, and_(
                 image_file.asset_id == Asset.id,
                 image_file.category.in_(IMAGE_CATEGORIES),
-                image_file.privacy.in_(file_privacies)
+                image_file.privacy.in_(file_privacies),
             ))
             .order_by(image_file.primary.desc(), image_file.has_thumbnail.desc(), image_file.filepath.asc())
-            .limit(1)
             .add_columns(func.concat(FILE_URL_PREFIX, image_file.id, '/', func.regexp_replace(image_file.filepath, '.*/', '')).label("primary_image_path"))
 
             # Outer join for document
