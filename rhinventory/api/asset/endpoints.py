@@ -45,8 +45,9 @@ def list_assets_by_tag(tag_id: int, limit: int = 20, offset: int = 0, db: Sessio
     * offset: Offset in database query.
 
     """
-    assets = AssetService.list_by_tag(db_session=db, tag_id=tag_id, private=False, limit=limit, offset=offset)
+    asset_count, assets = AssetService.list_by_tag(db_session=db, tag_id=tag_id, private=False, limit=limit, offset=offset)
 
     return AssetListOutputSchema(
         assets=[AssetSchema(**asset_row._mapping) for asset_row in assets],
+        asset_count=asset_count
     )

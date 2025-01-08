@@ -19,3 +19,4 @@ class AssetSchema(BaseModel):
 
 class AssetListOutputSchema(BaseModel):
     assets: List[AssetSchema]
+    asset_count: int

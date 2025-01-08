@@ -151,14 +151,17 @@ class AssetService:
             .join(asset_tag_table, asset_tag_table.c.asset_id == Asset.id)
             .join(AssetTag, AssetTag.id == asset_tag_table.c.assettag_id)
             .where(AssetTag.id == tag_id)
-            .limit(limit).offset(offset)
         )
 
         query = AssetService._ensure_privacy(query, private)
         query = AssetService._get_asset_files(query, private)
 
-        assets = db_session.execute(
-            query
+        asset_count = db_session.execute(
+            select(func.count()).select_from(query)
         )
 
-        return assets.fetchall()
+        assets = db_session.execute(
+            query.limit(limit).offset(offset)
+        )
+
+        return asset_count.fetchone()[0], assets.fetchall()
