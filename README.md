@@ -28,7 +28,7 @@ poetry run flask run --debug
 
 ## Run rhinventory-api
 ```bash
-fastapi dev rhinventory/api/app.py
+poetry run fastapi dev rhinventory/api/app.py
 ```
 
 ## Jak se Alembic?

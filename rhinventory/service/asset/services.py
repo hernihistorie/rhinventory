@@ -1,13 +1,14 @@
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func
 from sqlalchemy.orm import Session, Query, aliased
 
 from rhinventory.api.asset.schemas import AssetSchema
 from rhinventory.models.asset import Asset
 from rhinventory.models.asset_attributes import AssetTag, asset_tag_table
 from rhinventory.models.enums import HIDDEN_PRIVACIES, PUBLIC_PRIVACIES
-from rhinventory.models.file import File, FileCategory
+from rhinventory.models.file import File, FileCategory, IMAGE_CATEGORIES
 from rhinventory.util import print_sql_query
 
+FILE_URL_PREFIX="https://inventory.herniarchiv.cz/files/"
 
 class InvalidAssetTag(Exception):
     """Tag doesn't exist or is otherwise invalid."""
@@ -42,13 +43,15 @@ class AssetService:
             # Outer join for image
             .outerjoin(image_file, and_(
                 image_file.asset_id == Asset.id,
-                image_file.category == FileCategory.photo,
-                image_file.primary == True,
+                image_file.category.in_(IMAGE_CATEGORIES),
                 image_file.privacy.in_(file_privacies)
             ))
-            .add_columns(image_file.filepath.label("primary_image_path"))
+            .order_by(image_file.primary.desc(), image_file.has_thumbnail.desc(), image_file.filepath.asc())
+            .limit(1)
+            .add_columns(func.concat(FILE_URL_PREFIX, image_file.id, '/', func.regexp_replace(image_file.filepath, '.*/', '')).label("primary_image_path"))
 
             # Outer join for document
+            # TODO replicate behavior for image above
             .outerjoin(document_file, and_(
                 document_file.asset_id == Asset.id,
                 document_file.category == FileCategory.document,
