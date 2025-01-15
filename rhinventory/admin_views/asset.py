@@ -542,6 +542,7 @@ class AssetView(CustomModelView):
     @expose('/publicize/', methods=['GET', 'POST'])
     def publicize_view(self):
         start_id = int(request.args.get('start_id', 0))
+        requested_tag = request.args.get('tag', 0)
         count = int(request.args.get('count', 50))
         if request.method != "POST":
             all_assets = db.session.query(Asset)
@@ -550,7 +551,23 @@ class AssetView(CustomModelView):
             
             all_assets_count = all_assets.count()
             private_implicit_count = private_implicit_assets.count()
-            assets = private_implicit_assets.filter(Asset.id >= start_id).order_by(Asset.id.asc()).limit(count).all()
+
+            assets = private_implicit_assets
+            if requested_tag:
+                try:
+                    requested_tag_id = int(requested_tag)
+                except ValueError:
+                    requested_tag_id = None
+                tag = db.session.query(AssetTag).filter(
+                    (AssetTag.id == requested_tag_id) | (AssetTag.name == requested_tag)).scalar()
+                if not tag:
+                    flash(f"Tag {requested_tag} not found.", 'error')
+                    return redirect(url_for('.publicize_view'))
+                
+                assets = assets.filter(Asset.tags.any(AssetTag.id == tag.id))
+            else:
+                tag = None
+            assets = assets.filter(Asset.id >= start_id).order_by(Asset.id.asc()).limit(count).all()
         else:
             if '_skip' in request.form:
                 return redirect(url_for('.publicize_view'))
@@ -594,7 +611,8 @@ class AssetView(CustomModelView):
                            assets=assets,
                            all_assets_count=all_assets_count,
                            private_implicit_count=private_implicit_count,
-                           count=count)
+                           count=count,
+                           tag=tag)
                     
     
     @action('create_transaction', 'Create transaction')

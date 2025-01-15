@@ -49,6 +49,20 @@
         {{ private_implicit_count }} / {{ all_assets_count }}
         (<strong>{{ "{:3.1f}".format((private_implicit_count / all_assets_count)*100) }}%</strong>)
     </p>
+
+    {% if tag %}
+        <p>
+            Filtering for tag: <strong>{{ tag.name }}</strong> (id {{ tag.id }}).
+            <a href="{{ url_for('asset.publicize_view') }}">Clear filter</a>
+        </p>
+    {% else %}
+        <form mnthod="GET">
+            Filter by tag:
+            <input style="vertical-align: top;" type="text" name="tag" placeholder="Tag name or ID">
+            <input class="btn" type="submit" value="Filter">
+        </form>
+    {% endif %}
+
     
     {% macro render_privacy_buttons(name, id, value, small) %}
         <div class="btn-group submit-btn-group" data-toggle="buttons-radio">
@@ -154,7 +168,6 @@
             })
         )
 
-        /* Thanks GPT-4! */
         document.querySelector('form').addEventListener('submit', function(event) {
             let form = event.target;
             let buttonGroups = form.querySelectorAll('.submit-btn-group');
