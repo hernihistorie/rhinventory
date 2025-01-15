@@ -38,25 +38,43 @@ class AssetService:
         document_file = aliased(File)
         dump_file = aliased(File)
 
+        # Create a subquery to get the first image for each asset
+        first_image_subquery = (
+            select(
+                File.asset_id,
+                File.id,
+                File.filepath
+            )
+            .where(
+                and_(
+                    File.category.in_(IMAGE_CATEGORIES),
+                    File.privacy.in_(file_privacies)
+                )
+            )
+            .order_by(
+                File.asset_id,
+                File.primary.desc(),
+                File.has_thumbnail.desc(),
+                File.filepath.asc()
+            )
+            .distinct(File.asset_id)
+            .subquery()
+        )
+        image_file = aliased(first_image_subquery)
+
         return (
             query
-            # Outer join for image
-            .outerjoin(image_file, and_(
-                image_file.asset_id == Asset.id,
-                image_file.category.in_(IMAGE_CATEGORIES),
-                image_file.privacy.in_(file_privacies),
-            ))
-            .order_by(image_file.primary.desc(), image_file.has_thumbnail.desc(), image_file.filepath.asc())
+            # Left join with the first image subquery
+            .outerjoin(image_file, image_file.c.asset_id == Asset.id)
             .add_columns(case(
                 (
-                    image_file.filepath != None,
-                    func.concat(FILE_URL_PREFIX, image_file.id, '/thumb_', func.regexp_replace(image_file.filepath, '.*/', ''))
+                    image_file.c.filepath != None,
+                    func.concat(FILE_URL_PREFIX, image_file.c.id, '/thumb_', func.regexp_replace(image_file.c.filepath, '.*/', ''))
                 ),
                 else_=None
             ).label("primary_image_path"))
 
             # Outer join for document
-            # TODO replicate behavior for image above
             .outerjoin(document_file, and_(
                 document_file.asset_id == Asset.id,
                 document_file.category == FileCategory.document,
@@ -155,6 +173,7 @@ class AssetService:
 
         query = AssetService._ensure_privacy(query, private)
         query = AssetService._get_asset_files(query, private)
+        query = query.order_by(Asset.id.asc())
 
         asset_count = db_session.execute(
             select(func.count()).select_from(query)
