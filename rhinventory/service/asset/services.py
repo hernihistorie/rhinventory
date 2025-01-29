@@ -166,6 +166,7 @@ class AssetService:
                 Asset.description,
                 Asset.serial
             )
+            .distinct()
             .join(asset_tag_table, asset_tag_table.c.asset_id == Asset.id)
             .join(AssetTag, AssetTag.id == asset_tag_table.c.assettag_id)
             .where(AssetTag.id == tag_id)
