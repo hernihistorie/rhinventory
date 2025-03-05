@@ -33,9 +33,6 @@
                 <a href="https://herniarchiv.cz/projects/">Projekty</a>
             </li>
             <li>
-                <a href="https://herniarchiv.cz/interviews/">Rozhovory</a>
-            </li>
-            <li>
                 {% if '127.0.0.1' in request.url|string %}
                     <a href="/"
                 {% else %}
@@ -43,6 +40,9 @@
                 {% endif %}
                         {% if section == 'inventory' %}class="active"{% endif %}
                 >Sbírka</a>
+            </li>
+            <li>
+                <a href="https://herniarchiv.cz/interviews/">Rozhovory</a>
             </li>
             <li>
                 {% if '127.0.0.1' in request.url|string %}
