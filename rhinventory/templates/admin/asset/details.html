@@ -222,24 +222,24 @@
                 </tbody></table>
         </div>
         <div class="asset-images-files">
-            {% macro download_button(file, text) %}
+            {% macro download_button(file, text, showformat) %}
                 <div style="text-align: center;">
                     <a href="{{ file.url }}" class="btn btn-primary btn-large" style="margin-bottom: 8px;">
                         <span class="fa fa-download"></span>
                         Download {{ text }}
                         {% if file.size %}
-                            ({{ file.size | filesizeformat }})
+                            ({% if showformat %}{{ file.file_extension }}, {% endif %}{{ file.size | filesizeformat }})
                         {% endif %}
                     </a>
                 </div>
             {% endmacro %}
             {% set primary_document = model.get_primary_document() %}
             {% if primary_document %}
-                {{ download_button(primary_document, 'document') }}
+                {{ download_button(primary_document, 'document', True) }}
             {% endif %}
             {% set primary_dump = model.get_primary_dump() %}
             {% if primary_dump %}
-                {{ download_button(primary_dump, 'dump') }}
+                {{ download_button(primary_dump, 'dump', True) }}
             {% endif %}
             <style>
                 .asset-image-file {

@@ -118,6 +118,10 @@ class File(db.Model):
         return self.filepath.split('/')[-1]
     
     @property
+    def file_extension(self):
+        return self.filepath.split('.')[-1]
+    
+    @property
     def _file_store_path(self) -> str:
         return current_app.config['FILE_STORE_LOCATIONS'][self.storage.value]
 
