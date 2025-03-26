@@ -94,7 +94,7 @@ class AssetService:
                 case(
                     (
                         dump_file.filepath != None,
-                        func.regexp_replace(dump_file.filepath, '[^/]*/', '')
+                        func.concat(FILE_URL_PREFIX, dump_file.id, '/', func.regexp_replace(dump_file.filepath, '.*/', ''))
                     ),
                     else_=None
                 ).label("primary_dump_path"),
