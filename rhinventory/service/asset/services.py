@@ -90,7 +90,16 @@ class AssetService:
                 dump_file.primary == True,
                 dump_file.privacy.in_(file_privacies)
             ))
-            .add_columns(dump_file.filepath.label("primary_dump_path"))
+            .add_columns(
+                case(
+                    (
+                        dump_file.filepath != None,
+                        func.regexp_replace(dump_file.filepath, '[^/]*/', '')
+                    ),
+                    else_=None
+                ).label("primary_dump_path"),
+                dump_file.size.label("primary_dump_size")
+            )
         )
 
     @staticmethod

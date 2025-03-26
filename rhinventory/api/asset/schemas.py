@@ -14,6 +14,7 @@ class AssetSchema(BaseModel):
     primary_image_path: str | None
     primary_document_path: str | None
     primary_dump_path: str | None
+    primary_dump_size: int | None
 
 
 
