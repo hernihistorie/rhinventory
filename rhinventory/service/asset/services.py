@@ -48,7 +48,8 @@ class AssetService:
             .where(
                 and_(
                     File.category.in_(IMAGE_CATEGORIES),
-                    File.privacy.in_(file_privacies)
+                    File.privacy.in_(file_privacies),
+                    File.is_deleted == False,
                 )
             )
             .order_by(
@@ -79,7 +80,8 @@ class AssetService:
                 document_file.asset_id == Asset.id,
                 document_file.category == FileCategory.document,
                 document_file.primary == True,
-                document_file.privacy.in_(file_privacies)
+                document_file.privacy.in_(file_privacies),
+                document_file.is_deleted == False,
             ))
             .add_columns(document_file.filepath.label("primary_document_path"))
 
@@ -88,7 +90,8 @@ class AssetService:
                 dump_file.asset_id == Asset.id,
                 dump_file.category == FileCategory.dump,
                 dump_file.primary == True,
-                dump_file.privacy.in_(file_privacies)
+                dump_file.privacy.in_(file_privacies),
+                dump_file.is_deleted == False,
             ))
             .add_columns(
                 case(
