@@ -68,6 +68,7 @@
                 <div class="tab-pane active" id="selected-tab-labels">
                     <button id="selected-show-sheet" class="btn">Show sheet</button>
                     <a id="selected-print-labels" href="#" class="btn">Print labels</a>
+                    <a id="selected-print-labels-small" href="#" class="btn">Print labels (small)</a>
                 </div>
                 <div class="tab-pane" id="selected-tab-transactions">
                     <button id="selected-create-transaction" class="btn">Create transaction</button>
@@ -148,6 +149,7 @@
 
             let reversed_selected = selected.slice().reverse();
             document.getElementById("selected-print-labels").href = "{{ hhprint_url() }}&codes=" + reversed_selected.map(asset_id => asset_id + "-{{g.current_user_organization_label}}").join(";");
+            document.getElementById("selected-print-labels").href = "{{ hhprint_url() }}&codes=" + reversed_selected.map(asset_id => asset_id + "-small-{{g.current_user_organization_label}}").join(";");
         }
 
         function updateSelected() {

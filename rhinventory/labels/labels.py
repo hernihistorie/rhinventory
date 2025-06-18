@@ -55,6 +55,7 @@ def make_label(id, custom_code, name, subtitle="", medium="", small=False, logo_
         subtitle=subtitle or '', medium=medium,
         barcode_rects=rects,
         small=small,
+        logo_ha=logo_ha,
         **logo_kwargs)
     
     filename = f'rhinventory/labels/out/{id}'

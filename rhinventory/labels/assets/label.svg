@@ -61,7 +61,13 @@
      inkscape:label="Layer 2">
     <g
        id="g4434"
-       transform="matrix(0.96679176,0,0,0.54531458,-3.5277263,-134.97781)">
+       transform="matrix(0.96679176,0,0,0.54531458,-3.5277263,
+        {% if small and logo_ha %}
+          -136.97781
+        {% else %}
+          -134.97781
+        {% endif %}
+      )">
       <g
          transform="matrix(0.69875508,0,0,0.26458333,-1.5578665,243.87641)"
          id="barcode_group">{{ barcode_rects | safe }}
@@ -80,19 +86,21 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,-269)">
-    <image
-      {% if not small %}
-       y="275.66202"
-       xlink:href="{{ logo_href }}"
-      {% else %}
-       y="257.9"
-       xlink:href="{{ logo_text_href }}"
-      {% endif %}
-       x="0.29396728"
-       id="image3775"
-       preserveAspectRatio="none"
-       height="21.271191"
-       width="19.144072" />
+    {% if not (logo_ha and small) %}
+      <image
+        {% if not small %}
+          y="275.66202"
+          xlink:href="{{ logo_href }}"
+        {% else %}
+          y="257.9"
+          xlink:href="{{ logo_text_href }}"
+        {% endif %}
+        x="0.29396728"
+        id="image3775"
+        preserveAspectRatio="none"
+        height="21.271191"
+        width="19.144072" />
+    {% endif %}
     <flowRoot
        xml:space="preserve"
        id="flowRoot3778"
@@ -117,8 +125,14 @@
            id="rect3782-7"
            width="153.58099"
            height="70.540226"
-           x="73.466606"
-           y="20.5"
+           {% if (logo_ha and small) %}
+            x="1"
+            y="1"
+           {% else %}
+            x="73.466606"
+            y="20.5"
+           {% endif %}
+
            style="line-height:0" /></flowRegion><flowPara
            id="flowPara3784-5"
            style="font-size:17.5px;line-height:0.9;letter-spacing:-0.9;">{{ name | escape }}</flowPara><flowPara
@@ -129,7 +143,8 @@
        style="font-style:normal;font-weight:normal;font-size:40px;line-height:0;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
        transform="matrix(0.26458333,0,0,0.26458333,0.71018684,270.78824)"><flowRegion
          id="flowRegion3780-6-5"
-         style="line-height:0"><rect
+         style="line-height:0;">
+          <rect
            id="rect3782-7-6"
            width="100.8242"
            height="13.527604"
@@ -141,7 +156,11 @@
            {% endif %}
            style="line-height:0" /></flowRegion><flowPara
            id="flowPara3784-5-2"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:13.3333335px;line-height:1;font-family:monospace;-inkscape-font-specification:monospace">{{ custom_code }} <flowSpan style="font-size:6px; font-family:sans-serif;">{{ medium }}</flowSpan></flowPara></flowRoot>    <flowRoot
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:13.3333335px;line-height:1;font-family:monospace;-inkscape-font-specification:monospace;">
+          {% if not (logo_ha and small) %}
+            {{ custom_code }} <flowSpan style="font-size:6px; font-family:sans-serif;">{{ medium }}</flowSpan>
+          {% endif %}
+        </flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot3778-3-3-8"
        style="font-style:normal;font-weight:normal;font-size:40px;line-height:0;font-family:sans-serif;text-align:end;letter-spacing:0px;word-spacing:0px;text-anchor:end;fill:#000000;fill-opacity:1;stroke:none"
