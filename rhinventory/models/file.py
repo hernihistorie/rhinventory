@@ -161,6 +161,9 @@ class File(db.Model):
     def make_thumbnail(self):
         if not self.is_image:
             return False
+        if self.filename.endswith('.pdf'):
+            # PDF files are not supported for thumbnail generation
+            return False
         im = self.open_image()
         if not im:
             return False
