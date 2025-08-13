@@ -83,7 +83,15 @@ class AssetService:
                 document_file.privacy.in_(file_privacies),
                 document_file.is_deleted == False,
             ))
-            .add_columns(document_file.filepath.label("primary_document_path"))
+            .add_columns(
+                case(
+                    (
+                        document_file.filepath != None,
+                        func.concat(FILE_URL_PREFIX, document_file.id, '/', func.regexp_replace(document_file.filepath, '.*/', ''))
+                    ),
+                    else_=None
+                ).label("primary_document_path")
+            )
 
             # Outer join for dump
             .outerjoin(dump_file, and_(
