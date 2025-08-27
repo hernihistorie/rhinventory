@@ -37,3 +37,8 @@
         {{ lib.render_form_buttons(return_url, save_and_print_button() + extra(), is_modal) }}
     {% endcall %}
 {% endblock %}
+
+{% block tail %}
+    {{ super() }}
+    {% include "admin/_inline_create.html" %}
+{% endblock tail %}

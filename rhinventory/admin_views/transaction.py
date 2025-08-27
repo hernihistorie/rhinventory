@@ -41,6 +41,9 @@ class TransactionView(CustomModelView):
         'note',
     ]
     details_template = "admin/transaction/details.html"
+    # list_template = "admin/transaction/list.html"
+    edit_template = "admin/transaction/edit.html"
+    create_template = "admin/transaction/create.html"
 
     def create_form(self, obj=None):
         form = super(TransactionView, self).create_form()

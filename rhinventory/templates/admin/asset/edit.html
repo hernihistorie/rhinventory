@@ -11,8 +11,13 @@
             min-width: 400px;
         }
     </style>
-{% endblock %}
+{% endblock navlinks %}
+
+{% block tail %}
+    {{ super() }}
+    {% include "admin/_inline_create.html" %}
+{% endblock tail %}
 
 {% block edit_form %}
     {{ lib.render_form(form, return_url, save_and_print_button() + extra(), form_opts) }}
-{% endblock %}
+{% endblock edit_form %}

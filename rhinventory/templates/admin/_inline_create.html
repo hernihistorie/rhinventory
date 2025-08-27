@@ -1,0 +1,162 @@
+<script>
+    (function() {
+        function onReady(fn) {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', fn, { once: true });
+            } else {
+                fn();
+            }
+        }
+
+        onReady(function() {
+            var configs = [
+                { selectId: 'companies', endpoint: 'company', singular: 'company' },
+                { selectId: 'our_party', endpoint: 'party', singular: 'party' },
+                { selectId: 'counterparty_new', endpoint: 'party', singular: 'party' },
+                { selectId: 'mediums', endpoint: 'medium', singular: 'medium' },
+                { selectId: 'packaging', endpoint: 'packaging', singular: 'packaging' },
+                { selectId: 'tags', endpoint: 'assettag', singular: 'tag' }
+            ];
+
+            function attachInlineCreate(cfg) {
+                var selectEl = document.getElementById(cfg.selectId);
+                if (!selectEl) return;
+
+                var newBtn = document.createElement('button');
+                newBtn.type = 'button';
+                newBtn.className = 'btn btn-small inline-create-btn';
+                newBtn.textContent = 'New';
+
+                if (selectEl.parentNode) {
+                    selectEl.parentNode.insertBefore(newBtn, selectEl.nextSibling);
+                } else {
+                    selectEl.insertAdjacentElement('afterend', newBtn);
+                }
+
+                var popupEl = null;
+                var outsideClickHandler = null;
+                var escHandler = null;
+
+                function closePopup() {
+                    if (popupEl && popupEl.parentNode) popupEl.parentNode.removeChild(popupEl);
+                    popupEl = null;
+                    if (outsideClickHandler) {
+                        document.removeEventListener('mousedown', outsideClickHandler, true);
+                        outsideClickHandler = null;
+                    }
+                    if (escHandler) {
+                        document.removeEventListener('keydown', escHandler, true);
+                        escHandler = null;
+                    }
+                }
+
+                function openPopup(anchor) {
+                    if (popupEl) { closePopup(); }
+                    var rect = anchor.getBoundingClientRect();
+
+                    popupEl = document.createElement('div');
+                    popupEl.className = 'inline-create-popup';
+                    popupEl.style.top = (rect.bottom + window.scrollY + 6) + 'px';
+                    popupEl.style.left = (rect.left + window.scrollX) + 'px';
+
+                    var label = document.createElement('label');
+                    label.textContent = 'New ' + cfg.singular + ' name:';
+                    label.className = 'inline-create-label';
+
+                    var input = document.createElement('input');
+                    input.type = 'text';
+                    input.placeholder = cfg.singular.charAt(0).toUpperCase() + cfg.singular.slice(1) + ' name';
+                    input.className = 'inline-create-input';
+
+                    var save = document.createElement('button');
+                    save.type = 'button';
+                    save.className = 'btn btn-small btn-primary';
+                    save.textContent = 'Save';
+
+                    var cancel = document.createElement('button');
+                    cancel.type = 'button';
+                    cancel.className = 'btn btn-small inline-create-cancel';
+                    cancel.textContent = 'Cancel';
+
+                    var controls = document.createElement('div');
+                    controls.className = 'inline-create-controls';
+                    controls.appendChild(save);
+                    controls.appendChild(cancel);
+
+                    popupEl.appendChild(label);
+                    popupEl.appendChild(input);
+                    popupEl.appendChild(controls);
+                    document.body.appendChild(popupEl);
+
+                    setTimeout(function() { input.focus(); }, 0);
+
+                    function submit() {
+                        var name = (input.value || '').trim();
+                        if (!name) { input.focus(); return; }
+
+                        var body = new URLSearchParams();
+                        body.set('name', name);
+
+                        fetch('/' + cfg.endpoint + '/new/', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                            body
+                        }).then(function(resp) {
+                            if (!resp.ok) throw new Error('Request failed: ' + resp.status);
+                            var finalUrl = resp && resp.url ? resp.url : '';
+                            var id = null;
+                            try {
+                                if (finalUrl) {
+                                    var u = new URL(finalUrl, window.location.origin);
+                                    id = u.searchParams.get('id');
+                                    if (id != null) id = String(id);
+                                }
+                            } catch (e) { /* ignore URL parse errors */ }
+                            if (id) {
+                                var select = document.getElementById(cfg.selectId);
+                                if (select) {
+                                    var opt = document.createElement('option');
+                                    opt.value = id;
+                                    opt.text = name;
+                                    opt.selected = true;
+                                    select.appendChild(opt);
+                                    try { $(select).trigger('change'); } catch (e) {}
+                                }
+                            }
+                            closePopup();
+                        }).catch(function(err) {
+                            console.error(err);
+                            if (popupEl) popupEl.classList.add('is-error');
+                        });
+                    }
+
+                    save.addEventListener('click', submit);
+                    input.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') { e.preventDefault(); submit(); }
+                    });
+                    cancel.addEventListener('click', function() { closePopup(); });
+
+                    outsideClickHandler = function(e) {
+                        if (!popupEl.contains(e.target) && e.target !== anchor) {
+                            closePopup();
+                        }
+                    };
+                    document.addEventListener('mousedown', outsideClickHandler, true);
+
+                    escHandler = function(e) {
+                        if (e.key === 'Escape') closePopup();
+                    };
+                    document.addEventListener('keydown', escHandler, true);
+                }
+
+                newBtn.addEventListener('click', function() {
+                    if (popupEl) { closePopup(); } else { openPopup(newBtn); }
+                });
+            }
+
+            for (var i = 0; i < configs.length; i++) {
+                try { attachInlineCreate(configs[i]); } catch (e) { console.error(e); }
+            }
+        });
+    })();
+</script>
