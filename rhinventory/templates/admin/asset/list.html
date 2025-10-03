@@ -43,6 +43,7 @@
         <div style="display: flex; align-items: center; gap: 8px">
             <span id="selected-count" style="font-style:italic;"></span>
             <button id="selected-clear" class="btn">{{ icon('broom') }}</button>
+            <button id="selected-edit-all" class="btn">{{ icon('edit') }} Edit all</button>
             <div id="selected-list">
             </div>
         </div>
@@ -146,6 +147,7 @@
             document.getElementById('selected-list').innerHTML = selected.join(', ');
             document.getElementById('selected').style.display = selected.length ? 'block' : 'none';
             document.getElementById('selected-count').innerHTML = selected.length;
+            document.getElementById('selected-edit-all').disabled = selected.length === 0;
 
             let reversed_selected = selected.slice().reverse();
             document.getElementById("selected-print-labels").href = "{{ hhprint_url() }}&codes=" + reversed_selected.map(asset_id => asset_id + "-{{g.current_user_organization_label}}").join(";");
@@ -221,6 +223,18 @@
         document.getElementById("selected-create-transaction").onclick = function() {
             localStorage.setItem("selected", "[]");
             document.location.href = "{{ get_url('transaction.create_view') }}?asset_id=[" + selected + "]";
+        }
+
+        document.getElementById("selected-edit-all").onclick = function() {
+            if (!selected.length) {
+                return;
+            }
+
+            selected.forEach(function(assetId, index) {
+                var url = "/asset/edit/?id=" + encodeURIComponent(assetId);
+                var target = index === 0 ? '_blank' : '_blank';
+                window.open(url, target);
+            });
         }
 
         function makeSelectedForm(action, object_name) {
