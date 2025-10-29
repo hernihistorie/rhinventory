@@ -11,11 +11,11 @@ dependencies = [
     "numpy",
     "Flask>=2.1.2",
     "Flask-Login>=0.6.1",
-    "flask-admin<=2.0.0",
+    "flask-admin==1.6.1",
     "GitHub-Flask>=3.2.0",
     "alembic>=1.7.7,<2",
     "Pillow>=10.4.0",
-    "WTForms>=3.1.1",
+    "WTForms==3.1.2",
     "simpleeval>=0.9.13",
     "pyzbar>=0.1.9,<0.2",
     "beautifulsoup4>=4.11.1",
@@ -26,11 +26,11 @@ dependencies = [
     "pytest>=7.1.2",
     "Bootstrap-Flask>=2.1.0,<3",
     "psycopg2>=2.9.3",
-    "WTForms-Alchemy>=0.18.0,<0.19",
+    "WTForms-Alchemy>=0.18.0",
     "python-dateutil>=2.8.2",
     "werkzeug>=3.0.0",
-    "sqlalchemy>=2.0.0,<3",
-    "flask-sqlalchemy>=3.1.0",
+    "sqlalchemy>=2.0.0",
+    "flask-sqlalchemy>=3.1.1",
     "alembic-autogenerate-enums>=0.1.2",
     "tqdm>=4.66.1",
     "fastapi[standard]>=0.111.1",
@@ -42,7 +42,6 @@ dependencies = [
 [dependency-groups]
 dev = [
     "mypy>=0.950",
-    "flask-sqlalchemy>=3.1.1",
     "psycopg2-binary>=2.9.10",
 ]
 
