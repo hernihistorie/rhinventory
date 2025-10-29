@@ -9,26 +9,26 @@ Dependencies:
 - Copy `alembic.ini_example` to `alembic.ini` and fill in PostgreSQL database URL
 - Run:
 ```bash
-    poetry init
-    poetry run python dbseed.py
-    alembic heads
-    alembic stamp <revision>
+    uv sync
+    uv run python dbseed.py
+    uv run alembic heads
+    uv run alembic stamp <revision>
 ```
 
 Where `<revision>` is the latest Alembic revision shown from `alembic heads`.
 
 The first registered user should be given admin permissions.
 
-Run with `poetry run flask run`.
+Run with `uv run flask run`.
 
 ## Run rhinventory
 ```bash
-poetry run flask run --debug
+uv run flask run --debug
 ```
 
 ## Run rhinventory-api
 ```bash
-poetry run fastapi dev rhinventory/api/app.py
+uv run fastapi dev rhinventory/api/app.py
 ```
 
 ## Jak se Alembic?

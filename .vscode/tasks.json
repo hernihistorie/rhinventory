@@ -2,9 +2,9 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "poetry run flask run --debug",
+            "label": "uv run flask run --debug",
             "type": "shell",
-            "command": "poetry run flask run --debug",
+            "command": "uv run flask run --debug",
             "group": "none",
             "presentation": {
                 "reveal": "always",
@@ -15,9 +15,9 @@
             }
         },
         {
-            "label": "poetry run fastapi dev rhinventory/api/app.py",
+            "label": "uv run fastapi dev rhinventory/api/app.py",
             "type": "shell",
-            "command": "poetry run fastapi dev rhinventory/api/app.py",
+            "command": "uv run fastapi dev rhinventory/api/app.py",
             "group": "none",
             "presentation": {
                 "reveal": "always",

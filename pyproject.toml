@@ -1,51 +1,54 @@
-[tool.poetry]
+[project]
 name = "rhinventory"
 version = "0.1.0"
 description = ""
-authors = ["Sanqui <me@sanqui.net>", "Tomáš Čapek <tomas@capek.io>"]
+authors = [
+    { name = "Sanqui", email = "me@sanqui.net" },
+    { name = "Tomáš Čapek", email = "tomas@capek.io" },
+]
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "numpy",
+    "Flask>=2.1.2,<3",
+    "Flask-Login>=0.6.1,<0.7",
+    "Flask-Admin>=1.6.0,<2",
+    "GitHub-Flask>=3.2.0,<4",
+    "alembic>=1.7.7,<2",
+    "Pillow>=10.4.0,<11",
+    "WTForms==3.1.1",
+    "simpleeval>=0.9.13,<0.10",
+    "pyzbar>=0.1.9,<0.2",
+    "beautifulsoup4>=4.11.1,<5",
+    "python-barcode>=0.15.1,<0.16",
+    "environs>=9.5.0,<10",
+    "gunicorn>=20.1.0,<21",
+    "lxml>=5.3.0,<6",
+    "pytest>=7.1.2,<8",
+    "Bootstrap-Flask>=2.1.0,<3",
+    "psycopg2>=2.9.3,<3",
+    "WTForms-Alchemy>=0.18.0,<0.19",
+    "python-dateutil>=2.8.2,<3",
+    "werkzeug>=3.0.0,<4",
+    "sqlalchemy>=2.0.0,<3",
+    "flask-sqlalchemy>=3.1.0,<4",
+    "alembic-autogenerate-enums>=0.1.2,<0.2",
+    "tqdm>=4.66.1,<5",
+    "fastapi>=0.111.1,<0.112",
+    "pydantic>=2.8.2,<3",
+    "sentry-sdk[flask]>=2.12.0,<3",
+    "markdown~=3.7",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.11,<3.14"
-numpy = "*"
-Flask = "^2.1.2"
-Flask-Login = "^0.6.1"
-Flask-Admin = "^1.6.0"
-GitHub-Flask = "^3.2.0"
-alembic = "^1.7.7"
-Pillow = "^10.4.0"
-WTForms = "3.1.1" # Need to keep at 3.1.1 for Flask-Admin compatibility https://github.com/pallets-eco/flask-admin/issues/2391
-simpleeval = "^0.9.13"
-pyzbar = "^0.1.9"
-beautifulsoup4 = "^4.11.1"
-python-barcode = "^0.15.1"
-environs = "^9.5.0"
-gunicorn = "^20.1.0"
-lxml = "^5.3.0"
-pytest = "^7.1.2"
-Bootstrap-Flask = "^2.1.0"
-psycopg2 = "^2.9.3"
-WTForms-Alchemy = "^0.18.0"
-python-dateutil = "^2.8.2"
-werkzeug = "^3.0.0"
-sqlalchemy = "^2.0.0"
-flask-sqlalchemy = "^3.1.0"
-alembic-autogenerate-enums = "^0.1.2"
-tqdm = "^4.66.1"
-fastapi = "^0.111.1"
-pydantic = "^2.8.2"
-sentry-sdk = {extras = ["flask"], version = "^2.12.0"}
-markdown = "^3.7"
-
-[tool.poetry.dev-dependencies]
-mypy = "^0.950"
-
-[tool.poetry.group.dev.dependencies]
-flask-sqlalchemy = "^3.1.1"
-psycopg2-binary = "^2.9.10"
+[dependency-groups]
+dev = [
+    "mypy>=0.950,<0.951",
+    "flask-sqlalchemy>=3.1.1,<4",
+    "psycopg2-binary>=2.9.10,<3",
+]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.mypy]
 python_version = "3.11"

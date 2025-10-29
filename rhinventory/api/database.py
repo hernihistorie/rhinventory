@@ -1,7 +1,10 @@
 from os import environ
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 #from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+
+load_dotenv() 
 
 SQLALCHEMY_DATABASE_URL = environ["DATABASE_URL"]
 
