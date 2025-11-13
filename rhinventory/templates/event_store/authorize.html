@@ -1,0 +1,20 @@
+{% extends "event_store/_layout.html" %}
+{% block body %}
+    <h2>Authorize event push</h2>
+    <p>
+        The application <strong>{{ application_name }}</strong> is requesting permission to push events into the event store on your behalf.
+    </p>
+    <form
+        method="post"
+        action="{{ url_for('event_store.authorize') }}"
+        style="display: flex; gap: 32px; align-items: center;"
+    >
+        <input type="hidden" name="key" value="{{ key }}">
+        <button type="submit" name="action" value="authorize" class="authorize-button">
+            Authorize
+        </button>
+        <button type="submit" name="action" value="deny" class="deny-button">
+            Deny
+        </button>
+    </form>
+{% endblock body %}

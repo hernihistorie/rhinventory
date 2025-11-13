@@ -68,6 +68,8 @@ def create_app(config_object='rhinventory.config'):
 
     from rhinventory.public_blueprints.magdb import magdb_bp
     app.register_blueprint(magdb_bp)
+    from rhinventory.event_store.event_store import event_store_bp
+    app.register_blueprint(event_store_bp)
 
     # Supports multiple query args with the same key.
     def url_for_here(**changed_args):
@@ -173,7 +175,7 @@ Disallow: /*?*&flt*
 
         login_user(user)
 
-        if next_url and not next_url.startswith('http'):
+        if next_url and next_url.startswith(request.host_url):
             return redirect(next_url)
 
         return redirect(url_for('index'))

@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Authorize Event Push</title>
+        <link href="/static/main.css" rel="StyleSheet" type="text/css">
+        <link rel="shortcut icon" href="/static/img/hainventory_icon.png">
+        <style>
+            button {
+                font-size: 24px;
+                padding: 4px 12px;
+                border: 1px solid #000;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            button:hover {
+                filter: brightness(120%);
+            }
+
+            .authorize-button {
+                background-color: #3eb342;
+                color: white;
+            }
+
+            .deny-button {
+                background-color: #a83d35;
+                color: white;
+            }
+        </style>
+    </head>
+    <body>
+        <div style="max-width: 800px; margin: auto; margin-top: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="/"><img
+                    src="/static/img/rhinventory_logo.png"
+                    style=" max-height: 56px;"
+                ></a>
+                <div>
+                    👤 <strong>{{ current_user.github_login }}</strong>
+                </div>
+            </div>
+                {% block body %}
+                {% endblock body %}
+        </div>
+    </body>
+</html>

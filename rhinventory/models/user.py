@@ -66,19 +66,20 @@ class AnynomusUser(User):
         return True
 
 
-class UserBookmark(db.Model):
-    __tablename__ = 'user_bookmarks'
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    user: User = relationship(User)
-
-    created_at = Column(DateTime, server_default=func.now())
-    asset_id = Column(Integer, ForeignKey('assets.id'))
-    asset = relationship("Asset")
-
-    is_bookmarked = Column(Boolean)
-    bookmarked_at = Column(DateTime)
-
-    user_note = Column(Text)
+# Unused 2025-11-03
+# class UserBookmark(db.Model):
+#     __tablename__ = 'user_bookmarks'
+#
+#     id = Column(Integer, primary_key=True)
+#     user_id = Column(Integer, ForeignKey('users.id'))
+#     user: User = relationship(User)
+#
+#     created_at = Column(DateTime, server_default=func.now())
+#     asset_id = Column(Integer, ForeignKey('assets.id'))
+#     asset = relationship("Asset")
+#
+#     is_bookmarked = Column(Boolean)
+#     bookmarked_at = Column(DateTime)
+#
+#     user_note = Column(Text)
     
