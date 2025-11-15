@@ -1,13 +1,12 @@
 import enum
 
-from flask import current_app
-from sqlalchemy import Column, Integer, Numeric, String, Text, \
-    DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint
+from sqlalchemy import Column, Integer, String, Text, \
+    DateTime, ForeignKey, Enum
 from sqlalchemy.orm import relationship, backref
-from sqlalchemy.sql.expression import text
 
 from rhinventory.extensions import db
 
+# INFO: All the tables which you want to be autodetected by alembic need to be imported here
 from rhinventory.models.user import User
 from rhinventory.models.asset import Asset, AssetStatus, AssetMeta, Medium
 from rhinventory.models.transaction import TransactionType, Transaction
@@ -15,6 +14,7 @@ from rhinventory.models.file import FileCategory, File, IMAGE_CATEGORIES, get_ne
 from rhinventory.models.log import log, LogEvent, LogItem
 from rhinventory.models.entities import Organization, Party, Country
 from rhinventory.models.magdb import Issuer, Magazine, MagazineIssue, Format, MagazineIssueVersion, MagazineIssueVersionPrice
+from rhinventory.models.events import Event, EventPushKey
 
 
 class Location(db.Model):
@@ -31,34 +31,34 @@ class Location(db.Model):
         return f"{self.name}"
 
 
-class EventStatus(enum.Enum):
-    unknown     = 0
+# class EventStatus(enum.Enum):
+#     unknown     = 0
 
-    expected    = 1
-    confirmed   = 2
+#     expected    = 1
+#     confirmed   = 2
     
-    in_progress = 10
+#     in_progress = 10
 
-    finished    = 20
-    paid        = 21
+#     finished    = 20
+#     paid        = 21
 
 
-class Event(db.Model):
-    __tablename__ = 'events'
-    id          = Column(Integer, primary_key=True)
-    name        = Column(String, nullable=False)
-    place       = Column(String)
-    date_from   = Column(DateTime)
-    date_to     = Column(DateTime)
-    status      = Column(Enum(EventStatus))
+# class Event(db.Model):
+#     __tablename__ = 'events'
+#     id          = Column(Integer, primary_key=True)
+#     name        = Column(String, nullable=False)
+#     place       = Column(String)
+#     date_from   = Column(DateTime)
+#     date_to     = Column(DateTime)
+#     status      = Column(Enum(EventStatus))
 
-    checks      = relationship(
-        "Check",
-        secondary=lambda: event_checks,
-        backref="events")
+#     checks      = relationship(
+#         "Check",
+#         secondary=lambda: event_checks,
+#         backref="events")
         
-    def __str__(self):
-        return f"{self.name}"
+#     def __str__(self):
+#         return f"{self.name}"
 
 
 
@@ -96,10 +96,10 @@ class Check(db.Model):
     
 
 
-event_checks = Table('event_checks', db.Model.metadata,
-    Column('event_id', Integer, ForeignKey('events.id')),
-    Column('check_id', Integer, ForeignKey('checks.id'))
-)
+# event_checks = Table('event_checks', db.Model.metadata,
+#     Column('event_id', Integer, ForeignKey('events.id')),
+#     Column('check_id', Integer, ForeignKey('checks.id'))
+# )
 
 
 class CheckItem(db.Model):

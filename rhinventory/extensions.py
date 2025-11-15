@@ -1,3 +1,4 @@
+from sqlalchemy.orm import DeclarativeBase, Mapped
 from flask_sqlalchemy import SQLAlchemy
 from flask_admin import Admin, AdminIndexView
 from flask_github import GitHub
@@ -5,7 +6,10 @@ from flask_login import LoginManager
 
 from simpleeval import EvalWithCompoundTypes
 
-db = SQLAlchemy()
+class Base(DeclarativeBase):
+    pass
+
+db = SQLAlchemy(model_class=Base)
 
 db.Model.asdict = lambda self: {c.name: getattr(self, c.name) for c in self.__table__.columns}
 # TODO remove this to upgrade to sqlalchemy 2.0.0

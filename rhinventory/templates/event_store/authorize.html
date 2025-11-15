@@ -2,11 +2,15 @@
 {% block body %}
     <h2>Authorize event push</h2>
     <p>
-        The application <strong>{{ application_name }}</strong> is requesting permission to push events into the event store on your behalf.
+        The following appliaction is requesting permission to push events into the event store on your behalf.
+    </p>
+    <p>
+        <strong>Application Name:</strong> {{ application_name }}<br>
+        <strong>Namespace:</strong> <code>{{ namespace }}</code>
     </p>
     <form
         method="post"
-        action="{{ url_for('event_store.authorize') }}"
+        action="{{ url_for('event_store.authorize', application_name=application_name, namespace=namespace) }}"
         style="display: flex; gap: 32px; align-items: center;"
     >
         <input type="hidden" name="key" value="{{ key }}">
