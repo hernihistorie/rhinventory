@@ -1,9 +1,17 @@
 from datetime import datetime
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user
-from rhinventory.extensions import db
+import msgspec
 
-from rhinventory.models.events import EventPushKey
+from hhfloppy.event.events import HHFLOPPY_EVENT_CLASS_UNION
+from hhfloppy.event.datatypes import HHFLOPPY_EVENT_DATA_CLASS_UNION
+
+from rhinventory.extensions import db
+from rhinventory.models.events import DBEvent, EventPushKey
+
+HHFLOPPY_DATATYPES = HHFLOPPY_EVENT_CLASS_UNION | HHFLOPPY_EVENT_DATA_CLASS_UNION
+SUPPORTED_EVENT_VERSION = 1
+event_decoder: msgspec.json.Decoder[HHFLOPPY_DATATYPES] = msgspec.json.Decoder(HHFLOPPY_DATATYPES)
 
 event_store_bp = Blueprint("event_store", __name__, url_prefix="/event_store")
 
@@ -68,3 +76,49 @@ def authorize():
             )
         case _:
             raise ValueError("Invalid method")
+
+
+@event_store_bp.route("/check_key/", methods=["GET"])
+def check_key():
+    namespace = request.args['namespace']
+    key = request.args['key']
+
+    event_push_key = db.session.query(EventPushKey).filter_by(
+        namespace=namespace,
+        key=key
+    ).first()
+    if event_push_key is None:
+        return {"authorized": False}, 404
+    else:
+        return {"authorized": True}, 200
+
+
+@event_store_bp.route("/ingest/", methods=["POST"])
+def ingest_event():
+    if not request.json:
+        return {"error": "Invalid JSON"}, 400
+    namespace = request.json['namespace']
+    key = request.json['key']
+
+    event_push_key = db.session.query(EventPushKey).filter_by(
+        namespace=namespace,
+        key=key
+    ).first()
+    if event_push_key is None:
+        return {"error": "Unauthorized"}, 401
+
+    # WIP
+    # events = request.json.get('events', [])
+    # for event_data in events:
+    #     event = DBEvent()
+    #     event.namespace = namespace
+    #     event.class_name = event_data['class_name']
+    #     event.timestamp = datetime.fromisoformat(event_data['timestamp'])
+    #     event.ingested_at = datetime.now()
+    #     event.event_push_key_id = event_push_key.id
+    #     event.data = event_data['data']
+    #     db.session.add(event)
+    
+    db.session.commit()
+
+    return {"status": "success"}, 201

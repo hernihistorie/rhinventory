@@ -18,7 +18,7 @@ class EventPushKey(db.Model):
 
     authorized_by_user: Mapped[User] = relationship()
 
-class Event(db.Model):
+class DBEvent(db.Model):
     __tablename__ = 'events'
 
     id: Mapped[int] = mapped_column(primary_key=True)
