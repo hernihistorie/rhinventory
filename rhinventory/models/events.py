@@ -15,6 +15,7 @@ class EventPushKey(db.Model):
     key: Mapped[str] = mapped_column()
     authorized_at: Mapped[datetime] = mapped_column()
     authorized_by_user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+    uses_remaining: Mapped[int | None] = mapped_column()
 
     authorized_by_user: Mapped[User] = relationship()
 

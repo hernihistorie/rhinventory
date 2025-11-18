@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user
 import msgspec
@@ -67,6 +67,7 @@ def authorize():
             event_push_key.key = key
             event_push_key.authorized_at = datetime.now()
             event_push_key.authorized_by_user_id = current_user.id
+            event_push_key.uses_remaining = 1
             db.session.add(event_push_key)
             db.session.commit()
 
@@ -107,18 +108,32 @@ def ingest_event():
     if event_push_key is None:
         return {"error": "Unauthorized"}, 401
 
+    # check event push key validity
+    if event_push_key.authorized_at + timedelta(days=1) < datetime.now():
+        return {"error": "Push key expired"}, 401
+
+    if event_push_key.uses_remaining is not None:
+        if event_push_key.uses_remaining <= 0:
+            return {"error": "Push key has no remaining uses"}, 401
+        event_push_key.uses_remaining -= 1
+
     # WIP
-    # events = request.json.get('events', [])
-    # for event_data in events:
-    #     event = DBEvent()
-    #     event.namespace = namespace
-    #     event.class_name = event_data['class_name']
-    #     event.timestamp = datetime.fromisoformat(event_data['timestamp'])
-    #     event.ingested_at = datetime.now()
-    #     event.event_push_key_id = event_push_key.id
-    #     event.data = event_data['data']
-    #     db.session.add(event)
+    events = request.json['serialized_events']
+    for event_data in events:
+        event = event_decoder.decode(msgspec.json.encode(event_data))
+        assert isinstance(event, HHFLOPPY_EVENT_CLASS_UNION)
+        if not event.event_version >= SUPPORTED_EVENT_VERSION:
+            return {"error": f"Unsupported event version: {event.event_version}"}, 400
+
+        db_event = DBEvent()
+        db_event.namespace = namespace
+        db_event.class_name = event.__class__.__name__
+        db_event.timestamp = event.event_timestamp
+        db_event.ingested_at = datetime.now()
+        db_event.event_push_key_id = event_push_key.id
+        db_event.data = event_data
+        db.session.add(instance=db_event)
     
     db.session.commit()
 
-    return {"status": "success"}, 201
+    return {"status": "success"}
