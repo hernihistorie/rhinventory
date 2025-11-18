@@ -445,6 +445,35 @@
 
 
     {% if current_user.is_authenticated %}
+        <h2>{{ icon("circle") }} Latest Events</h2>
+        {% if latest_events %}
+            <table class="table table-hover table-bordered">
+                <tr>
+                    <th>ID</th>
+                    <th>Class</th>
+                    <th>Timestamp</th>
+                    <th>Ingested at</th>
+                </tr>
+            {% for event in latest_events %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('dbevent.details_view', id=event.id) }}">
+                            {{ icon('eye') }}
+                        </a>
+                        <a href="{{ url_for('dbevent.details_view', id=event.id) }}">
+                            #{{ event.id }}
+                        </a>
+                    </td>
+                    <td>&lt;{{ event.namespace }}.{{ event.class_name }}&gt;</td>
+                    <td>{{ event.timestamp }}</td>
+                    <td>{{ event.ingested_at }}</td>
+                </tr>
+            {% endfor %}
+            </table>
+            Displaying {{ latest_events|length }} of {{ related_events_count }} related events.
+        {% else %}
+            <p>No events found related to this asset.</p>
+        {% endif %}
         <h2>{{ icon("file-lines") }} Edit Logs</h2>
 
         <table class="table table-hover table-bordered">

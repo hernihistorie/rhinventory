@@ -17,7 +17,7 @@ from flask_admin.actions import action
 from flask_admin.contrib.sqla import form
 from flask_admin.helpers import get_form_data
 from flask_login import current_user
-from sqlalchemy import desc, nulls_last, func
+from sqlalchemy import desc, event, nulls_last, func
 from sqlalchemy.sql.functions import coalesce
 from rhinventory.admin_views.utils import get_asset_list_from_request_args, visible_to_current_user
 
@@ -26,6 +26,7 @@ from rhinventory.admin_views.model_view import CustomModelView
 from rhinventory.db import Medium, Asset, get_next_file_batch_number, LogItem
 from rhinventory.models.asset import AssetCondition
 from rhinventory.models.enums import Privacy, PUBLIC_PRIVACIES
+from rhinventory.models.events import DBEvent
 from rhinventory.models.file import IMAGE_CATEGORIES, File
 from rhinventory.models.log import LogEvent, log
 from rhinventory.forms import FileForm
@@ -478,6 +479,13 @@ class AssetView(CustomModelView):
 
         private_implicit_files = model._query_files.filter(File.privacy == Privacy.private_implicit).count()
 
+        related_events = db.session.query(DBEvent).filter(
+            DBEvent.data['name_info']['hh_asset_id'].as_integer() == model.id
+        ).order_by(DBEvent.ingested_at.desc())
+
+        latest_events = related_events.limit(20).all()
+        related_events_count = related_events.count()
+
         return self.render(template,
                             model=model,
                             details_columns=self._details_columns,
@@ -486,7 +494,10 @@ class AssetView(CustomModelView):
                             file_form=file_form,
                             logs=logs,
                             AssetCategory=AssetCategory,
-                            private_implicit_files=private_implicit_files)
+                            private_implicit_files=private_implicit_files,
+                            latest_events=latest_events,
+                            related_events_count=related_events_count
+        )
     
     @expose('/new2/', methods=['GET'])
     @require_write_access
