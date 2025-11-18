@@ -1,0 +1,32 @@
+{% extends 'admin/model/details.html' %}
+
+{% block details_table %}
+    {% set event = model %}
+    <div style="font-size: 20px; margin: 20px;">
+        <h2>
+            Event #{{ event.id }}<br>
+            <strong>
+                &lt;{{event.namespace}}.{{event.class_name}}&gt;
+            </strong>
+        </h2>
+        <small><strong>Timestamp</strong>: {{ event.timestamp or "" }}</small>
+        <br>
+        <small><strong>Ingested at</strong>: {{ event.ingested_at or "" }}</small>
+        <br>
+        <small><strong>Authorized by</strong>: 
+            {% if event.event_push_key and event.event_push_key.authorized_by_user %}
+                {{ event.event_push_key.authorized_by_user }}
+            {% else %}
+                (Unknown)
+            {% endif %}
+        </small>
+    </div>
+
+    <div style="margin: 20px;">
+        <h3>Data:</h3>
+        <pre>{{ event.data | tojson(indent=4) }}</pre>
+    </div>
+    
+
+    {{ super() }}
+{% endblock %}

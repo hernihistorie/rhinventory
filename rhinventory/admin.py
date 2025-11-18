@@ -6,7 +6,7 @@ from flask_admin import Admin, AdminIndexView, expose
 #from flask_admin.form.upload import FileUploadField
 
 from rhinventory.extensions import db, admin, simple_eval
-from rhinventory.db import LogItem, Medium, Location, Organization, log, LogItem, Asset, User, Transaction, File, Party
+from rhinventory.db import DBEvent, LogItem, Medium, Location, Organization, log, LogItem, Asset, User, Transaction, File, Party
 from rhinventory.models.asset_attributes import AssetTag, Company, CompanyAlias, Packaging
 from rhinventory.admin_views import CustomModelView, AdminModelView, AssetView, TransactionView, FileView
 from rhinventory.models.label_printer import LabelPrinter
@@ -44,6 +44,17 @@ class UserView(AdminModelView):
     def is_accessible(self):
         return current_user.is_authenticated and current_user.admin
 
+class EventView(CustomModelView):
+    column_list = ('id', 'namespace', 'class_name', 'timestamp', 'ingested_at', 'event_push_key_id', 'event_push_key.application_name', 'event_push_key.authorized_by_user')
+    column_details_list = ('id', 'namespace', 'class_name', 'timestamp', 'ingested_at', 'event_push_key_id', 'event_push_key.application_name', 'event_push_key.authorized_by_user', 'data')
+    column_default_sort = ('ingested_at', False)
+    can_create = False
+    can_edit = False
+    can_delete = False
+    can_view_details = True
+
+    details_template = 'admin/event/details.html'
+
 def add_admin_views(admin):
     admin.add_view(AssetView(Asset, db.session))
 
@@ -70,6 +81,8 @@ def add_admin_views(admin):
     admin.add_view(UserView(User, db.session, category="Admin"))
 
     admin.add_view(CustomModelView(LabelPrinter, db.session, category="Admin"))
+
+    admin.add_view(EventView(DBEvent, db.session, category="Admin"))
     
     #path = os.path.join(os.path.dirname(__file__), app.config['FILES_DIR'])
     #admin.add_view(FileAdmin(path, '/files/', name='File management'))
