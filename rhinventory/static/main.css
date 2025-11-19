@@ -352,3 +352,24 @@ hr {
 .inline-create-input { min-width: 260px; margin-right: 6px; }
 .inline-create-controls { margin-top: 6px; }
 .inline-create-cancel { margin-left: 6px; }
+
+.event-timeline {
+  display: flex;
+  border-top: 1px solid var(--color-secondary);
+  border-bottom: 1px solid var(--color-secondary);
+}
+
+.event-timeline li {
+  margin-right: 12px;
+  list-style: none;
+}
+
+.event-timeline li a {
+  color: var(--color-secondary);
+  padding: 4px;
+}
+
+.event-timeline li.event-displayed a {
+  color: var(--color-primary);
+  padding: 4px;
+}

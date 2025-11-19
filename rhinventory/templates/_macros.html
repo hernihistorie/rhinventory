@@ -74,3 +74,18 @@
         {%- endif -%}
     </span>
 {%- endmacro %}
+
+{% macro render_event_timeline(events, displayed_event) %}
+    <ul class="event-timeline">
+        {% for event in events %}
+            <li class="{% if event.id == displayed_event.id %}event-displayed{% endif %}">
+                <a
+                    href="{{ url_for('dbevent.details_view', id=event.id) }}"
+                    rel="tooltip" title="Event #{{ event.id }} - {{ event.namespace }}.{{ event.class_name }}"
+                >
+                    {{ icon('circle') }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endmacro %}

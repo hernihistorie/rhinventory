@@ -19,6 +19,8 @@ class EventPushKey(db.Model):
 
     authorized_by_user: Mapped[User] = relationship()
 
+    events: Mapped[list[DBEvent]] = relationship(back_populates="event_push_key")
+
 class DBEvent(db.Model):
     __tablename__ = 'events'
 
