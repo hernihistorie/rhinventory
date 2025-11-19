@@ -10,6 +10,7 @@ from sqlalchemy.orm import relationship, object_mapper, ColumnProperty
 
 from rhinventory.extensions import db
 from rhinventory.db import User
+from rhinventory.models.events import DBEvent
 
 LogEvent = enum.Enum('LogEvent', ["Create", "Update", "Delete", "Other"])
 
@@ -59,6 +60,11 @@ def log_data(obj: typing.Any, event: str, data: dict[typing.Any, typing.Any]) ->
     :param event: str, that is converted to LogEvent column
     :param data: dict with data, that are saved to object_json column
     """
+
+    if isinstance(obj, DBEvent):
+        # don't log events: they are read-only, additionally their ids are uuids and not integers,
+        # which is incompatible with the current log table schema.
+        return
 
     user_id = None
     if flask_login.current_user and flask_login.current_user.is_authenticated:

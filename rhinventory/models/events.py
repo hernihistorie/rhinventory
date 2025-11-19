@@ -1,5 +1,6 @@
 from datetime import datetime
-from sqlalchemy import ForeignKey, String
+from uuid import UUID
+from sqlalchemy import ForeignKey
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -12,7 +13,7 @@ class EventPushKey(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     application_name: Mapped[str | None] = mapped_column()
     namespace: Mapped[str] = mapped_column()
-    key: Mapped[str] = mapped_column()
+    key: Mapped[str] = mapped_column(index=True)
     authorized_at: Mapped[datetime] = mapped_column()
     authorized_by_user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
     uses_remaining: Mapped[int | None] = mapped_column()
@@ -24,7 +25,7 @@ class EventPushKey(db.Model):
 class DBEvent(db.Model):
     __tablename__ = 'events'
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[UUID] = mapped_column(primary_key=True)
 
     namespace: Mapped[str] = mapped_column(index=True)
     class_name: Mapped[str] = mapped_column(index=True)

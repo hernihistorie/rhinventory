@@ -10,7 +10,7 @@ from rhinventory.extensions import db
 from rhinventory.models.events import DBEvent, EventPushKey
 
 HHFLOPPY_DATATYPES = HHFLOPPY_EVENT_CLASS_UNION | HHFLOPPY_EVENT_DATA_CLASS_UNION
-SUPPORTED_EVENT_VERSION = 1
+SUPPORTED_EVENT_VERSION = 2
 event_decoder: msgspec.json.Decoder[HHFLOPPY_DATATYPES] = msgspec.json.Decoder(HHFLOPPY_DATATYPES)
 
 event_store_bp = Blueprint("event_store", __name__, url_prefix="/event_store")
@@ -122,10 +122,12 @@ def ingest_event():
     for event_data in events:
         event = event_decoder.decode(msgspec.json.encode(event_data))
         assert isinstance(event, HHFLOPPY_EVENT_CLASS_UNION)
-        if not event.event_version >= SUPPORTED_EVENT_VERSION:
+        if event.event_version > SUPPORTED_EVENT_VERSION:
             return {"error": f"Unsupported event version: {event.event_version}"}, 400
 
         db_event = DBEvent()
+        # Note: We are trusting the event ID from the client here.
+        db_event.id = event.event_id
         db_event.namespace = namespace
         db_event.class_name = event.__class__.__name__
         db_event.timestamp = event.event_timestamp
