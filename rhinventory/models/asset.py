@@ -97,10 +97,7 @@ class Asset(db.Model):
     ''' Public description of the asset '''
     serial      = Column(String)
 
-    # ARRAY was a great idea... 
-    # ... except we can't do it in SQLite.
-    if not TESTING:
-        product_codes = Column(ARRAY(String))
+    product_codes = Column(ARRAY(String))
 
     condition   = Column(Integer, default=0, nullable=False)
     functionality = Column(Integer, default=0, nullable=False)

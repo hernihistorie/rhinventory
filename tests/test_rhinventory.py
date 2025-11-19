@@ -1,62 +1,12 @@
-import os
-import pytest
+"""
+Tests for rhinventory application.
 
-from flask import Flask
+These tests use PostgreSQL running in a podman container.
+The conftest.py file manages the container lifecycle and database setup.
+"""
 from flask.testing import FlaskClient
-from flask_login import login_user
 
-from rhinventory.app import create_app
-from rhinventory.extensions import db
-from rhinventory.db import User, Organization
-from rhinventory.models.asset import Asset, AssetCategory
-
-class TestAppConfig:
-    TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
-    GITHUB_CLIENT_ID = None
-    GITHUB_CLIENT_SECRET = None
-    FILES_DIR = "files"
-    SECRET_KEY = "abc"
-    SENTRY_DSN = None
-    DROPZONE_PATH = "dropzone"
-
-
-@pytest.fixture()
-def app():
-    app = create_app(config_object=TestAppConfig)
-
-    with app.app_context():
-        os.makedirs(app.config['DROPZONE_PATH'], exist_ok=True)
-
-        db.create_all()
-
-        user = User(username="pytest", read_access=True, write_access=True, admin=True)
-        db.session.add(user)
-
-        org = Organization(name="Testing z.s.")
-        db.session.add(org)
-
-        db.session.commit()
-
-        user_id = user.id
-
-    @app.login_manager.request_loader
-    def load_user_from_request(request):
-        return User.query.get(user_id)
-    
-    yield app
-
-    del app
-
-
-@pytest.fixture()
-def client(app: Flask):
-    return app.test_client()
-
-
-@pytest.fixture()
-def runner(app):
-    return app.test_cli_runner()
+from rhinventory.models.asset import AssetCategory
 
 
 def test_index(client: FlaskClient):
@@ -108,4 +58,3 @@ def test_file_list(client: FlaskClient):
 def test_file_upload(client: FlaskClient):
     response = client.get("/file/upload/")
     assert response.status_code == 200
-
