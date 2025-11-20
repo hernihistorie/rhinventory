@@ -73,3 +73,10 @@ Once solved:
 ```sh
 sudo systemctl start rhinventory
 ```
+
+## Upgrading hhfloppy
+```sh
+uv lock --upgrade-package hhfloppy && uv sync
+```
+
+Then update the `SUPPORTED_EVENT_VERSION` in `event_store.py`.
