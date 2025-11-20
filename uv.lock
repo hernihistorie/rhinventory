@@ -452,8 +452,8 @@ wheels = [
 
 [[package]]
 name = "hhfloppy"
-version = "1.1.3"
-source = { git = "https://github.com/hernihistorie/hhfloppy#3147cab0dc702dc0175dc0e1d980427f97d896ad" }
+version = "1.1.4"
+source = { git = "https://github.com/hernihistorie/hhfloppy#1b34069714bd34ab25db9496dfc22bbe735d15ed" }
 dependencies = [
     { name = "asyncssh" },
     { name = "click" },

@@ -10,7 +10,7 @@ from rhinventory.extensions import db
 from rhinventory.models.events import DBEvent, EventPushKey
 
 HHFLOPPY_DATATYPES = HHFLOPPY_EVENT_CLASS_UNION | HHFLOPPY_EVENT_DATA_CLASS_UNION
-SUPPORTED_EVENT_VERSION = 4
+SUPPORTED_EVENT_VERSION = 5
 event_decoder: msgspec.json.Decoder[HHFLOPPY_DATATYPES] = msgspec.json.Decoder(HHFLOPPY_DATATYPES)
 
 event_store_bp = Blueprint("event_store", __name__, url_prefix="/event_store")
