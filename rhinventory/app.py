@@ -68,7 +68,7 @@ def create_app(config_object='rhinventory.config'):
 
     from rhinventory.public_blueprints.magdb import magdb_bp
     app.register_blueprint(magdb_bp)
-    from rhinventory.event_store.event_store import event_store_bp
+    from rhinventory.event_store.views import event_store_bp
     app.register_blueprint(event_store_bp)
 
     # Supports multiple query args with the same key.

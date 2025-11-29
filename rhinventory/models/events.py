@@ -1,3 +1,4 @@
+from typing import Any
 from datetime import datetime
 from uuid import UUID
 from sqlalchemy import ForeignKey
@@ -7,20 +8,23 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from rhinventory.db import User
 from rhinventory.extensions import db
 
-class EventPushKey(db.Model):
-    __tablename__ = 'event_push_keys'
+# TODO separate PushKey from EventSession
+class EventSession(db.Model):
+    __tablename__ = 'event_sessions'
 
     id: Mapped[int] = mapped_column(primary_key=True)
     application_name: Mapped[str | None] = mapped_column()
     namespace: Mapped[str] = mapped_column()
-    key: Mapped[str] = mapped_column(index=True)
-    authorized_at: Mapped[datetime] = mapped_column()
-    authorized_by_user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
-    uses_remaining: Mapped[int | None] = mapped_column()
+    internal: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime | None] = mapped_column(default=datetime.now)
+    push_key: Mapped[str | None] = mapped_column(index=True)
+    push_key_uses_remaining: Mapped[int | None] = mapped_column()
+    authorized_at: Mapped[datetime | None] = mapped_column()
+    authorized_by_user_id: Mapped[int | None] = mapped_column(ForeignKey('users.id'))
 
-    authorized_by_user: Mapped[User] = relationship()
+    authorized_by_user: Mapped[User | None] = relationship()
 
-    events: Mapped[list[DBEvent]] = relationship(back_populates="event_push_key")
+    events: Mapped[list[DBEvent]] = relationship(back_populates="event_session")
 
 class DBEvent(db.Model):
     __tablename__ = 'events'
@@ -31,11 +35,11 @@ class DBEvent(db.Model):
     class_name: Mapped[str] = mapped_column(index=True)
     timestamp: Mapped[datetime] = mapped_column()
     ingested_at: Mapped[datetime] = mapped_column()
-    event_push_key_id: Mapped[int] = mapped_column(ForeignKey('event_push_keys.id'))
+    event_session_id: Mapped[int] = mapped_column(ForeignKey('event_sessions.id'))
 
-    data: Mapped[dict] = mapped_column(JSONB)
+    data: Mapped[dict[Any, Any]] = mapped_column(JSONB)
 
     # INFO: Here you could do something like
     # name = index_property("data", "name")
 
-    event_push_key: Mapped[EventPushKey] = relationship()
+    event_session: Mapped[EventSession] = relationship()
