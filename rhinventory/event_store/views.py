@@ -6,7 +6,7 @@ import msgspec
 
 from rhinventory.event_store.event_store import EventNamespaceName, UnsupportedEventVersion, event_store
 from rhinventory.extensions import db
-from rhinventory.models.events import DBEvent, EventSession
+from rhinventory.models.events import DBEvent, EventSession, PushKey
 
 event_store_bp = Blueprint("event_store", __name__, url_prefix="/event_store")
 
@@ -27,9 +27,10 @@ def authorize():
                 return redirect(url_for("index"))
 
             # has this key already been authorized?
-            existing_key = db.session.query(EventSession).filter(
-                EventSession.namespace==namespace,
-                EventSession.push_key==key
+            existing_key = db.session.query(PushKey).filter(
+                PushKey.key==key
+            ).join(EventSession).filter(
+                EventSession.namespace==namespace
             ).first()
             if existing_key is not None:
                 flash("This application has already been authorized.", "success")
@@ -56,14 +57,18 @@ def authorize():
 
             # Authorize the event push key
 
-            event_push_key = EventSession()
-            event_push_key.application_name = application_name
-            event_push_key.namespace = namespace
-            event_push_key.push_key = key
-            event_push_key.authorized_at = datetime.now()
-            event_push_key.authorized_by_user_id = current_user.id
-            event_push_key.push_key_uses_remaining = 1
-            db.session.add(event_push_key)
+            push_key = PushKey()
+            push_key.key = key
+            push_key.authorized_at = datetime.now()
+            push_key.authorized_by_user_id = current_user.id
+            push_key.uses_remaining = 1
+            db.session.add(push_key)
+
+            event_session = EventSession()
+            event_session.application_name = application_name
+            event_session.namespace = namespace
+            event_session.push_key = push_key
+            db.session.add(event_session)
             db.session.commit()
 
             return render_template(
@@ -79,11 +84,12 @@ def check_key():
     namespace = request.args['namespace']
     key = request.args['key']
 
-    event_push_key = db.session.query(EventSession).filter(
-        EventSession.namespace==namespace,
-        EventSession.push_key==key
+    push_key = db.session.query(PushKey).filter(
+        PushKey.key==key
+    ).join(EventSession).filter(
+        EventSession.namespace==namespace
     ).first()
-    if event_push_key is None:
+    if push_key is None:
         return {"authorized": False}, 404
     else:
         return {"authorized": True}, 200
@@ -96,22 +102,24 @@ def ingest_event():
     namespace = request.json['namespace']
     key = request.json['key']
 
-    event_push_key = db.session.query(EventSession).filter(
+    event_session = db.session.query(EventSession).filter(
         EventSession.namespace==namespace,
-        EventSession.push_key==key,
         EventSession.internal==False
+    ).join(PushKey).filter(
+        PushKey.key==key
     ).first()
-    if event_push_key is None:
+    if event_session is None:
         return {"error": "Unauthorized"}, 401
 
+    push_key = event_session.push_key
     # check event push key validity
-    if event_push_key.authorized_at + timedelta(days=1) < datetime.now():
+    if push_key.authorized_at + timedelta(days=1) < datetime.now():
         return {"error": "Push key expired"}, 401
 
-    if event_push_key.push_key_uses_remaining is not None:
-        if event_push_key.push_key_uses_remaining <= 0:
+    if push_key.uses_remaining is not None:
+        if push_key.uses_remaining <= 0:
             return {"error": "Push key has no remaining uses"}, 401
-        event_push_key.push_key_uses_remaining -= 1
+        push_key.uses_remaining -= 1
 
     namespace = EventNamespaceName(namespace)
 
@@ -122,7 +130,7 @@ def ingest_event():
         try:
             event_store.ingest(
                 event=event,
-                event_session=event_push_key
+                event_session=event_session
             )
         except UnsupportedEventVersion as e:
             return {"error": str(e)}, 400

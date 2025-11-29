@@ -8,7 +8,21 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from rhinventory.db import User
 from rhinventory.extensions import db
 
-# TODO separate PushKey from EventSession
+
+class PushKey(db.Model):
+    __tablename__ = 'push_keys'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    key: Mapped[str] = mapped_column(index=True)
+    uses_remaining: Mapped[int | None] = mapped_column()
+    authorized_at: Mapped[datetime] = mapped_column()
+    authorized_by_user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+
+    authorized_by_user: Mapped[User] = relationship()
+
+    event_sessions: Mapped[list["EventSession"]] = relationship(back_populates="push_key")
+
+
 class EventSession(db.Model):
     __tablename__ = 'event_sessions'
 
@@ -17,14 +31,11 @@ class EventSession(db.Model):
     namespace: Mapped[str] = mapped_column()
     internal: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime | None] = mapped_column(default=datetime.now)
-    push_key: Mapped[str | None] = mapped_column(index=True)
-    push_key_uses_remaining: Mapped[int | None] = mapped_column()
-    authorized_at: Mapped[datetime | None] = mapped_column()
-    authorized_by_user_id: Mapped[int | None] = mapped_column(ForeignKey('users.id'))
+    push_key_id: Mapped[int | None] = mapped_column(ForeignKey('push_keys.id'))
 
-    authorized_by_user: Mapped[User | None] = relationship()
+    push_key: Mapped[PushKey | None] = relationship(back_populates="event_sessions")
 
-    events: Mapped[list[DBEvent]] = relationship(back_populates="event_session")
+    events: Mapped[list["DBEvent"]] = relationship(back_populates="event_session")
 
 class DBEvent(db.Model):
     __tablename__ = 'events'

@@ -45,8 +45,8 @@ class UserView(AdminModelView):
         return current_user.is_authenticated and current_user.admin
 
 class EventView(CustomModelView):
-    column_list = ('id', 'namespace', 'class_name', 'timestamp', 'ingested_at', 'event_push_key_id', 'event_push_key.application_name', 'event_push_key.authorized_by_user')
-    column_details_list = ('id', 'namespace', 'class_name', 'timestamp', 'ingested_at', 'event_push_key_id', 'event_push_key.application_name', 'event_push_key.authorized_by_user', 'data')
+    column_list = ('id', 'namespace', 'class_name', 'timestamp', 'ingested_at', 'event_session_id', 'event_session.application_name', 'event_session.push_key.authorized_by_user')
+    column_details_list = ('id', 'namespace', 'class_name', 'timestamp', 'ingested_at', 'event_session_id', 'event_session.application_name', 'event_session.push_key.authorized_by_user', 'data')
     column_default_sort = ('ingested_at', False)
     can_create = False
     can_edit = False

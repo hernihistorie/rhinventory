@@ -14,7 +14,7 @@ from rhinventory.models.file import FileCategory, File, IMAGE_CATEGORIES, get_ne
 from rhinventory.models.log import log, LogEvent, LogItem
 from rhinventory.models.entities import Organization, Party, Country
 from rhinventory.models.magdb import Issuer, Magazine, MagazineIssue, Format, MagazineIssueVersion, MagazineIssueVersionPrice
-from rhinventory.models.events import DBEvent, EventSession
+from rhinventory.models.events import DBEvent, EventSession, PushKey
 
 
 class Location(db.Model):
