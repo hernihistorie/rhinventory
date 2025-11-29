@@ -44,6 +44,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "mypy>=0.950",
+    "playwright>=1.56.0",
     "psycopg2-binary>=2.9.10",
 ]
 
