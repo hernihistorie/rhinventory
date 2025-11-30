@@ -7,6 +7,8 @@ from hhfloppy.event.events import HHFLOPPY_EVENT_CLASS_UNION, event_decoder as h
 
 from rhinventory.db import db
 from rhinventory.events.event import RHINVENTORY_EVENT_CLASS_UNION, event_decoder as rhinventory_event_decoder
+from rhinventory.models.aggregates.aggregate import Aggregate
+from rhinventory.models.aggregates.test import TestAggregate
 from rhinventory.models.events import DBEvent, EventSession, datetime
 
 class EventNamespaceName(Enum):
@@ -22,6 +24,8 @@ class UnsupportedEventVersion(Exception):
     pass
 
 class EventStore():
+    aggregate_classes: list[type[Aggregate]] = [TestAggregate]
+
     def __init__(self) -> None:
         pass
 
@@ -62,6 +66,27 @@ class EventStore():
         # encoded by msgspec but SQLAlchemy needs a dict 
         db_event.data = json.loads(msgspec.json.encode(event))
         db.session.add(instance=db_event)
+
+        # Apply event to aggregates
+        for aggregate_class in self.aggregate_classes:
+            if type(event) in aggregate_class.listen_for_event_classes:
+                filter_expr = aggregate_class.filter_from_event(event)
+                if isinstance(filter_expr, bool) and filter_expr is False:
+                    continue
+
+                q = db.session.query(aggregate_class)
+                if filter_expr is not True:
+                    q = q.filter(filter_expr)
+
+                aggregate_instance = q.one_or_none()
+
+                if aggregate_instance is None:
+                    aggregate_instance = aggregate_class()
+                    aggregate_instance.apply_event(event)
+                    db.session.add(aggregate_instance)
+                else:
+                    aggregate_instance.apply_event(event)
+
         db.session.commit()
 
 event_store = EventStore()

@@ -66,6 +66,10 @@ def log_data(obj: typing.Any, event: str, data: dict[typing.Any, typing.Any]) ->
         # which is incompatible with the current log table schema.
         return
 
+    if getattr(obj, "rhinventory_log", True) is False:
+        # object has logging disabled
+        return
+
     user_id = None
     if flask_login.current_user and flask_login.current_user.is_authenticated:
         user_id = flask_login.current_user.id

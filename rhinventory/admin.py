@@ -74,7 +74,7 @@ class EventView(CustomModelView):
         db.session.add(event_session)
         db.session.commit()
 
-        test_data = f"Test event created by {current_user.username} at {datetime.datetime.now()}"
+        test_data = f"Test event created by {current_user.username or current_user.github_login} at {datetime.datetime.now()}"
         event = TestingEvent(test_data=test_data)
         event_store.ingest(event=event, event_session=event_session)
         db.session.commit()
