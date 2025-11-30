@@ -8,9 +8,12 @@ from flask_admin import Admin, AdminIndexView, expose
 from rhinventory.extensions import db, admin, simple_eval
 from rhinventory.db import DBEvent, LogItem, Medium, Location, Organization, log, LogItem, Asset, User, Transaction, File, Party
 from rhinventory.models.asset_attributes import AssetTag, Company, CompanyAlias, Packaging
+from rhinventory.models.events import EventSession
 from rhinventory.admin_views import CustomModelView, AdminModelView, AssetView, TransactionView, FileView
 from rhinventory.models.label_printer import LabelPrinter
 from rhinventory.admin_views.magdb import add_magdb_views
+from rhinventory.events.event import TestingEvent
+from rhinventory.event_store.event_store import event_store
 
 class CustomIndexView(AdminIndexView):
     @expose('/')
@@ -45,8 +48,8 @@ class UserView(AdminModelView):
         return current_user.is_authenticated and current_user.admin
 
 class EventView(CustomModelView):
-    column_list = ('id', 'namespace', 'class_name', 'timestamp', 'ingested_at', 'event_session_id', 'event_session.application_name', 'event_session.push_key.authorized_by_user')
-    column_details_list = ('id', 'namespace', 'class_name', 'timestamp', 'ingested_at', 'event_session_id', 'event_session.application_name', 'event_session.push_key.authorized_by_user', 'data')
+    column_list = ('id', 'namespace', 'class_name', 'timestamp', 'ingested_at', 'event_session_id', 'event_session.application_name', 'event_session.user', 'event_session.push_key.authorized_by_user')
+    column_details_list = ('id', 'namespace', 'class_name', 'timestamp', 'ingested_at', 'event_session_id', 'event_session.application_name', 'event_session.user', 'event_session.push_key.authorized_by_user', 'data')
     column_default_sort = ('ingested_at', False)
     can_create = False
     can_edit = False
@@ -54,6 +57,30 @@ class EventView(CustomModelView):
     can_view_details = True
 
     details_template = 'admin/event/details.html'
+    list_template = 'admin/event/list.html'
+
+    @expose('/create_test_event/', methods=['POST'])
+    def create_test_event(self):
+        if not current_user.is_authenticated or not current_user.write_access:
+            flash("You don't have permission to create test events.", "danger")
+            return redirect(self.get_url('.index_view'))
+
+        # TODO create a session automatically while a user is browsing?
+        event_session = EventSession()
+        event_session.application_name = "rhinventory"
+        event_session.namespace = "rhinventory"
+        event_session.internal = True
+        event_session.user_id = current_user.id
+        db.session.add(event_session)
+        db.session.commit()
+
+        test_data = f"Test event created by {current_user.username} at {datetime.datetime.now()}"
+        event = TestingEvent(test_data=test_data)
+        event_store.ingest(event=event, event_session=event_session)
+        db.session.commit()
+
+        flash(f"Test event created successfully with ID: {event.event_id}", "success")
+        return redirect(self.get_url('.details_view', id=event.event_id))
 
 def add_admin_views(admin):
     admin.add_view(AssetView(Asset, db.session))

@@ -20,8 +20,6 @@
         <small><strong>User</strong>: 
             {% if event.event_session and event.event_session.user %}
                 {{ event.event_session.user }}
-            {% elif event.event_session and event.event_session.push_key and event.event_session.push_key.authorized_by_user %}
-                {{ event.event_session.push_key.authorized_by_user }}
             {% else %}
                 (Unknown)
             {% endif %}
