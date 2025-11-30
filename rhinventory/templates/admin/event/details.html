@@ -4,7 +4,7 @@
 {% block details_table %}
     {% set event = model %}
 
-    {{ render_event_timeline(event.event_push_key.events, event) }}
+    {{ render_event_timeline(event.event_session.events, event) }}
 
     <div style="font-size: 20px; margin: 20px;">
         <h2>
@@ -17,9 +17,11 @@
         <br>
         <small><strong>Ingested at</strong>: {{ event.ingested_at or "" }}</small>
         <br>
-        <small><strong>Authorized by</strong>: 
-            {% if event.event_push_key and event.event_push_key.authorized_by_user %}
-                {{ event.event_push_key.authorized_by_user }}
+        <small><strong>User</strong>: 
+            {% if event.event_session and event.event_session.user %}
+                {{ event.event_session.user }}
+            {% elif event.event_session and event.event_session.push_key and event.event_session.push_key.authorized_by_user %}
+                {{ event.event_session.push_key.authorized_by_user }}
             {% else %}
                 (Unknown)
             {% endif %}

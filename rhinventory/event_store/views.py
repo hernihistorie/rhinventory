@@ -68,6 +68,7 @@ def authorize():
             event_session.application_name = application_name
             event_session.namespace = namespace
             event_session.push_key = push_key
+            event_session.user_id = current_user.id
             db.session.add(event_session)
             db.session.commit()
 

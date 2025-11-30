@@ -32,8 +32,10 @@ class EventSession(db.Model):
     internal: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime | None] = mapped_column(default=datetime.now)
     push_key_id: Mapped[int | None] = mapped_column(ForeignKey('push_keys.id'))
+    user_id: Mapped[int | None] = mapped_column(ForeignKey('users.id'))
 
     push_key: Mapped[PushKey | None] = relationship(back_populates="event_sessions")
+    user: Mapped[User | None] = relationship()
 
     events: Mapped[list["DBEvent"]] = relationship(back_populates="event_session")
 
