@@ -40,7 +40,7 @@ def upgrade():
     # ### end Alembic commands ###
 
     # Commit the table creation so it's visible to the app context
-    op.get_bind().commit()
+    # op.get_bind().commit()
 
     # Rebuild FloppyDiskCapture aggregates from events
     # from rhinventory.app import create_app
