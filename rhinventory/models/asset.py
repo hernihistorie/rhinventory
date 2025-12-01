@@ -1,12 +1,17 @@
 from datetime import datetime
 import sys
 import enum
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Column, Integer, Numeric, String, Text, \
     DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint, \
         ARRAY, desc, or_
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship, backref, Mapped, mapped_column
+from sqlalchemy.orm import Relationship, relationship, backref, Mapped, mapped_column
+if TYPE_CHECKING:
+    from rhinventory.db import FloppyDiskCapture
+else:
+    FloppyDiskCapture = "FloppyDiskCapture"
 from rhinventory.models.asset_attributes import AssetMedium, AssetPackaging, Company, Platform, Medium, Packaging, AssetTag, asset_tag_table, asset_platform_table, asset_company_table
 from rhinventory.models.enums import Privacy
 
@@ -137,6 +142,8 @@ class Asset(db.Model):
     mediums   = relationship(Medium, secondary='asset_mediums', backref="assets")
     packaging = relationship(Packaging, secondary='asset_packaging', backref="assets")
     companies = relationship(Company, secondary=asset_company_table, backref="assets")
+
+    floppy_disk_captures: Relationship[list[FloppyDiskCapture] | None] = relationship("FloppyDiskCapture", primaryjoin="foreign(FloppyDiskCapture.asset_id)==Asset.id")
 
     LAST_USED_ATTRIBUTES = {
         'platforms': Platform,

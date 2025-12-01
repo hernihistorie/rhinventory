@@ -42,6 +42,26 @@
         {{ icon("save", faded=True, tooltip="No dumps") }}
     {% endif %}
     </span>
+    <span>
+        {% for capture in asset.floppy_disk_captures %}
+            <a
+                {# href="{{ url_for('floppy_disk_capture.details_view', id=capture.id) }}" #}
+                rel="tooltip" title="
+                    <strong>Floppy disk capture</strong><br>
+                    Dumped at: {{ capture.dumped_at }}<br>
+                    Operator: {{ capture.operator_name }}<br>
+                    {% if capture.has_errors %}
+                        <span style='color: red;'>Errors present</span><br>
+                    {% else %}
+                        No errors<br>
+                    {% endif %}
+                "
+                style="{% if capture.has_errors %}color: orange; {% else %} color: green; {% endif %}"
+            >
+                {{- icon("floppy-disk") -}}
+            </a>
+        {% endfor %}
+    </span>
     
     <span>
     {% if asset.parent %}

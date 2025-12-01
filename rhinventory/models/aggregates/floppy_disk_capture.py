@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import Union
 from uuid import UUID
-from sqlalchemy import ForeignKey
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, Relationship, mapped_column, relationship
 
@@ -31,7 +30,11 @@ class FloppyDiskCapture(Aggregate):
     error_count: Mapped[int | None] = mapped_column()
     parsing_errors: Mapped[int | None] = mapped_column()
 
-    asset: Relationship[Asset | None] = relationship(foreign_keys=[asset_id], primaryjoin="FloppyDiskCapture.asset_id==Asset.id")
+    asset: Relationship[Asset | None] = relationship(
+        foreign_keys=[asset_id],
+        primaryjoin="FloppyDiskCapture.asset_id==Asset.id",
+        back_populates="floppy_disk_captures"
+    )
 
     @classmethod
     def filter_from_event(cls, event: listen_for_events_type) -> ColumnElement[bool]:

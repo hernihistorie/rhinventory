@@ -3,6 +3,8 @@
 {% from '_macros.html' import organization_icon %}
 {% from 'admin/asset/_macros.html' import render_privacy_flag, render_tree, render_asset_code %}
 
+{% set asset = model %}
+
 {% block title -%}
     HH{{model.id}} {{ model.name }}
 {%- endblock %}
@@ -393,6 +395,48 @@
             </table>
         </div>
     </div>
+
+    {% if asset.floppy_disk_captures %}
+        <h2>{{ icon("floppy-disk") }} Floppy Disk Captures</h2>
+        <table class="table table-hover table-bordered">
+            <tr>
+                <th>Capture date</th>
+                <th>Operator</th>
+                <th>Drive</th>
+                <th>Converted</th>
+                <th>Status</th>
+                <th>File link</th>
+            </tr>
+        {% for capture in asset.floppy_disk_captures %}
+            <tr>
+                <td>{{ capture.dumped_at }}</td>
+                <td>{{ capture.operator_name }}</td>
+                <td>{{ capture.drive_name }}</td>
+                <td>{{ capture.converted }}</td>
+                <td
+                    {% if capture.has_errors or capture.error_count > 0 %}
+                        style="color: orange;"
+                    {% endif %}
+                >
+                    {% if capture.has_errors %}
+                        {{ icon("exclamation-triangle") }}
+                            {% if capture.error_count %}
+                                {{ capture.error_count }} errors
+                            {% elif capture.parsing_errors %}
+                                Parsing errors: {{ capture.parsing_errors }}
+                            {% else %}
+                                errors present
+                            {% endif %}
+                    {% else %}
+                        OK
+                    {% endif %}
+                    
+                </td>
+                <td>(TBD)</td>
+            </tr>
+        {% endfor %}
+        </table>
+    {% endif %}
 
     <h2>{{ icon("handshake-angle") }} Transaction history</h2>
 
