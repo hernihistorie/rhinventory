@@ -7,6 +7,7 @@ from markupsafe import Markup
 import sentry_sdk
 from flask_login import current_user, login_required, login_user, logout_user
 from flask_bootstrap import Bootstrap5
+import flask_sqlalchemy.record_queries
 import markdown
 from werkzeug.wrappers.response import Response
 
@@ -50,6 +51,7 @@ def create_app(config_object='rhinventory.config'):
     app = Flask(__name__.split('.')[0], template_folder='templates')
     app.config.from_object(config_object)
 
+    app.config.SQLALCHEMY_RECORD_QUERIES = True
     db.init_app(app)
     admin.init_app(app, 
         index_view=CustomIndexView(
@@ -122,6 +124,7 @@ def create_app(config_object='rhinventory.config'):
             isinstance=isinstance,
             list=list,
             request_uri=request.url,
+            get_recorded_queries = flask_sqlalchemy.record_queries.get_recorded_queries
         )
 
     @app.before_request
@@ -132,6 +135,7 @@ def create_app(config_object='rhinventory.config'):
         g.current_user_organization_label = 'ha'
         if current_user.organization and current_user.organization.name.lower() == "ucm":
             g.current_user_organization_label = 'ucm'
+        
 
     @login_manager.user_loader
     def load_user(user_id):

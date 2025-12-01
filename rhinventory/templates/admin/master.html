@@ -74,6 +74,11 @@
 {% endblock %}
 
 {% block tail %}
+    {% if g.debug %}
+        <div style="max-width: 200px; margin: auto; text-align: center;">
+            Statement count: {{ get_recorded_queries() | length }}
+        </div>
+    {% endif %}
     {#
         <div style="position: fixed; top: 32px; left: 32px; border: 3px solid red; padding: 8px; font-size: 32px; display: none;" id="htmx-error">
             htmx error!

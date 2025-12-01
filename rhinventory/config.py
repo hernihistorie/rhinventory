@@ -7,6 +7,7 @@ env.read_env()
 
 ENV: str = env.str('FLASK_ENV', default='production')
 DEBUG: bool = ENV == 'development'
+SQLALCHEMY_RECORD_QUERIES = DEBUG
 SQLALCHEMY_DATABASE_URI: str = env.str('DATABASE_URL')
 SECRET_KEY: str = env.str('SECRET_KEY')
 DEBUG_TB_INTERCEPT_REDIRECTS: bool = False
