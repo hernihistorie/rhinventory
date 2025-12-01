@@ -8,15 +8,17 @@ from hhfloppy.event.events import FloppyDiskCaptureDirectoryConverted, FloppyDis
 from sqlalchemy_utils.expressions import ColumnElement
 
 from rhinventory.db import Asset
+from rhinventory.events.floppy_disk_captures import FloppyDiskCaptureDisassociated
 from rhinventory.models.aggregates.aggregate import Aggregate
 
 class FloppyDiskCapture(Aggregate):
     __tablename__ = 'agg_floppy_disk_captures'
-    listen_for_events_type = Union[FloppyDiskCaptureDirectoryConverted, FloppyDiskCaptureSummarized]
-    listen_for_event_classes = frozenset({FloppyDiskCaptureDirectoryConverted, FloppyDiskCaptureSummarized})
+    listen_for_events_type = Union[FloppyDiskCaptureDirectoryConverted, FloppyDiskCaptureSummarized, FloppyDiskCaptureDisassociated]
+    listen_for_event_classes = frozenset({FloppyDiskCaptureDirectoryConverted, FloppyDiskCaptureSummarized, FloppyDiskCaptureDisassociated})
 
     latest_pyhxcfe_run_id: Mapped[UUID | None] = mapped_column()
     asset_id: Mapped[int | None] = mapped_column() # don't use foregin key because we don't want a hard constraint
+    disassociated: Mapped[bool] = mapped_column(default=False)
     dumped_at: Mapped[datetime | None] = mapped_column()
     operator_name: Mapped[str | None] = mapped_column()
     directory_name: Mapped[str | None] = mapped_column()
@@ -43,6 +45,8 @@ class FloppyDiskCapture(Aggregate):
                 return cls.id == event.floppy_disk_capture_id
             case FloppyDiskCaptureSummarized():
                 return cls.id == event.floppy_disk_capture_id
+            case FloppyDiskCaptureDisassociated():
+                return cls.id == event.floppy_disk_capture_id
             case _:
                 raise ValueError(f"Unsupported event type: {type(event)}")
 
@@ -63,12 +67,15 @@ class FloppyDiskCapture(Aggregate):
                 self.dumped_at = datetime.strptime(event.name_info.datetime, "%Y-%m-%d_%H-%M-%S")
                 self.operator_name = event.name_info.operator
                 self.drive_name = event.name_info.drive
-                if event.name_info.hh_asset_id:
+                if event.name_info.hh_asset_id and not self.disassociated:
                     self.asset_id = event.name_info.hh_asset_id
                 self.number_of_tracks = event.xml_info.number_of_tracks
                 self.number_of_sides = event.xml_info.number_of_sides
                 self.error_count = event.imd_info.error_count
 
                 self.has_errors = bool(self.error_count or self.parsing_errors)
+            case FloppyDiskCaptureDisassociated():
+                self.asset_id = None
+                self.disassociated = True
             case _:
                 raise ValueError(f"Unsupported event type: {type(event)}")

@@ -406,6 +406,9 @@
                 <th>Converted</th>
                 <th>Status</th>
                 <th>File link</th>
+                {% if current_user.is_authenticated and current_user.write_access %}
+                <th>Actions</th>
+                {% endif %}
             </tr>
         {% for capture in asset.floppy_disk_captures %}
             <tr>
@@ -433,6 +436,23 @@
                     
                 </td>
                 <td>(TBD)</td>
+                {% if current_user.is_authenticated and current_user.write_access %}
+                <td>
+                    <form
+                        action="{{ url_for('asset.disassociate_floppy_disk_capture') }}"
+                        method="post"
+                        onsubmit="return confirmDisassociate(this);"
+                        style="margin: 0;"
+                    >
+                        <input type="hidden" name="capture_id" value="{{ capture.id }}">
+                        <input type="hidden" name="asset_id" value="{{ asset.id }}">
+                        <input type="hidden" name="reason_given" value="">
+                        <button type="submit" class="btn btn-sm btn-warning" style="padding: 2px;">
+                            {{ icon("link-slash") }} Disassociate
+                        </button>
+                    </form>
+                </td>
+                {% endif %}
             </tr>
         {% endfor %}
         </table>
@@ -539,6 +559,18 @@
     {% endif %}
 
     <script>
+        function confirmDisassociate(form) {
+            if (!confirm('Are you sure you want to disassociate this floppy disk capture?')) {
+                return false;
+            }
+            var reason = prompt('Reason for disassociation (optional):');
+            if (reason !== null) {
+                form.querySelector('input[name="reason_given"]').value = reason;
+                return true;
+            }
+            return false;
+        }
+
         // If there is a URL argument called "print" with the value "1"
         // TODO this could be done in a cleaner way
         if (window.location.href.indexOf("&print=1") !== -1) {

@@ -4,6 +4,7 @@ from enum import EnumMeta
 import sys
 from math import ceil
 from typing import Optional, Union, Iterable
+from uuid import UUID
 
 from flask import Response, abort, redirect, request, flash, url_for, get_template_attribute
 from wtforms import RadioField, TextAreaField, Field
@@ -32,6 +33,10 @@ from rhinventory.models.log import LogEvent, log
 from rhinventory.forms import FileForm
 from rhinventory.models.asset import AssetCategory
 from rhinventory.models.asset_attributes import AssetTag, Company
+from rhinventory.models.events import EventSession
+from rhinventory.models.aggregates.floppy_disk_capture import FloppyDiskCapture
+from rhinventory.events.floppy_disk_captures import FloppyDiskCaptureDisassociated
+from rhinventory.event_store.event_store import event_store
 from rhinventory.util import require_write_access
 
 TESTING = "pytest" in sys.modules
@@ -764,6 +769,53 @@ class AssetView(CustomModelView):
         flash(f"Given {len(assets)} assets the tag {asset_tag}.", 'success')
 
         return redirect(url_for('.index_view'))
+
+    @expose('/disassociate_floppy_disk_capture/', methods=['POST'])
+    @require_write_access
+    def disassociate_floppy_disk_capture(self):
+        """Emit a FloppyDiskCaptureDisassociated event to disassociate a floppy disk capture from an asset."""
+        capture_id = request.form.get('capture_id')
+        reason_given = request.form.get('reason_given') or None
+        asset_id = request.form.get('asset_id')
+        
+        if not capture_id:
+            flash("Missing capture ID.", "danger")
+            return redirect(request.referrer or url_for('.index_view'))
+        
+        try:
+            capture_uuid = UUID(capture_id)
+        except ValueError:
+            flash("Invalid capture ID format.", "danger")
+            return redirect(request.referrer or url_for('.index_view'))
+        
+        # Verify the capture exists
+        capture = db.session.query(FloppyDiskCapture).filter(FloppyDiskCapture.id == capture_uuid).first()
+        if not capture:
+            flash("Floppy disk capture not found.", "danger")
+            return redirect(request.referrer or url_for('.index_view'))
+        
+        # Create event session
+        event_session = EventSession()
+        event_session.application_name = "rhinventory"
+        event_session.namespace = "rhinventory"
+        event_session.internal = True
+        event_session.user_id = current_user.id
+        db.session.add(event_session)
+        db.session.commit()
+        
+        # Emit the event
+        disassociation_event = FloppyDiskCaptureDisassociated(
+            floppy_disk_capture_id=capture_uuid,
+            reason_given=reason_given
+        )
+        event_store.ingest(event=disassociation_event, event_session=event_session)
+        db.session.commit()
+        
+        flash("Floppy disk capture disassociated successfully.", "success")
+        
+        if asset_id:
+            return redirect(url_for('.details_view', id=asset_id))
+        return redirect(request.referrer or url_for('.index_view'))
 
     @expose('/bulk_new/', methods=('GET', 'POST'))
     @require_write_access
