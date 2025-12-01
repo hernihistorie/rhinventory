@@ -1,11 +1,14 @@
 from flask import request, flash, redirect, url_for, current_app, jsonify
 from flask_login import current_user, login_required
 from flask_admin.contrib.sqla import ModelView
+from sqlalchemy.orm import Session
 
-from rhinventory.extensions import db, admin
+from rhinventory.extensions import db
 from rhinventory.db import log
 
 class CustomModelView(ModelView):
+    session: Session
+
     form_excluded_columns = ['transactions']
 
     @property

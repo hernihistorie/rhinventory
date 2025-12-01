@@ -7,6 +7,8 @@ from typing import Optional, Union, Iterable
 from uuid import UUID
 
 from flask import Response, abort, redirect, request, flash, url_for, get_template_attribute
+from flask_admin.model.filters import BaseFilter
+from sqlalchemy.orm import joinedload
 from wtforms import RadioField, TextAreaField, Field
 import wtforms.validators
 from flask_admin import expose
@@ -24,7 +26,7 @@ from rhinventory.admin_views.utils import get_asset_list_from_request_args, visi
 
 from rhinventory.extensions import db
 from rhinventory.admin_views.model_view import CustomModelView
-from rhinventory.db import Medium, Asset, get_next_file_batch_number, LogItem
+from rhinventory.db import Medium, Asset, Transaction, get_next_file_batch_number, LogItem
 from rhinventory.models.asset import AssetCondition
 from rhinventory.models.enums import Privacy, PUBLIC_PRIVACIES
 from rhinventory.models.events import DBEvent
@@ -316,7 +318,18 @@ class AssetView(CustomModelView):
         return super()._apply_search(query, count_query, joins, count_joins, search)
 
     def get_query(self):
-        query = self.session.query(self.model).options(db.joinedload(Asset.files))
+        query = self.session.query(Asset) \
+            .options(
+                joinedload(Asset.tags),
+                joinedload(Asset.parent),
+                joinedload(Asset.children),
+                joinedload(Asset.location),
+                joinedload(Asset.contains),
+                joinedload(Asset.files),
+                joinedload(Asset.transactions).subqueryload(Transaction.our_party),
+                joinedload(Asset.transactions).subqueryload(Transaction.counterparty_new),
+                joinedload(Asset.floppy_disk_captures),
+            )
         if current_user.is_authenticated and current_user.read_access:
             return query
         else:
