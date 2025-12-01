@@ -1,12 +1,12 @@
 from enum import Enum
 import json
-from typing import Literal
+from typing import Iterable, Literal
 import msgspec
 
 from hhfloppy.event.events import HHFLOPPY_EVENT_CLASS_UNION, event_decoder as hhfloppy_event_decoder
 
 from rhinventory.db import db
-from rhinventory.events.event import RHINVENTORY_EVENT_CLASS_UNION, event_decoder as rhinventory_event_decoder
+from rhinventory.events.events import RHINVENTORY_EVENT_CLASS_UNION, event_decoder as rhinventory_event_decoder
 from rhinventory.models.aggregates.aggregate import Aggregate
 from rhinventory.models.aggregates.floppy_disk_capture import FloppyDiskCapture
 from rhinventory.models.aggregates.test import TestAggregate
@@ -64,24 +64,27 @@ class EventStore():
                 else:
                     aggregate_instance.apply_event(event)
 
-    def rebuild_aggregates(self, aggregate_class: type[Aggregate]) -> None:
-        db.session.query(aggregate_class).delete()
+    def rebuild_aggregates(self, aggregate_classes: Iterable[type[Aggregate]] | None = None) -> None:
+        if aggregate_classes is None:
+            aggregate_classes = self.aggregate_classes
+        for aggregate_class in aggregate_classes:
+            db.session.query(aggregate_class).delete()
 
-        class_names = [cls.__name__ for cls in aggregate_class.listen_for_event_classes]
+            class_names = [cls.__name__ for cls in aggregate_class.listen_for_event_classes]
 
-        q = db.session.query(DBEvent) \
-            .filter(DBEvent.class_name.in_(class_names)) \
-            .order_by(DBEvent.ingested_at.asc())
-        
-        for db_event in q:
-            event_data = msgspec.json.decode(json.dumps(db_event.data))
-            event = self.decode(
-                event_data=msgspec.json.encode(event_data),
-                namespace=EventNamespaceName(db_event.namespace)
-            )
+            q = db.session.query(DBEvent) \
+                .filter(DBEvent.class_name.in_(class_names)) \
+                .order_by(DBEvent.ingested_at.asc())
+            
+            for db_event in q:
+                event_data = msgspec.json.decode(json.dumps(db_event.data))
+                event = self.decode(
+                    event_data=msgspec.json.encode(event_data),
+                    namespace=EventNamespaceName(db_event.namespace)
+                )
 
-            self._apply_event_to_aggregates(event=event, aggregate_classes=[aggregate_class])
-        db.session.commit()
+                self._apply_event_to_aggregates(event=event, aggregate_classes=[aggregate_class])
+            db.session.commit()
 
     def ingest(self, event: EVENT_CLASS_UNION, event_session: EventSession) -> None:
         if event.event_namespace != event_session.namespace:

@@ -22,6 +22,3 @@ class TestingEvent(Event, kw_only=True, frozen=True):
     test_id: uuid.UUID = msgspec.field(default_factory=uuid.uuid7)
     test_data: str
 
-RHINVENTORY_EVENT_CLASS_UNION = TestingEvent
-
-event_decoder = msgspec.json.Decoder(RHINVENTORY_EVENT_CLASS_UNION)

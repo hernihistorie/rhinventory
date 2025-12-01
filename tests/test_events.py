@@ -37,7 +37,7 @@ def test_event_creation(app: Flask) -> None:
         assert aggregate_instance.latest_test_event_data == test_data
 
         # Test rebuilding aggregates
-        event_store.rebuild_aggregates(aggregate_class=TestAggregate)
+        event_store.rebuild_aggregates(aggregate_classes=[TestAggregate])
         aggregate_instance_after_rebuild = db.session.query(TestAggregate).one_or_none()
         assert aggregate_instance_after_rebuild is not None
         assert aggregate_instance_after_rebuild.latest_test_event_data == test_data
