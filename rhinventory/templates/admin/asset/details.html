@@ -417,7 +417,7 @@
                 <td>{{ capture.drive_name }}</td>
                 <td>{{ capture.converted }}</td>
                 <td
-                    {% if capture.has_errors or capture.error_count > 0 %}
+                    {% if capture.has_errors or capture.error_count and capture.error_count > 0 %}
                         style="color: orange;"
                     {% endif %}
                 >
