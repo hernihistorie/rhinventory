@@ -8,6 +8,7 @@ from hhfloppy.event.events import HHFLOPPY_EVENT_CLASS_UNION, event_decoder as h
 from rhinventory.db import db
 from rhinventory.events.event import RHINVENTORY_EVENT_CLASS_UNION, event_decoder as rhinventory_event_decoder
 from rhinventory.models.aggregates.aggregate import Aggregate
+from rhinventory.models.aggregates.floppy_disk_capture import FloppyDiskCapture
 from rhinventory.models.aggregates.test import TestAggregate
 from rhinventory.models.events import DBEvent, EventSession, datetime
 
@@ -24,7 +25,7 @@ class UnsupportedEventVersion(Exception):
     pass
 
 class EventStore():
-    aggregate_classes: list[type[Aggregate]] = [TestAggregate]
+    aggregate_classes: list[type[Aggregate]] = [TestAggregate, FloppyDiskCapture]
 
     def __init__(self) -> None:
         pass
@@ -42,6 +43,45 @@ class EventStore():
                 return event
             case _:
                 raise ValueError(f"Unsupported namespace: {namespace}")
+    
+    def _apply_event_to_aggregates(self, event: EVENT_CLASS_UNION, aggregate_classes: list[type[Aggregate]]) -> None:
+        for aggregate_class in aggregate_classes:
+            if type(event) in aggregate_class.listen_for_event_classes:
+                filter_expr = aggregate_class.filter_from_event(event)
+                if isinstance(filter_expr, bool) and filter_expr is False:
+                    continue
+
+                q = db.session.query(aggregate_class)
+                if filter_expr is not True:
+                    q = q.filter(filter_expr)
+
+                aggregate_instance = q.one_or_none()
+
+                if aggregate_instance is None:
+                    aggregate_instance = aggregate_class()
+                    aggregate_instance.apply_event(event)
+                    db.session.add(aggregate_instance)
+                else:
+                    aggregate_instance.apply_event(event)
+
+    def rebuild_aggregates(self, aggregate_class: type[Aggregate]) -> None:
+        db.session.query(aggregate_class).delete()
+
+        class_names = [cls.__name__ for cls in aggregate_class.listen_for_event_classes]
+
+        q = db.session.query(DBEvent) \
+            .filter(DBEvent.class_name.in_(class_names)) \
+            .order_by(DBEvent.ingested_at.asc())
+        
+        for db_event in q:
+            event_data = msgspec.json.decode(json.dumps(db_event.data))
+            event = self.decode(
+                event_data=msgspec.json.encode(event_data),
+                namespace=EventNamespaceName(db_event.namespace)
+            )
+
+            self._apply_event_to_aggregates(event=event, aggregate_classes=[aggregate_class])
+        db.session.commit()
 
     def ingest(self, event: EVENT_CLASS_UNION, event_session: EventSession) -> None:
         if event.event_namespace != event_session.namespace:
@@ -67,25 +107,7 @@ class EventStore():
         db_event.data = json.loads(msgspec.json.encode(event))
         db.session.add(instance=db_event)
 
-        # Apply event to aggregates
-        for aggregate_class in self.aggregate_classes:
-            if type(event) in aggregate_class.listen_for_event_classes:
-                filter_expr = aggregate_class.filter_from_event(event)
-                if isinstance(filter_expr, bool) and filter_expr is False:
-                    continue
-
-                q = db.session.query(aggregate_class)
-                if filter_expr is not True:
-                    q = q.filter(filter_expr)
-
-                aggregate_instance = q.one_or_none()
-
-                if aggregate_instance is None:
-                    aggregate_instance = aggregate_class()
-                    aggregate_instance.apply_event(event)
-                    db.session.add(aggregate_instance)
-                else:
-                    aggregate_instance.apply_event(event)
+        self._apply_event_to_aggregates(event=event, aggregate_classes=self.aggregate_classes)
 
         db.session.commit()
 

@@ -16,6 +16,7 @@ from rhinventory.models.entities import Organization, Party, Country
 from rhinventory.models.magdb import Issuer, Magazine, MagazineIssue, Format, MagazineIssueVersion, MagazineIssueVersionPrice
 from rhinventory.models.events import DBEvent, EventSession, PushKey
 from rhinventory.models.aggregates.test import TestAggregate
+from rhinventory.models.aggregates.floppy_disk_capture import FloppyDiskCapture
 
 
 class Location(db.Model):

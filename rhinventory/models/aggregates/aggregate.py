@@ -14,7 +14,7 @@ class Aggregate(db.Model):
     rhinventory_log = False
     
     listen_for_events_type = Any
-    listen_for_event_classes: frozenset[Any] = frozenset({})
+    listen_for_event_classes: frozenset[type[Any]] = frozenset({})
 
     id: Mapped[UUID] = mapped_column(primary_key=True)
     last_event_id: Mapped[UUID | None] = mapped_column()
