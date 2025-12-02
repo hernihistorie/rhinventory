@@ -38,11 +38,7 @@
         <a href="{{ asset.url }}">
             {{- icon("save") -}}
         </a>
-    {% else %}
-        {{ icon("save", faded=True, tooltip="No dumps") }}
-    {% endif %}
-    </span>
-    <span>
+    {% elif asset.floppy_disk_captures %}
         {% for capture in asset.floppy_disk_captures %}
             <a
                 {# href="{{ url_for('floppy_disk_capture.details_view', id=capture.id) }}" #}
@@ -61,6 +57,9 @@
                 {{- icon("floppy-disk") -}}
             </a>
         {% endfor %}
+    {% else %}
+        {{ icon("save", faded=True, tooltip="No dumps") }}
+    {% endif %}
     </span>
     
     <span>
