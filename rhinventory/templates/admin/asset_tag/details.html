@@ -1,0 +1,29 @@
+{% extends 'admin/model/details.html' %}
+
+{% block details_table %}
+    {{ super() }}
+
+    <h3>Assets with this tag</h3>
+    {% if model.assets %}
+        <p>
+            <a href="{{ get_url('asset.index_view', flt1_45=model.name) }}" class="btn btn-primary">
+                View all {{ model.assets | length }} asset(s) with this tag
+            </a>
+        </p>
+        {% set display_count = 30 %}
+        <ul>
+            {% for asset in model.assets[:display_count] %}
+                <li>
+                    <a href="{{ get_url('asset.details_view', id=asset.id) }}">
+                        HH{{ asset.id }} {{ asset.name }}
+                    </a>
+                </li>
+            {% endfor %}
+            {% if model.assets | length > display_count %}
+                <li>... and {{ model.assets | length - display_count }} more</li>
+            {% endif %}
+        </ul>
+    {% else %}
+        <p>No assets have this tag.</p>
+    {% endif %}
+{% endblock %}

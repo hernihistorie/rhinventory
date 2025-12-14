@@ -102,6 +102,7 @@ def add_admin_views(admin):
     class AssetTagView(CustomModelView):
         column_list = ('id', 'name', 'description', 'is_featured', 'is_collection', 'is_project', 'is_post', 'order')
         column_default_sort = ('id', True)
+        details_template = 'admin/asset_tag/details.html'
 
     admin.add_view(AssetTagView(AssetTag, db.session, category="Misc"))
 
