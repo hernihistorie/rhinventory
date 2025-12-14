@@ -342,6 +342,7 @@
                     <form method="POST" enctype="multipart/form-data" action="{{ url_for('file.upload_view', id=model.id) }}" style="display: inline;">
                         {{ file_form.files }}
                         {{ file_form.category }}
+                        {{ file_form.privacy }}
                         <input type="submit" value="Submit" class="btn btn-primary" style="vertical-align: top;">
                     </form>
                 </div>

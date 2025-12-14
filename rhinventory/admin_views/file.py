@@ -22,6 +22,7 @@ from rhinventory.files.utils import get_dropzone_path, get_dropzone_files
 from rhinventory.forms import DropzoneFileForm, FileForm, FileAssignForm
 from rhinventory.admin_views.model_view import CustomModelView
 from rhinventory.models.file import FileStore
+from rhinventory.models.enums import Privacy
 from rhinventory.util import parse_hh_code, require_write_access
 
 
@@ -32,13 +33,14 @@ class DuplicateFile(RuntimeError):
 
 MAX_SIZE_FOR_HASH_GENERATION = 100 * 1024 * 1024
 
-def upload_file(file: FileStorage | Path, category: int | FileCategory=0, batch_number: int | None=None) -> File:
+def upload_file(file: FileStorage | Path, category: int | FileCategory=0, batch_number: int | None=None, privacy: int | Privacy=Privacy.private_implicit) -> File:
     """
     Handles file upload, check for duplicacy and save the file, but doesn't commit File object data to database.
 
     :param file: File handler.
     :param category: category of file, int from FileCategory
     :param batch_number:
+    :param privacy: privacy setting, int from Privacy enum, defaults to private_implicit
     :return: object of type File, not committed to database.
     """
     if isinstance(file, Path):
@@ -98,10 +100,13 @@ def upload_file(file: FileStorage | Path, category: int | FileCategory=0, batch_
     if category == FileCategory.unknown and filename.split('.')[-1].lower() in ('jpg', 'jpeg', 'png', 'gif'):
         category = FileCategory.image
 
+    if isinstance(privacy, int):
+        privacy = Privacy(privacy)
+
     return File(filepath=filepath, storage=file_store, primary=False, category=category,
                    md5=md5, batch_number=batch_number,
                    upload_date=datetime.datetime.now(), user_id=current_user.id,
-                   size=size)
+                   size=size, privacy=privacy)
 
 class FileView(CustomModelView):
     can_view_details = True
@@ -186,6 +191,9 @@ class FileView(CustomModelView):
 
         form = FileForm(request.form, batch_number=batch_number)
         dropzone_form = DropzoneFileForm(request.form, batch_number=batch_number)
+        if request.method == 'POST' and not form.validate():
+            if request.form.get('xhr', False):
+                return jsonify(error=True, form_errors=form.errors), 400
         if request.method == 'POST' and form.validate():
             files = []
             image_files = []
@@ -200,7 +208,8 @@ class FileView(CustomModelView):
             for i, file in enumerate(file_list):
 
                 try:
-                    file_db  = upload_file(file, form.category.data, form.batch_number.data)
+                    print(form.privacy.data)
+                    file_db  = upload_file(file, form.category.data, form.batch_number.data, form.privacy.data)
                 except DuplicateFile as e:
                     duplicate_files.append((file.filename, e.matching_file))
                     continue
@@ -291,7 +300,7 @@ class FileView(CustomModelView):
             duplicate_files = []
             for filepath in dropzone_files:
                 try:
-                    file: File = upload_file(file=filepath, batch_number=batch_number)
+                    file: File = upload_file(file=filepath, batch_number=batch_number, privacy=dropzone_form.privacy.data)
                 except DuplicateFile as e:
                     duplicate_files.append((filepath.name, e.matching_file))
                     continue

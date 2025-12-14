@@ -115,6 +115,7 @@
                             formData.append('files', file)
                         })
                         formData.append('category', formElem.querySelector('#category').value)
+                        formData.append('privacy', formElem.querySelector('#privacy').value)
                         formData.append('auto_assign', formElem.querySelector('#auto_assign').checked)
                         formData.append('batch_number', formElem.querySelector('#batch_number').value)
                         formData.append('xhr', true)
@@ -132,6 +133,24 @@
                                 document.querySelector("#progressText").innerHTML = uploadedCount + "/" + totalFileCount
 
                                 uploadSlice()
+                            } else if (xhr.status === 400) {
+                                fail = true;
+                                try {
+                                    response = JSON.parse(xhr.responseText);
+                                    if (response.error && response.form_errors) {
+                                        let errorMsg = Object.entries(response.form_errors)
+                                            .map(([field, errors]) => field + ": " + errors.join(", "))
+                                            .join("; ");
+                                        document.querySelector("#progressText").innerHTML = "Form validation error: " + errorMsg;
+                                    } else {
+                                        document.querySelector("#progressText").innerHTML = "ERROR: " + xhr.status;
+                                    }
+                                } catch (e) {
+                                    document.querySelector("#progressText").innerHTML = "ERROR: " + xhr.status;
+                                }
+                                document.querySelector("#progressText").classList.add('text-error');
+                                formElem.querySelector('input[type=submit]').disabled = false;
+                                window.onbeforeunload = null;
                             } else {
                                 fail = true;
                                 document.querySelector("#progressText").innerHTML = uploadedCount + "/" + totalFileCount + " - ERROR: " + xhr.status;
