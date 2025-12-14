@@ -35,7 +35,6 @@ from rhinventory.models.log import LogEvent, log
 from rhinventory.forms import FileForm
 from rhinventory.models.asset import AssetCategory
 from rhinventory.models.asset_attributes import AssetTag, Company
-from rhinventory.models.events import EventSession
 from rhinventory.models.aggregates.floppy_disk_capture import FloppyDiskCapture
 from rhinventory.events.floppy_disk_captures import FloppyDiskCaptureDisassociated
 from rhinventory.event_store.event_store import event_store
@@ -807,22 +806,13 @@ class AssetView(CustomModelView):
             flash("Floppy disk capture not found.", "danger")
             return redirect(request.referrer or url_for('.index_view'))
         
-        # Create event session
-        event_session = EventSession()
-        event_session.application_name = "rhinventory"
-        event_session.namespace = "rhinventory"
-        event_session.internal = True
-        event_session.user_id = current_user.id
-        db.session.add(event_session)
-        db.session.commit()
-        
         # Emit the event
         disassociation_event = FloppyDiskCaptureDisassociated(
             floppy_disk_capture_id=capture_uuid,
             reason_given=reason_given
         )
-        event_store.ingest(event=disassociation_event, event_session=event_session)
-        db.session.commit()
+        with event_store.event_session_for_current_user() as event_session:
+            event_session.ingest(disassociation_event)
         
         flash("Floppy disk capture disassociated successfully.", "success")
         

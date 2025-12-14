@@ -9,7 +9,6 @@ from rhinventory.extensions import db, admin, simple_eval
 from rhinventory.db import DBEvent, LogItem, Medium, Location, Organization, log, LogItem, Asset, User, Transaction, File, Party
 from rhinventory.models.aggregates.floppy_disk_capture import FloppyDiskCapture
 from rhinventory.models.asset_attributes import AssetTag, Company, CompanyAlias, Packaging
-from rhinventory.models.events import EventSession
 from rhinventory.admin_views import CustomModelView, AdminModelView, AssetView, TransactionView, FileView
 from rhinventory.admin_views.floppy_disk_capture import FloppyDiskCaptureView
 from rhinventory.models.label_printer import LabelPrinter
@@ -67,19 +66,11 @@ class EventView(CustomModelView):
             flash("You don't have permission to create test events.", "danger")
             return redirect(self.get_url('.index_view'))
 
-        # TODO create a session automatically while a user is browsing?
-        event_session = EventSession()
-        event_session.application_name = "rhinventory"
-        event_session.namespace = "rhinventory"
-        event_session.internal = True
-        event_session.user_id = current_user.id
-        db.session.add(event_session)
-        db.session.commit()
-
         test_data = f"Test event created by {current_user.username or current_user.github_login} at {datetime.datetime.now()}"
         event = TestingEvent(test_data=test_data)
-        event_store.ingest(event=event, event_session=event_session)
-        db.session.commit()
+        
+        with event_store.event_session_for_current_user() as event_session:
+            event_session.ingest(event)
 
         flash(f"Test event created successfully with ID: {event.event_id}", "success")
         return redirect(self.get_url('.details_view', id=event.event_id))
