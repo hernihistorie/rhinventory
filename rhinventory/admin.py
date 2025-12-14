@@ -99,7 +99,11 @@ def add_admin_views(admin):
 
     admin.add_view(CustomModelView(Packaging, db.session, category="Misc"))
 
-    admin.add_view(CustomModelView(AssetTag, db.session, category="Misc"))
+    class AssetTagView(CustomModelView):
+        column_list = ('id', 'name', 'description', 'is_featured', 'is_collection', 'is_project', 'is_post', 'order')
+        column_default_sort = ('id', True)
+
+    admin.add_view(AssetTagView(AssetTag, db.session, category="Misc"))
 
     admin.add_view(CustomModelView(Party, db.session, category="People"))
 
