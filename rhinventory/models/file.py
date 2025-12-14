@@ -34,6 +34,7 @@ class FileCategory(enum.Enum):
     cover_page  = 13
     index_page  = 14
     logo        = 15
+    screenshot  = 16
 
     dump        = 20
     dump_metadata = 21
@@ -50,7 +51,8 @@ class FileCategory(enum.Enum):
     collection  = 90
 
 IMAGE_CATEGORIES = [FileCategory.image, FileCategory.photo, FileCategory.scan,
-                    FileCategory.cover_page, FileCategory.index_page, FileCategory.logo]
+                    FileCategory.cover_page, FileCategory.index_page, FileCategory.logo,
+                    FileCategory.screenshot]
 
 def get_next_file_batch_number():
     largest_batch_file = db.session.query(File).filter(File.batch_number != None) \
