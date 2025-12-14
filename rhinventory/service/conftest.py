@@ -4,7 +4,7 @@ from pytest import fixture
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-SQLALCHEMY_TEST_DATABASE_URL = environ["TEST_DATABASE_URL"]
+SQLALCHEMY_TEST_DATABASE_URL = environ.get("TEST_DATABASE_URL")
 
 
 @fixture(scope="session")

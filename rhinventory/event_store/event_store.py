@@ -1,7 +1,10 @@
+from contextlib import contextmanager
 from enum import Enum
 import json
-from typing import Iterable, Literal
+from typing import Iterable, Iterator
 import msgspec
+
+from flask_login import current_user
 
 from hhfloppy.event.events import HHFLOPPY_EVENT_CLASS_UNION, event_decoder as hhfloppy_event_decoder
 
@@ -113,5 +116,49 @@ class EventStore():
         self._apply_event_to_aggregates(event=event, aggregate_classes=self.aggregate_classes)
 
         db.session.commit()
+
+    @contextmanager
+    def event_session_for_current_user(
+        self,
+        application_name: str = "rhinventory",
+        namespace: str = "rhinventory"
+    ) -> Iterator["EventSessionContext"]:
+        """Create an event session context manager for the current user.
+        
+        Usage:
+            with event_store.event_session_for_current_user() as event_session:
+                event_session.ingest(some_event)
+        """
+        event_session = EventSession()
+        event_session.application_name = application_name
+        event_session.namespace = namespace
+        event_session.internal = True
+        event_session.user_id = current_user.id
+        db.session.add(event_session)
+        db.session.commit()
+        
+        context = EventSessionContext(event_store=self, event_session=event_session)
+        try:
+            yield context
+        finally:
+            event_session.closed = True
+            db.session.commit()
+
+
+class EventSessionContext:
+    """Context wrapper for EventSession that provides an ingest method."""
+    
+    def __init__(self, event_store: EventStore, event_session: EventSession) -> None:
+        self._event_store = event_store
+        self._event_session = event_session
+    
+    @property
+    def event_session(self) -> EventSession:
+        return self._event_session
+    
+    def ingest(self, event: EVENT_CLASS_UNION) -> None:
+        """Ingest an event using this session."""
+        self._event_store.ingest(event=event, event_session=self._event_session)
+
 
 event_store = EventStore()

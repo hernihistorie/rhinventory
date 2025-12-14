@@ -1,0 +1,53 @@
+{% extends 'admin/model/details.html' %}
+{% from '_macros.html' import icon %}
+
+{% block details_table %}
+    <h3>Floppy disk capture {{ model.id }}</h3>
+
+    {% if model.asset_id %}
+    <p>
+        {{ icon("floppy-disk") }} Assigned to asset: 
+        <a href="{{ url_for('asset.details_view', id=model.asset_id) }}">
+            <strong>HH{{ model.asset_id }}
+                {% if model.asset %}
+                    {{ model.asset.name }}
+                {% endif %}
+            </strong>
+        </a>
+    </p>
+    {% else %}
+    <p>
+        {{ icon("link-slash") }} <em>Not assigned to any asset</em>
+    </p>
+    {% endif %}
+
+    {% if model.filename_incorrect %}
+        <div class="alert alert-warning">
+            <strong>{{ icon("exclamation-triangle") }} Filename mismatch:</strong> 
+            The directory name suggests asset ID <strong>{{ model.asset_id_from_filename }}</strong>, 
+            but this capture has been reassigned to asset <strong>{{ model.asset_id }}</strong>.
+        </div>
+    {% endif %}
+
+    {% if current_user.is_authenticated and current_user.write_access %}
+    <div class="well">
+        <h4>{{ icon("link") }} Reassign to different asset</h4>
+        <form
+            action="{{ url_for('floppydiskcapture.reassign_floppy_disk_capture') }}"
+            method="post"
+            class="form-inline"
+        >
+            <input type="hidden" name="capture_id" value="{{ model.id }}">
+            <label for="new_asset_id">New Asset ID:</label>
+            <input type="number" class="input-small" id="new_asset_id" name="new_asset_id" required>
+            <label for="reason_given">Reason:</label>
+            <input type="text" class="input-medium" id="reason_given" name="reason_given" placeholder="Optional reason...">
+            <button type="submit" class="btn btn-primary">
+                {{ icon("arrow-right") }} Reassign
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    {{ super() }}
+{% endblock %}

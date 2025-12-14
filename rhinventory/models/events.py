@@ -30,6 +30,7 @@ class EventSession(db.Model):
     application_name: Mapped[str | None] = mapped_column()
     namespace: Mapped[str] = mapped_column()
     internal: Mapped[bool] = mapped_column(default=False)
+    closed: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime | None] = mapped_column(default=datetime.now)
     push_key_id: Mapped[int | None] = mapped_column(ForeignKey('push_keys.id'))
     user_id: Mapped[int | None] = mapped_column(ForeignKey('users.id'))

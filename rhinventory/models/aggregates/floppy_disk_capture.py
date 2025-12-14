@@ -1,23 +1,32 @@
 from datetime import datetime
+from enum import Enum
 from typing import Union
 from uuid import UUID
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import JSONB, ENUM
 from sqlalchemy.orm import Mapped, Relationship, mapped_column, relationship
 
 from hhfloppy.event.events import FloppyDiskCaptureDirectoryConverted, FloppyDiskCaptureSummarized
 from sqlalchemy_utils.expressions import ColumnElement
 
 from rhinventory.db import Asset
-from rhinventory.events.floppy_disk_captures import FloppyDiskCaptureDisassociated
+from rhinventory.events.floppy_disk_captures import FloppyDiskCaptureDisassociated, FloppyDiskCaptureReassigned
 from rhinventory.models.aggregates.aggregate import Aggregate
+
+
+class AssetIdSource(Enum):
+    FILENAME = "filename"
+    REASSIGNMENT = "reassignment"
 
 class FloppyDiskCapture(Aggregate):
     __tablename__ = 'agg_floppy_disk_captures'
-    listen_for_events_type = Union[FloppyDiskCaptureDirectoryConverted, FloppyDiskCaptureSummarized, FloppyDiskCaptureDisassociated]
-    listen_for_event_classes = frozenset({FloppyDiskCaptureDirectoryConverted, FloppyDiskCaptureSummarized, FloppyDiskCaptureDisassociated})
+    listen_for_events_type = Union[FloppyDiskCaptureDirectoryConverted, FloppyDiskCaptureSummarized, FloppyDiskCaptureDisassociated, FloppyDiskCaptureReassigned]
+    listen_for_event_classes = frozenset({FloppyDiskCaptureDirectoryConverted, FloppyDiskCaptureSummarized, FloppyDiskCaptureDisassociated, FloppyDiskCaptureReassigned})
 
     latest_pyhxcfe_run_id: Mapped[UUID | None] = mapped_column()
     asset_id: Mapped[int | None] = mapped_column() # don't use foregin key because we don't want a hard constraint
+    asset_id_source: Mapped[AssetIdSource | None] = mapped_column('asset_id_source', ENUM(AssetIdSource), default=AssetIdSource.FILENAME)
+    asset_id_from_filename: Mapped[int | None] = mapped_column()  # stores the original asset ID from filename
+    filename_incorrect: Mapped[bool] = mapped_column(default=False)  # true if filename doesn't match reassigned asset ID
     disassociated: Mapped[bool] = mapped_column(default=False)
     dumped_at: Mapped[datetime | None] = mapped_column()
     operator_name: Mapped[str | None] = mapped_column()
@@ -47,6 +56,8 @@ class FloppyDiskCapture(Aggregate):
                 return cls.id == event.floppy_disk_capture_id
             case FloppyDiskCaptureDisassociated():
                 return cls.id == event.floppy_disk_capture_id
+            case FloppyDiskCaptureReassigned():
+                return cls.id == event.floppy_disk_capture_id
             case _:
                 raise ValueError(f"Unsupported event type: {type(event)}")
 
@@ -67,8 +78,16 @@ class FloppyDiskCapture(Aggregate):
                 self.dumped_at = datetime.strptime(event.name_info.datetime, "%Y-%m-%d_%H-%M-%S")
                 self.operator_name = event.name_info.operator
                 self.drive_name = event.name_info.drive
-                if event.name_info.hh_asset_id and not self.disassociated:
+                # Always store the asset ID from filename for reference
+                if event.name_info.hh_asset_id:
+                    self.asset_id_from_filename = event.name_info.hh_asset_id
+                # Only set asset_id from filename if not disassociated and not reassigned
+                if event.name_info.hh_asset_id and not self.disassociated and self.asset_id_source != AssetIdSource.REASSIGNMENT:
                     self.asset_id = event.name_info.hh_asset_id
+                    self.asset_id_source = AssetIdSource.FILENAME
+                # Check if filename doesn't match the reassigned asset ID
+                if self.asset_id_source == AssetIdSource.REASSIGNMENT and event.name_info.hh_asset_id:
+                    self.filename_incorrect = (event.name_info.hh_asset_id != self.asset_id)
                 self.number_of_tracks = event.xml_info.number_of_tracks
                 self.number_of_sides = event.xml_info.number_of_sides
                 self.error_count = event.imd_info.error_count
@@ -77,5 +96,12 @@ class FloppyDiskCapture(Aggregate):
             case FloppyDiskCaptureDisassociated():
                 self.asset_id = None
                 self.disassociated = True
+            case FloppyDiskCaptureReassigned():
+                self.asset_id = event.new_asset_id
+                self.asset_id_source = AssetIdSource.REASSIGNMENT
+                self.disassociated = False
+                # Mark filename as incorrect if it doesn't match the new asset ID
+                if self.asset_id_from_filename is not None and self.asset_id_from_filename != event.new_asset_id:
+                    self.filename_incorrect = True
             case _:
                 raise ValueError(f"Unsupported event type: {type(event)}")

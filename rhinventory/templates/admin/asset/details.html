@@ -404,6 +404,7 @@
                 <th>Capture date</th>
                 <th>Operator</th>
                 <th>Drive</th>
+                <th>Directory</th>
                 <th>Converted</th>
                 <th>Status</th>
                 <th>File link</th>
@@ -413,9 +414,23 @@
             </tr>
         {% for capture in asset.floppy_disk_captures %}
             <tr>
-                <td>{{ capture.dumped_at }}</td>
+                <td>
+                    <a href="{{ url_for('floppydiskcapture.details_view', id=capture.id) }}">
+                        {{ capture.dumped_at }}
+                    </a>
+                </td>
                 <td>{{ capture.operator_name }}</td>
                 <td>{{ capture.drive_name }}</td>
+                <td>
+                    {% if capture.filename_incorrect %}
+                        <span 
+                            style="text-decoration: underline wavy orange; text-underline-offset: 3px;"
+                            title="The filename doesn't match the asset ID. This capture was reassigned."
+                        >{{ capture.directory_name }}</span>
+                    {% else %}
+                        {{ capture.directory_name }}
+                    {% endif %}
+                </td>
                 <td>{{ capture.converted }}</td>
                 <td
                     {% if capture.has_errors or capture.error_count and capture.error_count > 0 %}

@@ -7,9 +7,11 @@ from flask_admin import Admin, AdminIndexView, expose
 
 from rhinventory.extensions import db, admin, simple_eval
 from rhinventory.db import DBEvent, LogItem, Medium, Location, Organization, log, LogItem, Asset, User, Transaction, File, Party
+from rhinventory.models.aggregates.floppy_disk_capture import FloppyDiskCapture
 from rhinventory.models.asset_attributes import AssetTag, Company, CompanyAlias, Packaging
 from rhinventory.models.events import EventSession
 from rhinventory.admin_views import CustomModelView, AdminModelView, AssetView, TransactionView, FileView
+from rhinventory.admin_views.floppy_disk_capture import FloppyDiskCaptureView
 from rhinventory.models.label_printer import LabelPrinter
 from rhinventory.admin_views.magdb import add_magdb_views
 from rhinventory.events.event import TestingEvent
@@ -105,6 +107,8 @@ def add_admin_views(admin):
         details_template = 'admin/asset_tag/details.html'
 
     admin.add_view(AssetTagView(AssetTag, db.session, category="Misc"))
+
+    admin.add_view(FloppyDiskCaptureView(FloppyDiskCapture, db.session, category="Misc"))
 
     admin.add_view(CustomModelView(Party, db.session, category="People"))
 
