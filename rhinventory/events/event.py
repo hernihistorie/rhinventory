@@ -18,7 +18,10 @@ class Event(TaggedStruct, kw_only=True, frozen=True):
 
 
 class TestingEvent(Event, kw_only=True, frozen=True):
+    """A simple test event for testing purposes."""
     __test__ = False # prevent pytest from trying to collect this class
     test_id: uuid.UUID = msgspec.field(default_factory=uuid.uuid7)
+    """A provided id with no specific meaning."""
     test_data: str
+    """Some test data."""
 

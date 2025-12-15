@@ -34,7 +34,10 @@ class EventStore():
         pass
 
     @staticmethod
-    def decode(event_data: bytes, namespace: EventNamespaceName) -> EVENT_CLASS_UNION:
+    def decode(event_data: bytes | dict, namespace: EventNamespaceName) -> EVENT_CLASS_UNION:
+        if isinstance(event_data, dict):
+            event_data = msgspec.json.encode(event_data)
+        
         match namespace:
             case EventNamespaceName.RHINVENTORY:
                 event = rhinventory_event_decoder.decode(event_data)

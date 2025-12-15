@@ -5,6 +5,7 @@ from flask_login import current_user, login_required
 from flask_admin import Admin, AdminIndexView, expose
 #from flask_admin.form.upload import FileUploadField
 
+from rhinventory.admin_views.event import EventView
 from rhinventory.extensions import db, admin, simple_eval
 from rhinventory.db import DBEvent, LogItem, Medium, Location, Organization, log, LogItem, Asset, User, Transaction, File, Party
 from rhinventory.models.aggregates.floppy_disk_capture import FloppyDiskCapture
@@ -47,33 +48,6 @@ class UserView(AdminModelView):
 
     def is_accessible(self):
         return current_user.is_authenticated and current_user.admin
-
-class EventView(CustomModelView):
-    column_list = ('id', 'namespace', 'class_name', 'timestamp', 'ingested_at', 'event_session_id', 'event_session.application_name', 'event_session.user', 'event_session.push_key.authorized_by_user')
-    column_details_list = ('id', 'namespace', 'class_name', 'timestamp', 'ingested_at', 'event_session_id', 'event_session.application_name', 'event_session.user', 'event_session.push_key.authorized_by_user', 'data')
-    column_default_sort = ('ingested_at', False)
-    can_create = False
-    can_edit = False
-    can_delete = False
-    can_view_details = True
-
-    details_template = 'admin/event/details.html'
-    list_template = 'admin/event/list.html'
-
-    @expose('/create_test_event/', methods=['POST'])
-    def create_test_event(self):
-        if not current_user.is_authenticated or not current_user.write_access:
-            flash("You don't have permission to create test events.", "danger")
-            return redirect(self.get_url('.index_view'))
-
-        test_data = f"Test event created by {current_user.username or current_user.github_login} at {datetime.datetime.now()}"
-        event = TestingEvent(test_data=test_data)
-        
-        with event_store.event_session_for_current_user() as event_session:
-            event_session.ingest(event)
-
-        flash(f"Test event created successfully with ID: {event.event_id}", "success")
-        return redirect(self.get_url('.details_view', id=event.event_id))
 
 def add_admin_views(admin):
     admin.add_view(AssetView(Asset, db.session))

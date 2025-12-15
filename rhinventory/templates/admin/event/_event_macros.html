@@ -1,0 +1,93 @@
+{# Macros for pretty-printing event objects (msgspec Structs) as tables #}
+
+{% from '_macros.html' import icon %}
+
+{% macro render_value(value, depth=0, inline=False) -%}
+    {%- if is_msgspec_struct(value) -%}
+        {{- render_struct_table(value, depth) -}}
+    {%- elif value is mapping -%}
+        {{- render_dict_table(value, depth) -}}
+    {%- elif value is iterable and value is not string -%}
+        {{- render_list(value, depth) -}}
+    {%- elif value is string -%}
+        <span class="event-value event-value-string">{% if inline %}"{{ value }}"{% else %}{{ value }}{% endif %}</span>
+    {%- elif value is number -%}
+        <span class="event-value event-value-number">{{ value }}</span>
+    {%- else %}
+        <span class="event-value">{{ value }}</span>
+    {%- endif -%}
+{%- endmacro %}
+
+{% macro render_struct_table(obj, depth=0) %}
+    {% set type_name = get_type_name(obj) %}
+    {% set type_doc = get_type_doc(obj) %}
+    {% set fields = get_struct_fields(obj) %}
+    <table class="event-table {% if depth > 0 %}event-table-nested{% endif %}">
+        <thead>
+            <tr>
+                <th colspan="2" class="event-type-header" {% if type_doc %}title="{{ type_doc }}"{% endif %}>
+                    {{ type_name }}
+                    {% if type_doc %}<span class="has-tooltip">{{ icon("info-circle") }}</span>{% endif %}
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for field_name in fields %}
+                {% set field_value = get_struct_field_value(obj, field_name) %}
+                <tr>
+                    <td class="event-key" {% if field_doc %}title="{{ field_doc }}"{% endif %}>
+                        {{ field_name }}
+                    </td>
+                    <td class="event-value-cell">
+                        {% if field_value is none %}
+                            <span class="event-null">null</span>
+                        {% else %}
+                            {{ render_value(field_value, depth + 1) }}
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endmacro %}
+
+{% macro render_dict_table(dict_obj, depth=0) %}
+    <table class="event-table {% if depth > 0 %}event-table-nested{% endif %}">
+        <tbody>
+            {% for key, value in dict_obj.items() %}
+                <tr>
+                    <td class="event-key">{{ key }}</td>
+                    <td class="event-value-cell">
+                        {% if value is none %}
+                            <span class="event-null">null</span>
+                        {% else %}
+                            {{ render_value(value, depth + 1) }}
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endmacro %}
+
+{% macro render_list(items, depth=0) %}
+    {% set items_list = items | list %}
+    {% if items_list|length == 0 %}
+        <span class="event-empty-list">[]</span>
+    {% elif is_msgspec_struct(items_list[0]) or items_list[0] is mapping %}
+        {# List of objects - render as expandable list #}
+        <div class="event-list">
+            {% for item in items_list %}
+                <div class="event-list-item">
+                    <span class="event-list-index">[{{ loop.index0 }}]</span>
+                    {{ render_value(item, depth + 1) }}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        {# Simple list - render inline #}
+        <span class="event-simple-list">[{% for item in items_list -%}
+            {{- render_value(item, depth + 1, inline=True) -}}
+        {%- if not loop.last %}, {% endif %}{% endfor %}]</span>
+    {% endif %}
+{% endmacro %}

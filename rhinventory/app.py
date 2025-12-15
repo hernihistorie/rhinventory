@@ -9,8 +9,10 @@ from flask_login import current_user, login_required, login_user, logout_user
 from flask_bootstrap import Bootstrap5
 import flask_sqlalchemy.record_queries
 import markdown
+import msgspec
 from werkzeug.wrappers.response import Response
 
+from rhinventory.event_store.event_store import EventNamespaceName, EventStore
 from rhinventory.extensions import db, admin, github, login_manager
 from rhinventory.admin import CustomIndexView, add_admin_views
 from rhinventory.db import User, Asset, Location, File, log
@@ -117,6 +119,38 @@ def create_app(config_object='rhinventory.config'):
     app.jinja_env.globals['Privacy'] = Privacy
     app.jinja_env.globals['visible_to_current_user'] = visible_to_current_user
     app.jinja_env.globals['str'] = str
+    app.jinja_env.globals['EventStore'] = EventStore
+    app.jinja_env.globals['EventNamespaceName'] = EventNamespaceName
+
+    # Helper functions for event pretty printing
+    def is_msgspec_struct(obj: typing.Any) -> bool:
+        """Check if an object is a msgspec Struct."""
+        return isinstance(obj, msgspec.Struct)
+
+    def get_struct_fields(obj: msgspec.Struct) -> tuple[str, ...]:
+        """Get the field names of a msgspec Struct."""
+        return obj.__struct_fields__
+
+    def get_struct_field_value(obj: msgspec.Struct, field_name: str) -> typing.Any:
+        """Get the value of a field from a msgspec Struct."""
+        return getattr(obj, field_name)
+
+    def get_type_name(obj: typing.Any) -> str:
+        """Get the type name of an object."""
+        return obj.__class__.__name__
+
+    def get_type_doc(obj: typing.Any) -> str | None:
+        """Get the docstring of an object's type."""
+        doc = obj.__class__.__doc__
+        if doc and doc.strip():
+            return doc.strip()
+        return None
+
+    app.jinja_env.globals['is_msgspec_struct'] = is_msgspec_struct
+    app.jinja_env.globals['get_struct_fields'] = get_struct_fields
+    app.jinja_env.globals['get_struct_field_value'] = get_struct_field_value
+    app.jinja_env.globals['get_type_name'] = get_type_name
+    app.jinja_env.globals['get_type_doc'] = get_type_doc
 
     @app.context_processor
     def inject_variables():

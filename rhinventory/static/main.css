@@ -373,3 +373,129 @@ hr {
   color: var(--color-primary);
   padding: 4px;
 }
+
+.event-table {
+    border-collapse: collapse;
+    margin: 8px 0;
+    font-size: 14px;
+    width: 100%;
+    /* max-width: 800px; */
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.event-table-nested {
+    margin: 4px 0;
+    box-shadow: none;
+    border: 1px solid #ddd;
+}
+
+.event-table thead th {
+    background: #f5f5f5;
+    padding: 2px 12px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #ddd;
+}
+
+.event-type-header {
+    background: #4a90d9 !important;
+    color: white;
+    font-family: monospace;
+}
+
+.event-table-nested .event-type-header {
+    background: #6ba3e0 !important;
+}
+
+.event-table tbody tr:nth-child(even) {
+    background: #fafafa;
+}
+
+.event-table tbody tr:hover {
+    background: #f0f7ff;
+}
+
+.event-table td {
+    padding: 2px 12px;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+}
+
+.event-key {
+    font-weight: 500;
+    color: #333;
+    font-family: monospace;
+    white-space: nowrap;
+    width: 1%;
+    background: #f9f9f9;
+}
+
+.event-value-cell {
+    word-break: break-word;
+}
+
+.event-value {
+    font-family: monospace;
+    color: #444;
+}
+
+.event-value-string {
+    color: #2e7d32;
+}
+
+.event-value-number {
+    color: #e64949;
+}
+
+.event-null {
+    color: #999;
+    font-style: italic;
+}
+
+.event-empty-list {
+    color: #999;
+    font-family: monospace;
+}
+
+.event-simple-list {
+    font-family: monospace;
+    color: #444;
+}
+
+.event-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.event-list-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.event-list-index {
+    font-family: monospace;
+    color: #888;
+    font-size: 12px;
+    margin-bottom: 2px;
+}
+
+.has-tooltip {
+    cursor: help;
+    font-size: 12px;
+    margin-left: 4px;
+}
+
+.event-details-header {
+    font-size: 20px;
+    margin: 20px;
+}
+
+.event-details-header h2 {
+    margin-bottom: 10px;
+}
+
+.event-object-container {
+    margin: 20px;
+}
