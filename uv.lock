@@ -484,8 +484,8 @@ wheels = [
 
 [[package]]
 name = "hhfloppy"
-version = "1.1.8"
-source = { git = "https://github.com/hernihistorie/hhfloppy#95425995ccb4fc5d9fad39a9bdc576d5606e690c" }
+version = "1.1.10"
+source = { git = "https://github.com/hernihistorie/hhfloppy#92ab5885ae326f4d6cd6dc028c5a4e0bab262586" }
 dependencies = [
     { name = "asyncssh" },
     { name = "blake3" },
@@ -494,6 +494,7 @@ dependencies = [
     { name = "msgspec" },
     { name = "requests-oauthlib" },
     { name = "tqdm" },
+    { name = "typer" },
     { name = "websockets" },
 ]
 

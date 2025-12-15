@@ -22,7 +22,7 @@ class EventNamespaceName(Enum):
 EVENT_CLASS_UNION = \
     RHINVENTORY_EVENT_CLASS_UNION | HHFLOPPY_EVENT_CLASS_UNION
 
-SUPPORTED_EVENT_VERSION = 7
+SUPPORTED_EVENT_VERSION = 8
 
 class UnsupportedEventVersion(Exception):
     pass
