@@ -48,6 +48,13 @@ uv run fastapi dev rhinventory/api/app.py
     alembic upgrade head
 ```
 
+## Bumping hhfloppy versions
+Have you updated events in hhfloppy?  Run this to update the dependency:
+
+```bash
+uv lock --upgrade-package hhfloppy && uv sync
+```
+
 ## How to deploy
 
 If there are no database migrations: run the script `./ops/deploy.sh`
