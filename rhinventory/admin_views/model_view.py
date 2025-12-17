@@ -19,6 +19,7 @@ class CustomModelView(ModelView):
     can_create = _write_access_acl
     can_delete = _write_access_acl
     can_view_details = True
+    column_default_sort = ('id', True)
 
     def is_accessible(self):
         return current_user.is_authenticated and current_user.read_access
@@ -29,6 +30,11 @@ class CustomModelView(ModelView):
     
     def get_save_return_url(self, model=None, is_created=False):
         return self.get_url('.details_view', id=model.id)
+
+class ReadOnlyCustomModelView(CustomModelView):
+    can_edit = False
+    can_create = False
+    can_delete = False
 
 class AdminModelView(CustomModelView):
     def is_accessible(self):

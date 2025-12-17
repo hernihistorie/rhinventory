@@ -25,3 +25,8 @@ class Aggregate(db.Model):
 
     def apply_event(self, event: listen_for_events_type) -> None:
         raise NotImplementedError()
+
+registered_aggregate_classes: list[type[Aggregate]] = []
+def registered_aggregate_class(cls: type[Aggregate]) -> type[Aggregate]:
+    registered_aggregate_classes.append(cls)
+    return cls

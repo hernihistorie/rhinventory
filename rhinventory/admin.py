@@ -9,12 +9,12 @@ from rhinventory.admin_views.event import EventView
 from rhinventory.extensions import db, admin, simple_eval
 from rhinventory.db import DBEvent, LogItem, Medium, Location, Organization, log, LogItem, Asset, User, Transaction, File, Party
 from rhinventory.models.aggregates.floppy_disk_capture import FloppyDiskCapture
+from rhinventory.models.aggregates.file import FileAggregate
 from rhinventory.models.asset_attributes import AssetTag, Company, CompanyAlias, Packaging
-from rhinventory.admin_views import CustomModelView, AdminModelView, AssetView, TransactionView, FileView
+from rhinventory.admin_views import CustomModelView, ReadOnlyCustomModelView, AdminModelView, AssetView, TransactionView, FileView
 from rhinventory.admin_views.floppy_disk_capture import FloppyDiskCaptureView
 from rhinventory.models.label_printer import LabelPrinter
 from rhinventory.admin_views.magdb import add_magdb_views
-from rhinventory.events.event import TestingEvent
 from rhinventory.event_store.event_store import event_store
 
 class CustomIndexView(AdminIndexView):
@@ -49,12 +49,14 @@ class UserView(AdminModelView):
     def is_accessible(self):
         return current_user.is_authenticated and current_user.admin
 
-def add_admin_views(admin):
+def add_admin_views(admin: Admin) -> None:
     admin.add_view(AssetView(Asset, db.session))
 
     admin.add_view(TransactionView(Transaction, db.session))
 
     admin.add_view(FileView(File, db.session))
+
+    admin.add_view(ReadOnlyCustomModelView(FileAggregate, db.session, category="Misc"))
 
     admin.add_view(CustomModelView(Location, db.session, category="Misc"))
 

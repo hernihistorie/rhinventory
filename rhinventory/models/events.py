@@ -38,7 +38,7 @@ class EventSession(db.Model):
     push_key: Mapped[PushKey | None] = relationship(back_populates="event_sessions")
     user: Mapped[User | None] = relationship()
 
-    events: Mapped[list["DBEvent"]] = relationship(back_populates="event_session")
+    events: Mapped[list["DBEvent"]] = relationship(back_populates="event_session", order_by="DBEvent.timestamp")
 
 class DBEvent(db.Model):
     __tablename__ = 'events'

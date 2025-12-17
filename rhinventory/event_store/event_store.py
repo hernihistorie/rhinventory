@@ -10,9 +10,7 @@ from hhfloppy.event.events import HHFLOPPY_EVENT_CLASS_UNION, event_decoder as h
 
 from rhinventory.db import db
 from rhinventory.events.events import RHINVENTORY_EVENT_CLASS_UNION, event_decoder as rhinventory_event_decoder
-from rhinventory.models.aggregates.aggregate import Aggregate
-from rhinventory.models.aggregates.floppy_disk_capture import FloppyDiskCapture
-from rhinventory.models.aggregates.test import TestAggregate
+from rhinventory.models.aggregates.aggregate import Aggregate, registered_aggregate_classes
 from rhinventory.models.events import DBEvent, EventSession, datetime
 
 class EventNamespaceName(Enum):
@@ -28,8 +26,6 @@ class UnsupportedEventVersion(Exception):
     pass
 
 class EventStore():
-    aggregate_classes: list[type[Aggregate]] = [TestAggregate, FloppyDiskCapture]
-
     def __init__(self) -> None:
         pass
 
@@ -38,20 +34,23 @@ class EventStore():
         if isinstance(event_data, dict):
             event_data = msgspec.json.encode(event_data)
         
-        match namespace:
-            case EventNamespaceName.RHINVENTORY:
-                event = rhinventory_event_decoder.decode(event_data)
-                assert isinstance(event, RHINVENTORY_EVENT_CLASS_UNION)
-                return event
-            case EventNamespaceName.HHFLOPPY:
-                event = hhfloppy_event_decoder.decode(event_data)
-                assert isinstance(event, HHFLOPPY_EVENT_CLASS_UNION)
-                return event
-            case _:
-                raise ValueError(f"Unsupported namespace: {namespace}")
+        try:
+            match namespace:
+                case EventNamespaceName.RHINVENTORY:
+                    event = rhinventory_event_decoder.decode(event_data)
+                    assert isinstance(event, RHINVENTORY_EVENT_CLASS_UNION)
+                    return event
+                case EventNamespaceName.HHFLOPPY:
+                    event = hhfloppy_event_decoder.decode(event_data)
+                    assert isinstance(event, HHFLOPPY_EVENT_CLASS_UNION)
+                    return event
+                case _:
+                    raise ValueError(f"Unsupported namespace: {namespace}")
+        except msgspec.DecodeError as e:
+            raise ValueError(f"Failed to decode event for namespace {namespace}: {e}\nFull event data: {event_data.decode('utf-8')}") from e
     
     def _apply_event_to_aggregates(self, event: EVENT_CLASS_UNION, aggregate_classes: list[type[Aggregate]]) -> None:
-        for aggregate_class in aggregate_classes:
+        for aggregate_class in registered_aggregate_classes:
             if type(event) in aggregate_class.listen_for_event_classes:
                 filter_expr = aggregate_class.filter_from_event(event)
                 if isinstance(filter_expr, bool) and filter_expr is False:
@@ -72,7 +71,7 @@ class EventStore():
 
     def rebuild_aggregates(self, aggregate_classes: Iterable[type[Aggregate]] | None = None) -> None:
         if aggregate_classes is None:
-            aggregate_classes = self.aggregate_classes
+            aggregate_classes = registered_aggregate_classes
         for aggregate_class in aggregate_classes:
             db.session.query(aggregate_class).delete()
 
@@ -116,7 +115,7 @@ class EventStore():
         db_event.data = json.loads(msgspec.json.encode(event))
         db.session.add(instance=db_event)
 
-        self._apply_event_to_aggregates(event=event, aggregate_classes=self.aggregate_classes)
+        self._apply_event_to_aggregates(event=event, aggregate_classes=registered_aggregate_classes)
 
         db.session.commit()
 

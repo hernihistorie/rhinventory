@@ -10,13 +10,14 @@ from sqlalchemy_utils.expressions import ColumnElement
 
 from rhinventory.db import Asset
 from rhinventory.events.floppy_disk_captures import FloppyDiskCaptureDisassociated, FloppyDiskCaptureReassigned
-from rhinventory.models.aggregates.aggregate import Aggregate
+from rhinventory.models.aggregates.aggregate import Aggregate, registered_aggregate_class
 
 
 class AssetIdSource(Enum):
     FILENAME = "filename"
     REASSIGNMENT = "reassignment"
 
+@registered_aggregate_class
 class FloppyDiskCapture(Aggregate):
     __tablename__ = 'agg_floppy_disk_captures'
     listen_for_events_type = Union[FloppyDiskCaptureDirectoryConverted, FloppyDiskCaptureSummarized, FloppyDiskCaptureDisassociated, FloppyDiskCaptureReassigned]

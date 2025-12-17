@@ -3,8 +3,9 @@ from uuid import uuid7
 from sqlalchemy.orm import Mapped, mapped_column
 
 from rhinventory.events.event import TestingEvent
-from rhinventory.models.aggregates.aggregate import Aggregate
+from rhinventory.models.aggregates.aggregate import Aggregate, registered_aggregate_class
 
+@registered_aggregate_class
 class TestAggregate(Aggregate):
     __test__ = False # prevent pytest from trying to collect this class
     __tablename__ = 'agg_test_aggregates'
