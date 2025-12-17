@@ -6,7 +6,7 @@ import msgspec
 
 from flask_login import current_user
 
-from hhfloppy.event.events import HHFLOPPY_EVENT_CLASS_UNION, event_decoder as hhfloppy_event_decoder
+from hhfloppy.event.events import HHFLOPPY_EVENT_CLASS_UNION, event_decoder as hhfloppy_event_decoder, EVENT_VERSION as HHFLOPPY_EVENT_VERSION
 
 from rhinventory.db import db
 from rhinventory.events.events import RHINVENTORY_EVENT_CLASS_UNION, event_decoder as rhinventory_event_decoder
@@ -22,7 +22,7 @@ class EventNamespaceName(Enum):
 EVENT_CLASS_UNION = \
     RHINVENTORY_EVENT_CLASS_UNION | HHFLOPPY_EVENT_CLASS_UNION
 
-SUPPORTED_EVENT_VERSION = 8
+supported_event_version = HHFLOPPY_EVENT_VERSION
 
 class UnsupportedEventVersion(Exception):
     pass
@@ -98,7 +98,7 @@ class EventStore():
                 f"Event namespace '{event.event_namespace}' does not match "
                 f"event push key namespace '{event_session.namespace}'"
             )
-        if event.event_version > SUPPORTED_EVENT_VERSION:
+        if event.event_version > supported_event_version:
             raise UnsupportedEventVersion(
                 f"Unsupported event version: {event.event_version}. "
             )
