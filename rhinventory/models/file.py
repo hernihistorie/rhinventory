@@ -2,17 +2,19 @@ import datetime
 import os
 import enum
 import subprocess
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from PIL.ImageFile import ImageFile
 from flask import current_app, url_for
-from sqlalchemy import BigInteger, Column, Integer, String, Text, \
+from sqlalchemy import BigInteger, Integer, String, Text, \
     DateTime, LargeBinary, ForeignKey, Enum, Boolean
-from sqlalchemy.orm import relationship, Mapped, mapped_column
+from sqlalchemy.orm import Relationship, relationship, Mapped, mapped_column
 from PIL import Image, ImageEnhance, ImageOps
 
 from rhinventory.models.enums import Privacy
 from rhinventory.models.user import User
+if TYPE_CHECKING:
+    from rhinventory.db import Asset, Transaction
 try:
     from pyzbar import pyzbar
 except Exception as ex:
@@ -67,33 +69,33 @@ def get_next_file_batch_number() -> int:
 
 class File(db.Model):
     __tablename__ = 'files'
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
     filepath: Mapped[str] = mapped_column(String, nullable=False)
     storage: Mapped[FileStore] = mapped_column(Enum(FileStore), nullable=False)
-    primary: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    has_thumbnail: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False) # _thumb
+    primary: Mapped[bool] = mapped_column(nullable=False, default=False)
+    has_thumbnail: Mapped[bool] = mapped_column(nullable=False, default=False) # _thumb
     category: Mapped[FileCategory | None] = mapped_column(Enum(FileCategory))
     title: Mapped[str | None] = mapped_column(String)
     comment: Mapped[str | None] = mapped_column(Text)
-    analyzed: Mapped[datetime.datetime | None] = mapped_column(DateTime) # last time it was scanned digitally for barcodes for example
-    upload_date: Mapped[datetime.datetime | None] = mapped_column(DateTime)
-    batch_number: Mapped[int] = mapped_column(Integer, default=0)
-    user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey('users.id'))
-    asset_id: Mapped[int | None] = mapped_column(Integer, ForeignKey('assets.id'))
-    transaction_id: Mapped[int | None] = mapped_column(Integer, ForeignKey('transactions.id'))
-    benchmark_id: Mapped[int | None] = mapped_column(Integer, ForeignKey('benchmark.id'))
+    analyzed: Mapped[datetime.datetime | None] = mapped_column() # last time it was scanned digitally for barcodes for example
+    upload_date: Mapped[datetime.datetime | None] = mapped_column()
+    batch_number: Mapped[int] = mapped_column(default=0)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey('users.id'))
+    asset_id: Mapped[int | None] = mapped_column(ForeignKey('assets.id'))
+    transaction_id: Mapped[int | None] = mapped_column(ForeignKey('transactions.id'))
+    benchmark_id: Mapped[int | None] = mapped_column(ForeignKey('benchmark.id'))
     md5: Mapped[bytes | None] = mapped_column(LargeBinary(16))
     original_md5: Mapped[bytes | None] = mapped_column(LargeBinary(16))
     sha256: Mapped[bytes | None] = mapped_column(LargeBinary(32))
     original_sha256: Mapped[bytes | None] = mapped_column(LargeBinary(32))
-    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_deleted: Mapped[bool] = mapped_column(default=False)
     size: Mapped[int] = mapped_column(BigInteger, nullable=True)
 
     privacy: Mapped[Privacy] = mapped_column(Enum(Privacy), default=Privacy.private_implicit, nullable=False)
 
-    user        = relationship(User, backref="files")
-    asset       = relationship("Asset", backref="files")
-    transaction = relationship("Transaction", backref="files")
+    user: Relationship[User | None] = relationship(User, backref="files")
+    asset: Relationship["Asset | None"] = relationship("Asset", backref="files")
+    transaction: Relationship["Transaction | None"] = relationship("Transaction", backref="files")
     #transaction = relationship("Benchmark", backref="files")
 
     # TODO constraint on only one asset/transaction/benchmark relationship

@@ -1,20 +1,20 @@
 from datetime import datetime
 import sys
 import enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
-from sqlalchemy import Column, Integer, Numeric, String, Text, \
-    DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint, \
+from sqlalchemy import Column, Integer, String, Text, \
+    DateTime, ForeignKey, Enum, \
         ARRAY, desc, or_
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import Relationship, relationship, backref, Mapped, mapped_column
+from sqlalchemy.orm import Relationship, relationship, Mapped, mapped_column
 
 from rhinventory.models.computers import HardwareType
 if TYPE_CHECKING:
-    from rhinventory.db import FloppyDiskCapture
+    from rhinventory.db import FloppyDiskCapture, Organization
 else:
     FloppyDiskCapture = "FloppyDiskCapture"
-from rhinventory.models.asset_attributes import AssetMedium, AssetPackaging, Company, Platform, Medium, Packaging, AssetTag, asset_tag_table, asset_platform_table, asset_company_table
+from rhinventory.models.asset_attributes import Company, Platform, Medium, Packaging, AssetTag, asset_tag_table, asset_platform_table, asset_company_table
 from rhinventory.models.enums import Privacy
 
 from rhinventory.models.file import File, IMAGE_CATEGORIES, FileCategory
@@ -84,7 +84,7 @@ ASSET_CATEGORY_PREFIXES: dict[AssetCategory, str] = {
     AssetCategory.packaging: "PKG",
     AssetCategory.location: "Loc"
 }
-EXPOSED_CATEGORY_NUMBERS = {
+EXPOSED_CATEGORY_NUMBERS: set[AssetCategory] = {
     AssetCategory.console, AssetCategory.computer,
     AssetCategory.computer_mouse, AssetCategory.keyboard,
     AssetCategory.television, AssetCategory.monitor,
@@ -92,62 +92,60 @@ EXPOSED_CATEGORY_NUMBERS = {
 
 class Asset(db.Model):
     __tablename__ = 'assets'
-    id          = Column(Integer, primary_key=True)
-    parent_id   = Column(Integer, ForeignKey(id))
-    name        = Column(String, nullable=False)
-    manufacturer = Column(String) # TODO remove
-    model       = Column(String)
-    custom_code = Column(Integer)
-    note        = Column(Text)
-    ''' Internal notes for this asset '''
-    description = Column(Text)
-    ''' Public description of the asset '''
-    serial      = Column(String)
 
-    product_codes = Column(ARRAY(String))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    parent_id: Mapped[int | None] = mapped_column(ForeignKey('assets.id'))
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    manufacturer: Mapped[str | None] = mapped_column(String)  # TODO remove
+    model: Mapped[str | None] = mapped_column(String)
+    custom_code: Mapped[int | None] = mapped_column()
+    note: Mapped[str | None] = mapped_column(Text)
+    description: Mapped[str | None] = mapped_column(Text)
+    serial: Mapped[str | None] = mapped_column(String)
 
-    condition   = Column(Integer, default=0, nullable=False)
-    functionality = Column(Integer, default=0, nullable=False)
-    status      = Column(Enum(AssetStatus), default=AssetStatus.unknown, nullable=False)
+    product_codes: Mapped[list[str] | None] = mapped_column(ARRAY(String))
 
-    category = Column(Enum(AssetCategory), default=AssetCategory.unknown, nullable=False)
+    condition: Mapped[int] = mapped_column(default=0, nullable=False)
+    functionality: Mapped[int] = mapped_column(default=0, nullable=False)
+    status: Mapped[AssetStatus] = mapped_column(Enum(AssetStatus), default=AssetStatus.unknown, nullable=False)
 
-    location_id = Column(Integer, ForeignKey('locations.id'))
-    location_id_new = Column(Integer, ForeignKey('assets.id'))
-    #medium_id   = Column(Integer, ForeignKey('media.id'))
-    hardware_type_id  = Column(Integer, ForeignKey('hardware_type.id'))
+    category: Mapped[AssetCategory] = mapped_column(Enum(AssetCategory), default=AssetCategory.unknown, nullable=False)
 
-    children    = relationship("Asset", foreign_keys=[parent_id], back_populates="parent")
-    parent = relationship("Asset", foreign_keys=[parent_id], remote_side=[id], back_populates="children")
+    location_id: Mapped[int | None] = mapped_column(ForeignKey('locations.id'))
+    location_id_new: Mapped[int | None] = mapped_column(ForeignKey('assets.id'))
+    #medium_id: Mapped[int | None] = mapped_column(Integer, ForeignKey('media.id'))
+    hardware_type_id: Mapped[int | None] = mapped_column( ForeignKey('hardware_type.id'))
 
-    contains    = relationship("Asset", foreign_keys=[location_id_new], back_populates="location")
-    location = relationship("Asset", foreign_keys=[location_id_new], remote_side=[id], back_populates="children")
-    #medium      = relationship("Medium", backref="assets")
-    hardware_type = relationship(HardwareType, backref="assets")
+    children: Relationship[list[Asset] | None] = relationship("Asset", foreign_keys=[parent_id], back_populates="parent")
+    parent: Relationship[Asset | None] = relationship("Asset", foreign_keys=[parent_id], remote_side=[id], back_populates="children")
 
-    transactions = relationship(Transaction, secondary='transaction_assets')
+    contains: Relationship[list[Asset] | None] = relationship("Asset", foreign_keys=[location_id_new], back_populates="location")
+    location: Relationship[Asset | None] = relationship("Asset", foreign_keys=[location_id_new], remote_side=[id], back_populates="children")
+    #medium = relationship("Medium", backref="assets")
+    hardware_type: Relationship[HardwareType | None] = relationship(HardwareType, backref="assets")
 
-    organization_id = Column(Integer, ForeignKey('organizations.id'), nullable=True)
-    organization = relationship("Organization")
+    transactions: Relationship[list[Transaction] | None] = relationship(Transaction, secondary='transaction_assets')
 
-    condition_new: AssetCondition = Column(Enum(AssetCondition), default=AssetCondition.unknown, nullable=False)  # type: ignore
-    
+    organization_id: Mapped[int | None] = mapped_column(Integer, ForeignKey('organizations.id'), nullable=True)
+    organization:  Relationship["Organization | None"] = relationship("Organization")
+
+    condition_new: Mapped[AssetCondition] = mapped_column(Enum(AssetCondition), default=AssetCondition.unknown, nullable=False)
+
     _privacy: Mapped[Privacy] = mapped_column('privacy', Enum(Privacy), default=Privacy.private_implicit, nullable=False)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
-    made_public_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    made_public_at: Mapped[datetime | None] = mapped_column(nullable=True)
     #producers = relationship(Company, backref="assets_produced")
     #distributors = relationship(Company, backref="assets_distributed")
 
-    platforms = relationship(Platform, secondary=asset_platform_table, backref="assets")
-    tags      = relationship(AssetTag, secondary=asset_tag_table, backref="assets")
-    mediums   = relationship(Medium, secondary='asset_mediums', backref="assets")
-    packaging = relationship(Packaging, secondary='asset_packaging', backref="assets")
-    companies = relationship(Company, secondary=asset_company_table, backref="assets")
-
+    platforms: Relationship[list[Platform] | None] = relationship(Platform, secondary=asset_platform_table, backref="assets")
+    tags: Relationship[list[AssetTag] | None] = relationship(AssetTag, secondary=asset_tag_table, backref="assets")
+    mediums: Relationship[list[Medium] | None] = relationship(Medium, secondary='asset_mediums', backref="assets")
+    packaging: Relationship[list[Packaging] | None] = relationship(Packaging, secondary='asset_packaging', backref="assets")
+    companies: Relationship[list[Company] | None] = relationship(Company, secondary=asset_company_table, backref="assets")
     floppy_disk_captures: Relationship[list[FloppyDiskCapture] | None] = relationship("FloppyDiskCapture", primaryjoin="foreign(FloppyDiskCapture.asset_id)==Asset.id")
 
-    LAST_USED_ATTRIBUTES = {
+    LAST_USED_ATTRIBUTES: dict[str, type] = {
         'platforms': Platform,
         'tags': AssetTag,
         'mediums': Medium,
@@ -155,11 +153,11 @@ class Asset(db.Model):
         'companies': Company,
     }
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.code} {self.name}"
 
     @property
-    def slug(self):
+    def slug(self) -> str:
         return slugify(self.name)
 
     @property
@@ -171,15 +169,15 @@ class Asset(db.Model):
             return flask.url_for('asset.details_view', id=self.id)
 
     @property
-    def CATEGORY_PREFIX(self):
+    def CATEGORY_PREFIX(self) -> str:
         return ASSET_CATEGORY_PREFIXES[self.category]
 
     @property
-    def CATEGORY_EXPOSE_NUMBER(self):
+    def CATEGORY_EXPOSE_NUMBER(self) -> bool:
         return self.category in EXPOSED_CATEGORY_NUMBERS
     
     @classmethod
-    def get_free_custom_code(cls, category: AssetCategory):
+    def get_free_custom_code(cls, category: AssetCategory) -> int:
         last_category_asset = db.session.query(cls) \
             .filter(cls.category == category, Asset.custom_code != None) \
             .order_by(desc(Asset.custom_code)).limit(1).scalar()
@@ -190,7 +188,7 @@ class Asset(db.Model):
         return 1
 
     @property
-    def code(self):
+    def code(self) -> str:
         string = ""
         if self.organization:
             string += f"{self.organization.shortname}: "
@@ -200,7 +198,7 @@ class Asset(db.Model):
         return string
 
     @property
-    def code_without_organization(self):
+    def code_without_organization(self) -> str:
         string = ""
         if self.CATEGORY_EXPOSE_NUMBER:
             string += f"{self.CATEGORY_PREFIX}{self.custom_code}"
@@ -254,8 +252,8 @@ class Asset(db.Model):
         return self.get_files_in_categories([FileCategory.document]).first()
 
     @property
-    def parents(self):
-        parents = []
+    def parents(self) -> list[Asset]:
+        parents: list[Asset] = []
         parent = self.parent
         while parent:
             parents.append(parent)
@@ -264,8 +262,8 @@ class Asset(db.Model):
         return list(reversed(parents))
 
     @property
-    def locations(self):
-        parents = []
+    def locations(self) -> list[Asset]:
+        parents: list[Asset] = []
         parent = self.location
         while parent:
             parents.append(parent)
