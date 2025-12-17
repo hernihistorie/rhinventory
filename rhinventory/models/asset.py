@@ -8,6 +8,8 @@ from sqlalchemy import Column, Integer, Numeric, String, Text, \
         ARRAY, desc, or_
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Relationship, relationship, backref, Mapped, mapped_column
+
+from rhinventory.models.computers import HardwareType
 if TYPE_CHECKING:
     from rhinventory.db import FloppyDiskCapture
 else:
@@ -121,7 +123,7 @@ class Asset(db.Model):
     contains    = relationship("Asset", foreign_keys=[location_id_new], back_populates="location")
     location = relationship("Asset", foreign_keys=[location_id_new], remote_side=[id], back_populates="children")
     #medium      = relationship("Medium", backref="assets")
-    hardware_type = relationship("HardwareType", backref="assets")
+    hardware_type = relationship(HardwareType, backref="assets")
 
     transactions = relationship(Transaction, secondary='transaction_assets')
 

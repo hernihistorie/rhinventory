@@ -1,11 +1,14 @@
+import datetime
 import os
 import enum
 import subprocess
+from typing import Literal
 
+from PIL.ImageFile import ImageFile
 from flask import current_app, url_for
-from sqlalchemy import BigInteger, Column, Integer, Numeric, String, Text, \
-    DateTime, LargeBinary, ForeignKey, Enum, Table, Index, Boolean, CheckConstraint
-from sqlalchemy.orm import relationship, backref, Mapped, mapped_column
+from sqlalchemy import BigInteger, Column, Integer, String, Text, \
+    DateTime, LargeBinary, ForeignKey, Enum, Boolean
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 from PIL import Image, ImageEnhance, ImageOps
 
 from rhinventory.models.enums import Privacy
@@ -17,7 +20,6 @@ except Exception as ex:
     pyzbar = None
 
 from rhinventory.extensions import db
-from rhinventory.models.computers import Benchmark
 
 
 class FileStore(enum.Enum):
@@ -54,7 +56,7 @@ IMAGE_CATEGORIES = [FileCategory.image, FileCategory.photo, FileCategory.scan,
                     FileCategory.cover_page, FileCategory.index_page, FileCategory.logo,
                     FileCategory.screenshot]
 
-def get_next_file_batch_number():
+def get_next_file_batch_number() -> int:
     largest_batch_file = db.session.query(File).filter(File.batch_number != None) \
         .order_by(File.batch_number.desc()).limit(1).scalar()
         
@@ -65,26 +67,26 @@ def get_next_file_batch_number():
 
 class File(db.Model):
     __tablename__ = 'files'
-    id          = Column(Integer, primary_key=True)
-    filepath    = Column(String, nullable=False)
-    storage     = Column(Enum(FileStore), nullable=False)
-    primary     = Column(Boolean, nullable=False, default=False)
-    has_thumbnail = Column(Boolean, nullable=False, default=False) # _thumb
-    category    = Column(Enum(FileCategory))
-    title       = Column(String)
-    comment     = Column(Text)
-    analyzed    = Column(DateTime) # last time it was scanned digitally for barcodes for example
-    upload_date = Column(DateTime)
-    batch_number = Column(Integer, default=0)
-    user_id     = Column(Integer, ForeignKey('users.id'))
-    asset_id    = Column(Integer, ForeignKey('assets.id'))
-    transaction_id = Column(Integer, ForeignKey('transactions.id'))
-    benchmark_id   = Column(Integer, ForeignKey('benchmark.id'))
-    md5         = Column(LargeBinary(16))
-    original_md5 = Column(LargeBinary(16))
-    sha256      = Column(LargeBinary(32))
-    original_sha256 = Column(LargeBinary(32))
-    is_deleted = Column(Boolean, default=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    filepath: Mapped[str] = mapped_column(String, nullable=False)
+    storage: Mapped[FileStore] = mapped_column(Enum(FileStore), nullable=False)
+    primary: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    has_thumbnail: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False) # _thumb
+    category: Mapped[FileCategory | None] = mapped_column(Enum(FileCategory))
+    title: Mapped[str | None] = mapped_column(String)
+    comment: Mapped[str | None] = mapped_column(Text)
+    analyzed: Mapped[datetime.datetime | None] = mapped_column(DateTime) # last time it was scanned digitally for barcodes for example
+    upload_date: Mapped[datetime.datetime | None] = mapped_column(DateTime)
+    batch_number: Mapped[int] = mapped_column(Integer, default=0)
+    user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey('users.id'))
+    asset_id: Mapped[int | None] = mapped_column(Integer, ForeignKey('assets.id'))
+    transaction_id: Mapped[int | None] = mapped_column(Integer, ForeignKey('transactions.id'))
+    benchmark_id: Mapped[int | None] = mapped_column(Integer, ForeignKey('benchmark.id'))
+    md5: Mapped[bytes | None] = mapped_column(LargeBinary(16))
+    original_md5: Mapped[bytes | None] = mapped_column(LargeBinary(16))
+    sha256: Mapped[bytes | None] = mapped_column(LargeBinary(32))
+    original_sha256: Mapped[bytes | None] = mapped_column(LargeBinary(32))
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
     size: Mapped[int] = mapped_column(BigInteger, nullable=True)
 
     privacy: Mapped[Privacy] = mapped_column(Enum(Privacy), default=Privacy.private_implicit, nullable=False)
@@ -99,28 +101,28 @@ class File(db.Model):
 
     THUMBNAIL_SIZE = (800, 800)
 
-    def __str__(self):
-        return f"<File {self.filepath}>"
+    def __repr__(self) -> str:
+        return f'<File {self.id} {self.filepath}>'
     
     @property
-    def is_image(self):
+    def is_image(self) -> bool:
         return self.category in IMAGE_CATEGORIES
     
     @property
-    def filepath_thumbnail(self):
+    def filepath_thumbnail(self) -> str:
         path = self.filepath.split('.')
         path[-2] += '_thumb'
         return '.'.join(path) 
     
-    def thumbnail_file_exists(self):
+    def thumbnail_file_exists(self) -> bool:
         return os.path.exists(self.full_filepath_thumbnail)
     
     @property
-    def filename(self):
+    def filename(self) -> str:
         return self.filepath.split('/')[-1]
     
     @property
-    def file_extension(self):
+    def file_extension(self) -> str:
         return self.filepath.split('.')[-1]
     
     @property
@@ -128,11 +130,11 @@ class File(db.Model):
         return current_app.config['FILE_STORE_LOCATIONS'][self.storage.value]
 
     @property
-    def full_filepath(self):
+    def full_filepath(self) -> str:
         return os.path.join(self._file_store_path, self.filepath)
     
     @property
-    def full_filepath_thumbnail(self):
+    def full_filepath_thumbnail(self) -> str:
         return os.path.join(self._file_store_path, self.filepath_thumbnail)
 
     @property
@@ -143,7 +145,7 @@ class File(db.Model):
     def url_thumbnail(self) -> str:
         return url_for('file', file_id=self.id, filename=self.filename, thumb=True)
     
-    def open_image(self):
+    def open_image(self) -> None | ImageFile:
         if not self.is_image:
             return
         if self.filepath.endswith('.svg'):
@@ -175,25 +177,26 @@ class File(db.Model):
         self.has_thumbnail = True
         return True
     
-    def rotate(self, rotation=None, make_thumbnail=True):
+    def rotate(self, rotation: Literal[0] | Literal[90] | Literal[180] | Literal[270] | None = None, make_thumbnail: bool=True):
         if not self.is_image:
             return
         
         if self.filename.lower().split('.')[-1] not in ('jpg', 'jpeg'):
             return
         
+        command: list[str]
         if rotation == 0:
             command = ["exiftran", '-a', '-ni', '-i', self.full_filepath]
         else:
-            option = {
+            option: list[str] = {
                 0: ['-a', '-no'],
-                90: '-9',
-                180: '-1',
-                270: '-2',
-                None: '-a',
+                90: ['-9'],
+                180: ['-1'],
+                270: ['-2'],
+                None: ['-a'],
             }[rotation]
 
-            command = ["exiftran", option, '-i', self.full_filepath]
+            command = ["exiftran", *option, '-i', self.full_filepath]
         result = subprocess.run(command, capture_output=True)
         if result.returncode != 0:
             raise RuntimeError("exiftran failed: " + repr(result))
@@ -268,6 +271,7 @@ class File(db.Model):
         self.asset_id = asset_id
 
         files_dir = current_app.config['FILE_STORE_LOCATIONS'][self.storage.value]
+        assert isinstance(files_dir, str)
 
         directory = f'assets/{asset_id}'
         os.makedirs(files_dir + "/" + directory, exist_ok=True)
@@ -280,10 +284,12 @@ class File(db.Model):
         os.rename(os.path.join(files_dir, self.filepath), os.path.join(files_dir, new_filepath))
         if self.has_thumbnail:
             old_filepath_thumbnail = self.filepath_thumbnail
+        else:
+            old_filepath_thumbnail = None
         
         self.filepath = new_filepath
 
-        if self.has_thumbnail:
+        if old_filepath_thumbnail:
             os.rename(os.path.join(files_dir, old_filepath_thumbnail), os.path.join(files_dir, self.filepath_thumbnail))
 
     def calculate_md5sum(self):

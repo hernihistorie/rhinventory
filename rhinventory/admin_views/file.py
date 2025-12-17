@@ -56,6 +56,7 @@ def upload_file(file: FileStorage | Path, category: int | FileCategory=0, batch_
 
     else:
         filename = file.filename
+        assert filename
         size = file.content_length
         if size > MAX_SIZE_FOR_HASH_GENERATION:
             md5 = None
@@ -74,6 +75,7 @@ def upload_file(file: FileStorage | Path, category: int | FileCategory=0, batch_
     # Save the file, partially accounting for filename collisions
     file_store = FileStore(current_app.config['DEFAULT_FILE_STORE'])
     files_dir = current_app.config['FILE_STORE_LOCATIONS'][file_store.value]
+    assert isinstance(files_dir, str)
     filename = secure_filename(filename)
     if not filename.strip():
         filename = str(datetime.datetime.now().timestamp()) + str(random.randint(0, 1000))
@@ -103,10 +105,19 @@ def upload_file(file: FileStorage | Path, category: int | FileCategory=0, batch_
     if isinstance(privacy, int):
         privacy = Privacy(privacy)
 
-    return File(filepath=filepath, storage=file_store, primary=False, category=category,
-                   md5=md5, batch_number=batch_number,
-                   upload_date=datetime.datetime.now(), user_id=current_user.id,
-                   size=size, privacy=privacy)
+    db_file = File()
+    db_file.filepath = filepath
+    db_file.storage = file_store
+    db_file.primary = False
+    db_file.category = category
+    db_file.md5 = md5
+    if batch_number:
+        db_file.batch_number = batch_number
+    db_file.upload_date = datetime.datetime.now()
+    db_file.user_id = current_user.id
+    db_file.size = size
+    db_file.privacy = privacy
+    return db_file
 
 class FileView(CustomModelView):
     can_view_details = True
@@ -141,6 +152,8 @@ class FileView(CustomModelView):
         if model is None:
             flash('Record does not exist.', 'error')
             return redirect(return_url)
+        
+        assert isinstance(model, File)
         
         if not visible_to_current_user(model):
             flash('You do not have permission to view this file.', 'error')
@@ -195,20 +208,19 @@ class FileView(CustomModelView):
             if request.form.get('xhr', False):
                 return jsonify(error=True, form_errors=form.errors), 400
         if request.method == 'POST' and form.validate():
-            files = []
-            image_files = []
+            files: list[File] = []
+            image_files: list[File] = []
             num_files = len(request.files.getlist("files"))
             print(f"Saving {num_files} files...")
 
             file_list: list[FileStorage] = request.files.getlist("files")
             file_list.sort(key=lambda f: f.filename)
 
-            duplicate_files = []
+            duplicate_files: list[tuple[str | None, File]] = []
 
-            for i, file in enumerate(file_list):
+            for file in file_list:
 
                 try:
-                    print(form.privacy.data)
                     file_db  = upload_file(file, form.category.data, form.batch_number.data, form.privacy.data)
                 except DuplicateFile as e:
                     duplicate_files.append((file.filename, e.matching_file))
@@ -240,6 +252,8 @@ class FileView(CustomModelView):
                     else:
                         asset_ids = [File.read_rh_barcode(file) for file in image_files]
                     for file, asset_id in zip(image_files, asset_ids):
+                        if not asset_id:
+                            continue
                         try:
                             file.assign(asset_id)
                         except ValueError:
@@ -297,7 +311,7 @@ class FileView(CustomModelView):
         dropzone_form = DropzoneFileForm(request.form, batch_number=batch_number)
 
         if request.method == 'POST' and dropzone_form.validate():
-            duplicate_files = []
+            duplicate_files: list[tuple[str | None, File]] = []
             for filepath in dropzone_files:
                 try:
                     file: File = upload_file(file=filepath, batch_number=batch_number, privacy=dropzone_form.privacy.data)
@@ -342,8 +356,10 @@ class FileView(CustomModelView):
                 .order_by(order_by).all()
         else:
             batch_number = None
-            files = []
-            for file_id in simple_eval.eval(request.args['files']):
+            files: list[File] = []
+            file_id_list: list[int] = simple_eval.eval(request.args['files'])
+            for file_id in file_id_list:
+                assert isinstance(file_id, int)
                 files.append(db.session.query(File).get(file_id))
         
         duplicate_files = []
@@ -358,7 +374,6 @@ class FileView(CustomModelView):
 
         if 'duplicate_count' in request.args:
             duplicate_count = simple_eval.eval(request.args['duplicate_count'])
-            print(duplicate_count)
         else:
             duplicate_count = None
         
@@ -370,6 +385,7 @@ class FileView(CustomModelView):
     def make_thumbnail_view(self):
         id = get_mdict_item_or_list(request.args, 'id')
         model = self.get_one(id)
+        assert isinstance(model, File)
 
         if model.make_thumbnail():
             db.session.add(model)
@@ -386,15 +402,19 @@ class FileView(CustomModelView):
         htmx = request.args.get('htmx', False)
         id = get_mdict_item_or_list(request.args, 'id')
         model = self.get_one(id)
+        assert isinstance(model, File)
 
         if model.filename.lower().split('.')[-1] not in ('jpg', 'jpeg'):
             flash("Sorry, rotation is currently only available for JPEG files.", 'error')
             if htmx:
                 return 'NG', 200, {'HX-Refresh': 'true'}
         else:
-            rotation = get_mdict_item_or_list(request.args, 'rotation')
+            rotation = int(get_mdict_item_or_list(request.args, 'rotation'))
+            if rotation not in (90, 180, 270):
+                flash("Invalid rotation value.", 'error')
+                return redirect(url_for("file.details_view", id=id))
 
-            model.rotate(int(rotation))
+            model.rotate(rotation)
             db.session.add(model)
             log("Update", model, user=current_user, action="rotate", rotation=rotation)
             db.session.commit()
@@ -415,6 +435,7 @@ class FileView(CustomModelView):
         if not model:
             flash('Record does not exist.', 'error')
             return redirect(url_for("file.details_view", id=id))
+        assert isinstance(model, File)
 
         if 'asset_id' in request.form:
             asset_id = int(request.form['asset_id'])
@@ -442,6 +463,7 @@ class FileView(CustomModelView):
     def set_primary_view(self):
         id = get_mdict_item_or_list(request.args, 'id')
         model = self.get_one(id)
+        assert isinstance(model, File)
 
         model.primary = request.args.get('primary') == "True"
         db.session.add(model)
@@ -457,6 +479,7 @@ class FileView(CustomModelView):
     def auto_assign_view(self):
         id = get_mdict_item_or_list(request.args, 'id')
         model = self.get_one(id)
+        assert isinstance(model, File)
 
         asset_id = model.auto_assign()
         if asset_id:
@@ -474,6 +497,7 @@ class FileView(CustomModelView):
         htmx = request.args.get('htmx', False)
         id = get_mdict_item_or_list(request.args, 'id')
         model = self.get_one(id)
+        assert isinstance(model, File)
 
         model.delete()
         db.session.add(model)
