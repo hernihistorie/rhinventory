@@ -88,6 +88,8 @@ class TestAppConfig:
     DROPZONE_PATH = "dropzone"
     WTF_CSRF_ENABLED = False  # Disable CSRF for testing
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    DEFAULT_FILE_STORE = "local"
+    FILE_STORE_LOCATIONS = {"local": "files", "local_nas": "files2"}
 
 
 @pytest.fixture()

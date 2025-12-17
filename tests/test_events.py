@@ -4,7 +4,8 @@ from flask_admin.tests.fileadmin import Flask
 import pytest
 import sqlalchemy.exc
 
-from rhinventory.event_store.event_store import EventSession, TestAggregate, UnsupportedEventVersion, event_store
+from rhinventory.event_store.event_store import EventSession, UnsupportedEventVersion, event_store
+from rhinventory.models.aggregates.test import TestAggregate
 from rhinventory.events.event import TestingEvent
 from rhinventory.extensions import db
 

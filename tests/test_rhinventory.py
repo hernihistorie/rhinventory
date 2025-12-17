@@ -7,6 +7,7 @@ The conftest.py file manages the container lifecycle and database setup.
 from flask.testing import FlaskClient
 
 from rhinventory.models.asset import AssetCategory
+from rhinventory.models.file import FileCategory, Privacy
 
 
 def test_index(client: FlaskClient):
@@ -58,3 +59,24 @@ def test_file_list(client: FlaskClient):
 def test_file_upload(client: FlaskClient):
     response = client.get("/file/upload/")
     assert response.status_code == 200
+    # Prepare a dummy file to upload
+
+    data = {
+        'category': FileCategory.image.value,
+        'privacy': Privacy.private_implicit.value,
+        'batch_number': 1,
+        'auto_assign': 'y',
+        'sort_by_filename': '',
+    }
+
+    file_storage = (open('tests/data/test_image.png', 'rb'), 'test_image.png')
+    data['files'] = [file_storage]
+
+    response = client.post(
+        "/file/upload/",
+        data=data,
+        content_type='multipart/form-data',
+        follow_redirects=True
+    )
+    # Should redirect to upload result or show result page
+    assert response.status_code in (200, 302)
