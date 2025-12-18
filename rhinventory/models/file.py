@@ -239,6 +239,9 @@ class File(db.Model):
     def read_rh_barcode(self):
         if not self.is_image:
             return
+        if not pyzbar:
+            return
+        
         barcodes = self.read_barcodes(symbols=[pyzbar.ZBarSymbol.CODE128])
         if not barcodes:
             return
