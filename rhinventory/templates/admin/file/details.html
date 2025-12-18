@@ -131,14 +131,16 @@
         {{ row('title') }}
         {{ row('privacy') }}
         {{ row('comment') }}
-        {% if model.md5 %}
-            <tr>
-                <td><strong>MD5</strong></td>
-                <td>
-                    {{ model.md5.hex() }}
-                </td>
-            </tr>
-        {% endif %}
+        {% for hash in ('md5', 'sha256', 'blake3') %}
+            {% if model[hash] %}
+                <tr>
+                    <td><strong>{{ hash.upper() }}</strong></td>
+                    <td>
+                        {{ model[hash].hex() }}
+                    </td>
+                </tr>
+            {% endif %}
+        {% endfor %}
         {% if model.original_md5 %}
             <tr>
                 <td><strong>Original MD5</strong></td>

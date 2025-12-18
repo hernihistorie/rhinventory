@@ -79,7 +79,7 @@ class File(db.Model):
     comment: Mapped[str | None] = mapped_column(Text)
     analyzed: Mapped[datetime.datetime | None] = mapped_column() # last time it was scanned digitally for barcodes for example
     upload_date: Mapped[datetime.datetime | None] = mapped_column()
-    batch_number: Mapped[int] = mapped_column(default=0)
+    batch_number: Mapped[int | None] = mapped_column(default=0)
     user_id: Mapped[int | None] = mapped_column(ForeignKey('users.id'))
     asset_id: Mapped[int | None] = mapped_column(ForeignKey('assets.id'))
     transaction_id: Mapped[int | None] = mapped_column(ForeignKey('transactions.id'))
@@ -88,7 +88,8 @@ class File(db.Model):
     original_md5: Mapped[bytes | None] = mapped_column(LargeBinary(16))
     sha256: Mapped[bytes | None] = mapped_column(LargeBinary(32))
     original_sha256: Mapped[bytes | None] = mapped_column(LargeBinary(32))
-    is_deleted: Mapped[bool] = mapped_column(default=False)
+    blake3: Mapped[bytes | None] = mapped_column(LargeBinary(32))
+    is_deleted: Mapped[bool | None] = mapped_column(default=False)
     size: Mapped[int] = mapped_column(BigInteger, nullable=True)
 
     privacy: Mapped[Privacy] = mapped_column(Enum(Privacy), default=Privacy.private_implicit, nullable=False)

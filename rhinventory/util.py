@@ -1,11 +1,11 @@
-import datetime
+from typing import Callable, TypeVar, Any, cast
+from functools import wraps
 import re
 import unicodedata
 
 from flask import flash, redirect
 from flask_login import current_user
 
-from sqlalchemy import func
 from sqlalchemy.orm import Query
 
 # from bokeh.plotting import figure
@@ -82,14 +82,18 @@ from sqlalchemy.orm import Query
 # require_edit_rights decorator
 #
 #
-def require_write_access(func):
+
+F = TypeVar("F", bound=Callable[..., Any])
+
+def require_write_access(func: F) -> F:
     """Decorator to require edit rights for a view"""
+    @wraps(func)
     def wrapper(*args, **kwargs):
         if not current_user.write_access:
             flash("You do not have permission to edit", "error")
             return redirect("/")
         return func(*args, **kwargs)
-    return wrapper
+    return cast(F, wrapper)
 
 # From https://gist.github.com/berlotto/6295018
 def slugify(value: str, allow_unicode: bool=False) -> str:

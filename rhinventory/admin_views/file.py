@@ -1,3 +1,4 @@
+from io import BufferedReader, FileIO
 import os
 import os.path
 import datetime
@@ -7,6 +8,7 @@ from pathlib import Path
 import random
 import string
 
+import blake3
 from flask import abort, get_template_attribute, request, flash, redirect, url_for, current_app, jsonify
 from flask_login import current_user
 from flask_admin import expose
@@ -16,6 +18,7 @@ from werkzeug.datastructures.file_storage import FileStorage
 from werkzeug.utils import secure_filename
 from rhinventory.admin_views.utils import visible_to_current_user
 
+from rhinventory.datatypes.hashes import BLAKE3Hash, Hashes, MD5Hash, SHA256Hash
 from rhinventory.db import log, Asset, File, FileCategory, get_next_file_batch_number
 from rhinventory.extensions import db, simple_eval
 from rhinventory.files.utils import get_dropzone_path, get_dropzone_files
@@ -31,7 +34,27 @@ class DuplicateFile(RuntimeError):
         super().__init__(message)
         self.matching_file = matching_file
 
-MAX_SIZE_FOR_HASH_GENERATION = 100 * 1024 * 1024
+
+def calculate_file_hashes(file: BufferedReader | FileStorage) -> Hashes:
+    """Calculate MD5, SHA256, and BLAKE3 hashes for a given file-like object."""
+    hash_md5 = hashlib.md5()
+    hash_sha256 = hashlib.sha256()
+    hash_blake3 = blake3.blake3()
+
+    file.seek(0)
+    while chunk := file.read(8192):
+        hash_md5.update(chunk)
+        hash_sha256.update(chunk)
+        hash_blake3.update(chunk)
+    file.seek(0)
+
+    hashes = Hashes(
+        md5=MD5Hash(hash_md5.digest()),
+        sha256=SHA256Hash(hash_sha256.digest()),
+        blake3=BLAKE3Hash(hash_blake3.digest())
+    )
+    return hashes
+
 
 def upload_file(file: FileStorage | Path, category: int | FileCategory=0, batch_number: int | None=None, privacy: int | Privacy=Privacy.private_implicit) -> File:
     """
@@ -47,30 +70,22 @@ def upload_file(file: FileStorage | Path, category: int | FileCategory=0, batch_
         filename = file.name
 
         size = os.path.getsize(file)
-        if size > MAX_SIZE_FOR_HASH_GENERATION:
-            # We just can't handle files >100MB well rn so bail
-            md5 = None
-        else:
-            with open(file, 'rb', buffering=0) as f:
-                md5 = hashlib.file_digest(f, 'md5').digest()
+
+        hashes = calculate_file_hashes(open(file, 'rb'))
 
     else:
         filename = file.filename
         assert filename
         size = file.content_length
-        if size > MAX_SIZE_FOR_HASH_GENERATION:
-            md5 = None
-        else:
-            md5 = hashlib.file_digest(file, 'md5').digest()
-            file.seek(0)
 
-    if md5:
-        matching_file = db.session.query(File).filter(
-                (File.md5 == md5) | (File.original_md5 == md5)
-            ).filter(File.is_deleted == False).first()
-    
-        if matching_file:
-            raise DuplicateFile("Duplicate file", matching_file)
+        hashes = calculate_file_hashes(file)
+
+    matching_file = db.session.query(File).filter(
+            (File.md5 == hashes.md5) | (File.original_md5 == hashes.md5)
+        ).filter(File.is_deleted == False).first()
+
+    if matching_file:
+        raise DuplicateFile("Duplicate file", matching_file)
 
     # Save the file, partially accounting for filename collisions
     file_store = FileStore(current_app.config['DEFAULT_FILE_STORE'])
@@ -110,7 +125,9 @@ def upload_file(file: FileStorage | Path, category: int | FileCategory=0, batch_
     db_file.storage = file_store
     db_file.primary = False
     db_file.category = category
-    db_file.md5 = md5
+    db_file.md5 = hashes.md5
+    db_file.sha256 = hashes.sha256
+    db_file.blake3 = hashes.blake3
     if batch_number:
         db_file.batch_number = batch_number
     db_file.upload_date = datetime.datetime.now()
@@ -126,7 +143,7 @@ class FileView(CustomModelView):
 
     column_list = ('id', 'category', 'filepath', 'primary', 'asset', 'transaction', 'upload_date')
     #form_excluded_columns = ('user', 'filepath', 'storage', 'has_thumbnail', 'analyzed', 'md5', 'original_md5', 'sha256', 'original_sha256', 'upload_date')
-    form_excluded_columns = ['has_thumbnail', 'analyzed', 'md5', 'original_md5', 'sha256', 'original_sha256', 'upload_date']
+    form_excluded_columns = ['has_thumbnail', 'analyzed', 'md5', 'original_md5', 'sha256', 'original_sha256', 'blake3', 'upload_date']
     column_default_sort = ('id', True)
 
     column_searchable_list = [
