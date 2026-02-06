@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import OrderedDict
 
 import flask.templating
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request
 
 from rhinventory.models.magdb import Magazine, MagazineIssue, MagazineIssueVersion, IssueStatus, \
     MagazineIssueVersionFiles, MagDBFileType
@@ -15,6 +15,7 @@ magdb_bp = Blueprint("magdb", __name__, url_prefix="/public-magdb")
 def index():
     return render_template("magdb/index.html")
 
+@magdb_bp.route("/catalog.yaml")
 @magdb_bp.route("/catalog")
 def catalog():
     context = {
@@ -29,9 +30,12 @@ def catalog():
 
         context["logos"][local_magazine_id].add(logo.file)
 
+    if request.path.endswith('.yaml'):
+        return render_template("magdb/catalog.yaml.jinja2", **context), 200, {'Content-Type': 'text/yaml'}
     return render_template("magdb/catalog.html", **context)
 
 
+@magdb_bp.route("/catalog/magazine-detail/<int:magazine_id>.yaml")
 @magdb_bp.route("/catalog/magazine-detail/<int:magazine_id>")
 def magazine_detail(magazine_id):
     context = {
@@ -74,9 +78,12 @@ def magazine_detail(magazine_id):
         context["files"]["logos"][magazine_id].add(logo.file)
 
 
+    if request.path.endswith('.yaml'):
+        return render_template("magdb/magazine_detail.yaml.jinja2", **context), 200, {'Content-Type': 'text/yaml'}
     return render_template("magdb/magazine_detail.html", **context)
 
 
+@magdb_bp.route("/miss-list.yaml")
 @magdb_bp.route("/miss-list")
 def miss_list():
     context = {
@@ -114,4 +121,6 @@ def miss_list():
         )
     )
 
+    if request.path.endswith('.yaml'):
+        return render_template("magdb/miss-list.yaml.jinja2", **context), 200, {'Content-Type': 'text/yaml'}
     return render_template("magdb/miss-list.html", **context)

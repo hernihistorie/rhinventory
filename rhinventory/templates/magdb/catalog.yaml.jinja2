@@ -1,0 +1,15 @@
+# MagDB Catalog
+# Generated from rhinventory
+
+magazines:
+{% for magazine in magazines %}
+  - id: {{ magazine.id }}
+    title: {{ magazine.title | tojson }}
+    description: {{ magazine.description | default('') | tojson }}
+    {% if logos[magazine.id] %}
+    logos:
+      {% for logo in logos[magazine.id] %}
+      - url: {{ logo.url | tojson }}
+      {% endfor %}
+    {% endif %}
+{% endfor %}

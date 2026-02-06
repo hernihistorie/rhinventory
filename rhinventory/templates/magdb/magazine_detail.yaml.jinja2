@@ -1,0 +1,56 @@
+# MagDB Magazine Detail
+# Generated from rhinventory
+
+magazine:
+  id: {{ magazine.id }}
+  title: {{ magazine.title | tojson }}
+  description: {{ magazine.description | default('') | tojson }}
+  {% if files.logos[magazine.id] %}
+  logos:
+    {% for logo in files.logos[magazine.id] %}
+    - url: {{ logo.url | tojson }}
+    {% endfor %}
+  {% endif %}
+
+issues_by_year:
+{% for year, issues in issues_by_year.items() %}
+  {{ year | default('null') | string | tojson }}:
+    {% for issue in issues %}
+    - id: {{ issue.id }}
+      current_magazine_name: {{ (issue.current_name | default(issue.current_magazine_name)) | tojson }}
+      issue_number: {{ issue.issue_number | tojson }}
+      calendar_id: {{ issue.calendar_id | tojson }}
+      issue_title: {{ issue.issue_title | default('') | tojson }}
+      is_special_issue: {{ issue.is_special_issue | tojson }}
+      published_day: {{ issue.published_day | tojson }}
+      published_month: {{ issue.published_month | tojson }}
+      published_year: {{ issue.published_year | tojson }}
+      versions:
+        {% for version in issue.versions %}
+        - id: {{ version.id }}
+          name_suffix: {{ version.name_suffix | default('') | tojson }}
+          status: {{ version.status.name | tojson }}
+          cover_pages:
+            {% for file in version.cover_pages %}
+            - path: {{ file.path | tojson }}
+              thumbnail_path: {{ file.thumbnail_path | tojson }}
+            {% else %}
+            []
+            {% endfor %}
+          index_pages:
+            {% for file in version.index_pages %}
+            - path: {{ file.path | tojson }}
+              thumbnail_path: {{ file.thumbnail_path | tojson }}
+            {% else %}
+            []
+            {% endfor %}
+          prices:
+            {% for price in version.prices %}
+            - value: {{ price.value }}
+              currency: {{ price.currency.name | tojson }}
+            {% else %}
+            []
+            {% endfor %}
+        {% endfor %}
+    {% endfor %}
+{% endfor %}
