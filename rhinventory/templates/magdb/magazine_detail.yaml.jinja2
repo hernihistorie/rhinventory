@@ -27,12 +27,14 @@ issues_by_year:
       published_year: {{ issue.published_year | tojson }}
       periodicity: {{ issue.periodicity.value if issue.periodicity else None | tojson }}
       page_count: {{ issue.page_count | default(None) | tojson }}
+      note: {{ issue.note | default(None) | tojson }}
       versions:
         {% for version in issue.versions %}
         - id: {{ version.id }}
           title: {{ version.title | default('') | tojson }}
           name_suffix: {{ version.name_suffix | default('') | tojson }}
           status: {{ version.status.name | default(None) | tojson }}
+          note: {{ version.note | default(None) | tojson }}
           cover_pages:
             {% for file in version.cover_pages %}
             - path: {{ file.path | tojson }}

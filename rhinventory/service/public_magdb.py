@@ -5,7 +5,7 @@ from sqlalchemy import select
 
 from rhinventory.extensions import db
 from rhinventory.models.file import File
-from rhinventory.models.magdb import MagazineIssue, MagazineIssueVersion, MagazineIssueVersionPrice, \
+from rhinventory.models.magdb import Issuer, MagazineIssue, MagazineIssueVersion, MagazineIssueVersionPrice, \
     MagazineIssueVersionFiles, MagDBFileType, IssueStatus, Currency, MagazineSupplementVersion, MagazineSupplement, Periodicity
 
 
@@ -54,6 +54,7 @@ class PublicIssue:
     versions: list[PublicVersion]
     periodicity: Periodicity | None = None
     page_count: int | None = None
+    issuer: str | None = None
 
 
 class PublicMagDBService:
@@ -76,6 +77,7 @@ class PublicMagDBService:
                 MagazineIssue.published_year,
                 MagazineIssue.periodicity,
                 MagazineIssue.page_count,
+                Issuer.title,
                 MagazineIssueVersion.id,
                 MagazineIssueVersion.name_suffix,
                 MagazineIssueVersion.status,
@@ -89,6 +91,7 @@ class PublicMagDBService:
             )
             .select_from(MagazineIssue)
             .where(MagazineIssue.magazine_id == magazine_id)
+            .outerjoin(Issuer)
             .join(MagazineIssueVersion)
             .join(MagazineIssueVersionPrice, full=True)
             .join(MagazineIssueVersionFiles, full=True)
@@ -104,7 +107,7 @@ class PublicMagDBService:
 
         for row in db.session.execute(query).fetchall():
             issue_id, issue_number, issue_title, issue_name, is_special, pub_day, pub_month, pub_year,\
-                periodicity, page_count, \
+                periodicity, page_count, issuer, \
                 version_id, name_suffix, version_status, \
                 price_id, value, currency, \
                 file_type, file_id, filepath, has_thumbnail = row
@@ -122,6 +125,7 @@ class PublicMagDBService:
                     published_year=pub_year,
                     periodicity=periodicity,
                     page_count=page_count,
+                    issuer=issuer,
                     versions=[]
                 )
                 issue_index[issue_id] = issue
