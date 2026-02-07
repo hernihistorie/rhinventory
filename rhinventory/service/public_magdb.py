@@ -6,7 +6,7 @@ from sqlalchemy import select
 from rhinventory.extensions import db
 from rhinventory.models.file import File
 from rhinventory.models.magdb import MagazineIssue, MagazineIssueVersion, MagazineIssueVersionPrice, \
-    MagazineIssueVersionFiles, MagDBFileType, IssueStatus, Currency, MagazineSupplementVersion, MagazineSupplement
+    MagazineIssueVersionFiles, MagDBFileType, IssueStatus, Currency, MagazineSupplementVersion, MagazineSupplement, Periodicity
 
 
 @dataclasses.dataclass
@@ -52,6 +52,8 @@ class PublicIssue:
     published_year: int
     is_special_issue: bool
     versions: list[PublicVersion]
+    periodicity: Periodicity | None = None
+    page_count: int | None = None
 
 
 class PublicMagDBService:
@@ -72,6 +74,8 @@ class PublicMagDBService:
                 MagazineIssue.published_day,
                 MagazineIssue.published_month,
                 MagazineIssue.published_year,
+                MagazineIssue.periodicity,
+                MagazineIssue.page_count,
                 MagazineIssueVersion.id,
                 MagazineIssueVersion.name_suffix,
                 MagazineIssueVersion.status,
@@ -99,7 +103,8 @@ class PublicMagDBService:
         )
 
         for row in db.session.execute(query).fetchall():
-            issue_id, issue_number, issue_name, issue_title, is_special, pub_day, pub_month, pub_year,\
+            issue_id, issue_number, issue_title, issue_name, is_special, pub_day, pub_month, pub_year,\
+                periodicity, page_count, \
                 version_id, name_suffix, version_status, \
                 price_id, value, currency, \
                 file_type, file_id, filepath, has_thumbnail = row
@@ -115,6 +120,8 @@ class PublicMagDBService:
                     published_day=pub_day,
                     published_month=pub_month,
                     published_year=pub_year,
+                    periodicity=periodicity,
+                    page_count=page_count,
                     versions=[]
                 )
                 issue_index[issue_id] = issue
