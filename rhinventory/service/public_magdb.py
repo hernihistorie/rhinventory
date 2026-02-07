@@ -46,6 +46,7 @@ class PublicIssue:
     id: int
     issue_number: int
     current_name: str
+    issue_title: str | None
     published_day: int
     published_month: int
     published_year: int
@@ -65,6 +66,7 @@ class PublicMagDBService:
             select(
                 MagazineIssue.id,
                 MagazineIssue.issue_number,
+                MagazineIssue.issue_title,
                 MagazineIssue.current_magazine_name,
                 MagazineIssue.is_special_issue,
                 MagazineIssue.published_day,
@@ -97,7 +99,7 @@ class PublicMagDBService:
         )
 
         for row in db.session.execute(query).fetchall():
-            issue_id, issue_number, issue_name, is_special, pub_day, pub_month, pub_year,\
+            issue_id, issue_number, issue_name, issue_title, is_special, pub_day, pub_month, pub_year,\
                 version_id, name_suffix, version_status, \
                 price_id, value, currency, \
                 file_type, file_id, filepath, has_thumbnail = row
@@ -109,6 +111,7 @@ class PublicMagDBService:
                     is_special_issue=is_special,
                     issue_number=issue_number,
                     current_name=issue_name,
+                    issue_title=issue_title,
                     published_day=pub_day,
                     published_month=pub_month,
                     published_year=pub_year,

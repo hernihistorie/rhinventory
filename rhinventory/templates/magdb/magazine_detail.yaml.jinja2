@@ -20,7 +20,7 @@ issues_by_year:
       current_magazine_name: {{ (issue.current_name | default(issue.current_magazine_name)) | tojson }}
       issue_number: {{ issue.issue_number | tojson }}
       calendar_id: {{ issue.calendar_id | default(None) | tojson }}
-      issue_title: {{ issue.issue_title | default('') | tojson }}
+      issue_title: {{ issue.issue_title | default(None) | tojson }}
       is_special_issue: {{ issue.is_special_issue | tojson }}
       published_day: {{ issue.published_day | tojson }}
       published_month: {{ issue.published_month | tojson }}
@@ -28,6 +28,7 @@ issues_by_year:
       versions:
         {% for version in issue.versions %}
         - id: {{ version.id }}
+          title: {{ version.title | default('') | tojson }}
           name_suffix: {{ version.name_suffix | default('') | tojson }}
           status: {{ version.status.name | default(None) | tojson }}
           cover_pages:
