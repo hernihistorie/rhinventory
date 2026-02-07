@@ -5,7 +5,12 @@ magazine:
   id: {{ magazine.id }}
   slug: {{ magazine.slug | tojson }}
   title: {{ magazine.title | tojson }}
-  description: {{ magazine.description | default('') | tojson }}
+  description:
+    cs: {{ magazine.description | tojson }}
+    en: {{ magazine.description_en | tojson }}
+  blurb:
+    cs: {{ magazine.blurb_cs | tojson }}
+    en: {{ magazine.blurb_en | tojson }}
   links:
     archive_org: {{ magazine.url_archive_org | tojson }}
     ndk_cz: {{ magazine.url_ndk_cz | tojson }}

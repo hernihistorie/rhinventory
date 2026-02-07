@@ -47,7 +47,10 @@ class Magazine(HistoryTrait):
     id = db.Column(db.Integer(), unique=True, primary_key=True)
     slug = db.Column(db.String(255), unique=True)
     title = db.Column(db.String(255), unique=True, info={"label": "Název časopisu"})
-    description = db.Column(db.Text(), default="", info={"label": "Popis"})
+    description = db.Column(db.Text(), default=None, info={"label": "Popis"})
+    description_en = db.Column(db.Text(), default=None)
+    blurb_cs = db.Column(db.Text(), default=None)
+    blurb_en = db.Column(db.Text(), default=None)
     country_id = db.Column(db.Integer, db.ForeignKey('countries.id'), nullable=True)
 
     url_archive_org = db.Column(db.String(), nullable=True)
