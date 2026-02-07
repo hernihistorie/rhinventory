@@ -37,9 +37,22 @@ def catalog():
 
 @magdb_bp.route("/catalog/magazine-detail/<int:magazine_id>.yaml")
 @magdb_bp.route("/catalog/magazine-detail/<int:magazine_id>")
-def magazine_detail(magazine_id):
+@magdb_bp.route("/catalog/magazine-detail/<string:magazine_slug>.yaml")
+@magdb_bp.route("/catalog/magazine-detail/<string:magazine_slug>")
+def magazine_detail(magazine_id: int | None = None, magazine_slug: str | None = None):
+    magazine = None
+    if magazine_id:
+        magazine = Magazine.query.get(magazine_id)
+    elif magazine_slug:
+        magazine = Magazine.query.filter_by(slug=magazine_slug).first()
+
+    if not magazine:
+        return "Magazine not found", 404
+
+    assert isinstance(magazine, Magazine)
+
     context = {
-        "magazine": Magazine.query.get(magazine_id),
+        "magazine": magazine,
         "issues_by_year": defaultdict(list),
         "files": {
             "cover_pages": defaultdict(list),
@@ -52,7 +65,7 @@ def magazine_detail(magazine_id):
     issue_ids = set()
 
     service = PublicMagDBService()
-    new_data = service.list_magazine(magazine_id)
+    new_data = service.list_magazine(magazine.id)
 
     for issue in new_data:
         issue_ids.add(issue.id)
@@ -75,7 +88,7 @@ def magazine_detail(magazine_id):
         .all()
 
     for logo in logos:
-        context["files"]["logos"][magazine_id].add(logo.file)
+        context["files"]["logos"][magazine.id].add(logo.file)
 
 
     if request.path.endswith('.yaml'):

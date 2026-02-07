@@ -4,6 +4,7 @@
 magazines:
 {% for magazine_id, data in magazines.items() %}
   - id: {{ magazine_id }}
+    slug: {{ data.magazine.slug | tojson }}
     title: {{ data.magazine.title | tojson }}
     {% if data.logos %}
     logos:

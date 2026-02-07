@@ -45,6 +45,7 @@ class Issuer(HistoryTrait):
 class Magazine(HistoryTrait):
     __tablename__ = "magazines"
     id = db.Column(db.Integer(), unique=True, primary_key=True)
+    slug = db.Column(db.String(255), unique=True)
     title = db.Column(db.String(255), unique=True, info={"label": "Název časopisu"})
     description = db.Column(db.Text(), default="", info={"label": "Popis"})
     country_id = db.Column(db.Integer, db.ForeignKey('countries.id'), nullable=True)

@@ -4,6 +4,7 @@
 magazines:
 {% for magazine in magazines %}
   - id: {{ magazine.id }}
+    slug: {{ magazine.slug | tojson }}
     title: {{ magazine.title | tojson }}
     description: {{ magazine.description | default('') | tojson }}
     {% if logos[magazine.id] %}

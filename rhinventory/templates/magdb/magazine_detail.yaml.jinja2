@@ -3,6 +3,7 @@
 
 magazine:
   id: {{ magazine.id }}
+  slug: {{ magazine.slug | tojson }}
   title: {{ magazine.title | tojson }}
   description: {{ magazine.description | default('') | tojson }}
   links:
