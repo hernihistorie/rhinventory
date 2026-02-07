@@ -28,6 +28,7 @@ issues_by_year:
       periodicity: {{ issue.periodicity.value if issue.periodicity else None | tojson }}
       page_count: {{ issue.page_count | default(None) | tojson }}
       note: {{ issue.note | default(None) | tojson }}
+      issuer: {{ issue.issuer | default(None) | tojson }}
       versions:
         {% for version in issue.versions %}
         - id: {{ version.id }}

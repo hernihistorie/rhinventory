@@ -55,7 +55,7 @@ class PublicIssue:
     periodicity: Periodicity | None = None
     page_count: int | None = None
     issuer: str | None = None
-
+    note: str | None = None
 
 class PublicMagDBService:
     def list_magazine(self, magazine_id: int) -> list[PublicIssue]:
@@ -77,6 +77,7 @@ class PublicMagDBService:
                 MagazineIssue.published_year,
                 MagazineIssue.periodicity,
                 MagazineIssue.page_count,
+                MagazineIssue.note,
                 Issuer.title,
                 MagazineIssueVersion.id,
                 MagazineIssueVersion.name_suffix,
@@ -107,7 +108,7 @@ class PublicMagDBService:
 
         for row in db.session.execute(query).fetchall():
             issue_id, issue_number, issue_title, issue_name, is_special, pub_day, pub_month, pub_year,\
-                periodicity, page_count, issuer, \
+                periodicity, page_count, note, issuer, \
                 version_id, name_suffix, version_status, \
                 price_id, value, currency, \
                 file_type, file_id, filepath, has_thumbnail = row
@@ -126,6 +127,7 @@ class PublicMagDBService:
                     periodicity=periodicity,
                     page_count=page_count,
                     issuer=issuer,
+                    note=note,
                     versions=[]
                 )
                 issue_index[issue_id] = issue
