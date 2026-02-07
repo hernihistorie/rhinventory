@@ -49,6 +49,13 @@ class Magazine(HistoryTrait):
     description = db.Column(db.Text(), default="", info={"label": "Popis"})
     country_id = db.Column(db.Integer, db.ForeignKey('countries.id'), nullable=True)
 
+    url_archive_org = db.Column(db.String(), nullable=True)
+    url_ndk_cz = db.Column(db.String(), nullable=True)
+    url_dikda_sk = db.Column(db.String(), nullable=True)
+    url_level_archiv = db.Column(db.String(), nullable=True)
+    url_arbitrary = db.Column(db.String(), nullable=True)
+    url_arbitrary_title = db.Column(db.String(), nullable=True)
+
     def __str__(self):
         return self.title
 
