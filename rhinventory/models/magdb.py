@@ -54,6 +54,7 @@ class Magazine(HistoryTrait):
     country_id = db.Column(db.Integer, db.ForeignKey('countries.id'), nullable=True)
 
     url_archive_org = db.Column(db.String(), nullable=True)
+    url_oldgames_sk = db.Column(db.String(), nullable=True)
     url_ndk_cz = db.Column(db.String(), nullable=True)
     url_dikda_sk = db.Column(db.String(), nullable=True)
     url_level_archiv = db.Column(db.String(), nullable=True)
