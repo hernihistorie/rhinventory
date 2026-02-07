@@ -53,6 +53,9 @@ class Magazine(HistoryTrait):
     url_ndk_cz = db.Column(db.String(), nullable=True)
     url_dikda_sk = db.Column(db.String(), nullable=True)
     url_level_archiv = db.Column(db.String(), nullable=True)
+    url_wikipedia_cs = db.Column(db.String(), nullable=True)
+    url_wikipedia_en = db.Column(db.String(), nullable=True)
+    url_wikidata = db.Column(db.String(), nullable=True)
     url_arbitrary = db.Column(db.String(), nullable=True)
     url_arbitrary_title = db.Column(db.String(), nullable=True)
 
