@@ -10,7 +10,7 @@ magazines:
     logos:
       {% for image in data.logos %}
       - url: {{ image.url | tojson }}
-        background_color: {{ image.background_color or None | tojson }}
+        background_color: {{ image.background_color.value or None | tojson }}
       {% endfor %}
     {% endif %}
     missing_issues:
