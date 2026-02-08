@@ -1,0 +1,38 @@
+{% extends 'admin/model/details.html' %}
+
+{% block details_table %}
+    {{ super() }}
+
+    <h3>Logos</h3>
+    {% set logos = model.get_logos() %}
+    {% if logos %}
+        <ul class="thumbnails">
+            {% for logo_file in logos %}
+                <li class="span3">
+                    <div class="thumbnail">
+                        <div class="logo-wrapper" style="
+                            padding: 16px;
+                            border-radius: 8px;
+                        {%- if logo_file.file.background_color and logo_file.file.background_color.value == 'light' -%}
+                            background-color: #ffffff;
+                        {%- elif logo_file.file.background_color and logo_file.file.background_color.value == 'dark' -%}
+                            background-color: #222222;
+                        {%- elif logo_file.file.background_color and logo_file.file.background_color.value == 'gray' -%}
+                            background-color: #888888;
+                        {%- endif -%}
+                    ">
+                            <img src="{{ logo_file.file.url }}" alt="Logo" style="max-width: 200px;">
+                        </div>
+                        <div class="caption">
+                            <a href="{{ url_for('file.edit_view', id=logo_file.file.id) }}" class="btn btn-small">
+                                Edit file
+                            </a>
+                        </div>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="muted">No logos uploaded for this magazine.</p>
+    {% endif %}
+{% endblock %}

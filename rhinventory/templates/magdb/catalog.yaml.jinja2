@@ -11,6 +11,7 @@ magazines:
     logos:
       {% for logo in logos[magazine.id] %}
       - url: {{ logo.url | tojson }}
+        background_color: {{ logo.background_color or None | tojson }}
       {% endfor %}
     {% endif %}
 {% endfor %}

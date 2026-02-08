@@ -26,6 +26,7 @@ magazine:
   logos:
     {% for logo in files.logos[magazine.id] %}
     - url: {{ logo.url | tojson }}
+      background_color: {{ logo.background_color.value or None | tojson }}
     {% endfor %}
   {% endif %}
 

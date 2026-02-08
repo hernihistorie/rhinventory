@@ -28,6 +28,11 @@ class FileStore(enum.Enum):
     local = "local"
     local_nas = "local_nas"
 
+class BackgroundColor(enum.Enum):
+    light = "light"
+    dark = "dark"
+    gray = "gray"
+
 class FileCategory(enum.Enum):
     unknown     = 0
     other       = 1
@@ -93,6 +98,8 @@ class File(db.Model):
     size: Mapped[int] = mapped_column(BigInteger, nullable=True)
 
     privacy: Mapped[Privacy] = mapped_column(Enum(Privacy), default=Privacy.private_implicit, nullable=False)
+
+    background_color: Mapped[BackgroundColor | None] = mapped_column(Enum(BackgroundColor), nullable=True)
 
     user: Relationship[User | None] = relationship(User, backref="files")
     asset: Relationship["Asset | None"] = relationship("Asset", backref="files")

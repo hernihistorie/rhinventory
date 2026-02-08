@@ -31,6 +31,7 @@ class MagDbModelView(CustomModelView):
 
 class MagDbMagazineView(MagDbModelView):
     list_template = "magdb/magazine/list_view.html"
+    details_template = "magdb/magazine/details.html"
 
 
 class MagDbMagazineIssueView(MagDbModelView):
