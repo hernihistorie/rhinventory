@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import OrderedDict
 
 import flask.templating
-from flask import Blueprint, render_template, request
+from flask import Blueprint, redirect, render_template, request
 
 from rhinventory.models.magdb import Magazine, MagazineIssue, MagazineIssueVersion, IssueStatus, \
     MagazineIssueVersionFiles, MagDBFileType
@@ -13,7 +13,8 @@ magdb_bp = Blueprint("magdb", __name__, url_prefix="/public-magdb")
 
 @magdb_bp.route("/")
 def index():
-    return render_template("magdb/index.html")
+    # return render_template("magdb/index.html")
+    return redirect('https://herniarchiv.cz/magazines/', 308)
 
 @magdb_bp.route("/catalog.yaml")
 @magdb_bp.route("/catalog")
@@ -32,7 +33,8 @@ def catalog():
 
     if request.path.endswith('.yaml'):
         return render_template("magdb/catalog.yaml.jinja2", **context), 200, {'Content-Type': 'text/yaml'}
-    return render_template("magdb/catalog.html", **context)
+    # return render_template("magdb/catalog.html", **context)
+    return redirect('https://herniarchiv.cz/magazines/catalog/', 308)
 
 
 @magdb_bp.route("/catalog/magazine-detail/<int:magazine_id>.yaml")
@@ -93,7 +95,8 @@ def magazine_detail(magazine_id: int | None = None, magazine_slug: str | None = 
 
     if request.path.endswith('.yaml'):
         return render_template("magdb/magazine_detail.yaml.jinja2", **context), 200, {'Content-Type': 'text/yaml'}
-    return render_template("magdb/magazine_detail.html", **context)
+    # return render_template("magdb/magazine_detail.html", **context)
+    return redirect(f'https://herniarchiv.cz/magazines/catalog/{magazine.slug or magazine.id}', 308)
 
 
 @magdb_bp.route("/miss-list.yaml")
@@ -136,4 +139,5 @@ def miss_list():
 
     if request.path.endswith('.yaml'):
         return render_template("magdb/miss-list.yaml.jinja2", **context), 200, {'Content-Type': 'text/yaml'}
-    return render_template("magdb/miss-list.html", **context)
+    # return render_template("magdb/miss-list.html", **context)
+    return redirect('https://herniarchiv.cz/magazines/miss-list/', 308)
