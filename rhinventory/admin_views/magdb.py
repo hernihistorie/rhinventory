@@ -53,6 +53,12 @@ class MagDbMagazineIssueView(MagDbModelView):
         'published_month',
         'published_day',
     ]
+    column_list = [
+        Magazine.id,
+        Magazine.slug,
+        Magazine.title,
+        Magazine.url_archive_org
+    ]
 
     @expose("/create_wizard", methods=["GET", "POST"])
     def create_wizard(self):
