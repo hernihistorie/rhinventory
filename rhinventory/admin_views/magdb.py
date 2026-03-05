@@ -32,6 +32,12 @@ class MagDbModelView(CustomModelView):
 class MagDbMagazineView(MagDbModelView):
     list_template = "magdb/magazine/list_view.html"
     details_template = "magdb/magazine/details.html"
+    column_list = [
+        Magazine.id,
+        Magazine.slug,
+        Magazine.title,
+        Magazine.url_archive_org
+    ]
 
 
 class MagDbMagazineIssueView(MagDbModelView):
@@ -52,12 +58,6 @@ class MagDbMagazineIssueView(MagDbModelView):
         'published_year',
         'published_month',
         'published_day',
-    ]
-    column_list = [
-        Magazine.id,
-        Magazine.slug,
-        Magazine.title,
-        Magazine.url_archive_org
     ]
 
     @expose("/create_wizard", methods=["GET", "POST"])
