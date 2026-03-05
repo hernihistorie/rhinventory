@@ -64,6 +64,8 @@ class Magazine(HistoryTrait):
     url_arbitrary = db.Column(db.String(), nullable=True)
     url_arbitrary_title = db.Column(db.String(), nullable=True)
 
+    url_issue_scan_template = db.Column(db.String(), nullable=True)
+
     def __str__(self):
         return self.title
 
