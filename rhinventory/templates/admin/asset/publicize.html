@@ -56,7 +56,7 @@
             <a href="{{ url_for('asset.publicize_view') }}">Clear filter</a>
         </p>
     {% else %}
-        <form mnthod="GET">
+        <form method="GET">
             Filter by tag:
             <input style="vertical-align: top;" type="text" name="tag" placeholder="Tag name or ID">
             <input class="btn" type="submit" value="Filter">
@@ -95,7 +95,7 @@
         </div>
     {% endmacro %}
 
-    <form method="POST">
+    <form method="POST" id="publicize-form">
         <div class="assets">
             <div class="asset-row">
                 <div class="btn-group">
@@ -168,7 +168,7 @@
             })
         )
 
-        document.querySelector('form').addEventListener('submit', function(event) {
+        document.querySelector('#publicize-form').addEventListener('submit', function(event) {
             let form = event.target;
             let buttonGroups = form.querySelectorAll('.submit-btn-group');
             
