@@ -427,8 +427,10 @@ class FileView(CustomModelView):
                 return 'NG', 200, {'HX-Refresh': 'true'}
         else:
             rotation = int(get_mdict_item_or_list(request.args, 'rotation'))
-            if rotation not in (90, 180, 270):
+            if rotation not in (0, 90, 180, 270):
                 flash("Invalid rotation value.", 'error')
+                if htmx:
+                    return 'NG', 200, {'HX-Refresh': 'true'}
                 return redirect(url_for("file.details_view", id=id))
 
             model.rotate(rotation)
