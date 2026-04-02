@@ -188,6 +188,15 @@ User-agent: *
 Disallow: /asset/export/csv/
 Disallow: /*?flt*
 Disallow: /*?*&flt*
+Disallow: /asset/*?flt*
+Disallow: /asset/*?*&flt*
+
+User-agent: meta-externalagent/1.1
+Disallow: *
+
+
+User-agent: meta-externalagent
+Disallow: *
 """
         return Response(text, mimetype='text/plain')
 
