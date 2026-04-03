@@ -163,6 +163,10 @@ def create_app(config_object='rhinventory.config'):
 
     @app.before_request
     def before_request():
+        ua = request.headers.get('User-Agent', '')
+        if 'meta-webindexer/1.1' in ua:
+            abort(403)
+
         g.debug = app.debug
         g.organizations = Organization.query.order_by(Organization.id).all()
         # XXX
@@ -196,6 +200,12 @@ Disallow: *
 
 
 User-agent: meta-externalagent
+Disallow: *
+
+User-agent: meta-webindexer/1.1
+Disallow: *
+
+User-agent: meta-webindexer
 Disallow: *
 """
         return Response(text, mimetype='text/plain')
