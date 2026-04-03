@@ -8,7 +8,7 @@ from uuid import UUID
 
 from flask import Response, abort, redirect, request, flash, url_for, get_template_attribute
 from flask_admin.model.filters import BaseFilter
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, subqueryload
 from wtforms import RadioField, TextAreaField, Field
 import wtforms.validators
 from flask_admin import expose
@@ -319,15 +319,16 @@ class AssetView(CustomModelView):
     def get_query(self):
         query = self.session.query(Asset) \
             .options(
-                joinedload(Asset.tags),
+                subqueryload(Asset.tags),
                 joinedload(Asset.parent),
-                joinedload(Asset.children),
+                subqueryload(Asset.children),
                 joinedload(Asset.location),
-                joinedload(Asset.contains),
-                joinedload(Asset.files),
-                joinedload(Asset.transactions).subqueryload(Transaction.our_party),
-                joinedload(Asset.transactions).subqueryload(Transaction.counterparty_new),
-                joinedload(Asset.floppy_disk_captures),
+                subqueryload(Asset.contains),
+                subqueryload(Asset.files),
+                subqueryload(Asset.transactions).subqueryload(Transaction.our_party),
+                subqueryload(Asset.transactions).subqueryload(Transaction.counterparty_new),
+                subqueryload(Asset.floppy_disk_captures),
+                joinedload(Asset.organization),
             )
         if current_user.is_authenticated and current_user.read_access:
             return query

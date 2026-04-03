@@ -98,13 +98,13 @@
     </span>
 
     <span>
-    {% if asset.contents %}
+    {% if asset.contains %}
         <a
             href="{{ asset.url}}"
             rel="tooltip" title="
-                <strong>{{ asset.contents | count }} contents</strong><br>
-                {% if asset.contents | count <= 5 %}
-                    {{ asset.contents | join('<br>') }}
+                <strong>{{ asset.contains | count }} contents</strong><br>
+                {% if asset.contains | count <= 5 %}
+                    {{ asset.contains | join('<br>') }}
                 {% endif %}
             "
         >

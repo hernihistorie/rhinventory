@@ -222,9 +222,23 @@ class Asset(db.Model):
         self._privacy = value
 
 
+    @property
+    def _sorted_files(self) -> list[File]:
+        """Files sorted by primary, has_thumbnail, filepath, filtered to non-deleted."""
+        return sorted(
+            (f for f in self.files if not f.is_deleted),
+            key=lambda f: (not f.primary, not f.has_thumbnail, f.filepath or '')
+        )
+
     def get_primary_image(self):
-        return self.get_sorted_images().first()
-        
+        return next((f for f in self._sorted_files if f.category in IMAGE_CATEGORIES), None)
+
+    def get_primary_dump(self):
+        return next((f for f in self._sorted_files if f.category == FileCategory.dump), None)
+
+    def get_primary_document(self):
+        return next((f for f in self._sorted_files if f.category == FileCategory.document), None)
+
     @property
     def _query_files(self):
         return db.session.query(File) \
@@ -238,18 +252,12 @@ class Asset(db.Model):
             .filter(
                 File.category.in_(categories)
             )
-    
+
     def get_sorted_images(self):
         return self.get_files_in_categories(IMAGE_CATEGORIES)
 
-    def get_primary_dump(self):
-        return self.get_dumps().first()
-    
     def get_dumps(self):
         return self.get_files_in_categories([FileCategory.dump])
-
-    def get_primary_document(self):
-        return self.get_files_in_categories([FileCategory.document]).first()
 
     @property
     def parents(self) -> list[Asset]:
