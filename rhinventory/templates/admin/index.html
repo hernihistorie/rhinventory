@@ -51,7 +51,7 @@
 
             {{ render_featured_tags() }}
             {% if not current_user.is_authenticated %}
-                <div style="margin-top: 128px; text-align: right;">
+                <div style="margin-top: 128px; text-align: right;" class="rhinventory-login-link">
                     <a href="{{ url_for('login', next=next) }}">Přihlášení pro správce</a>
                 </div>
             {% else %}
