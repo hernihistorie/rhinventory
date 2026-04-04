@@ -185,13 +185,16 @@ class AssetView(CustomModelView):
     column_choices = {
 #        'condition': AssetCondition,
     }
-    can_export = True
     page_size = 100
 
     list_template = "admin/asset/list.html"
     details_template = "admin/asset/details.html"
     edit_template = "admin/asset/edit.html"
     create_template = "admin/asset/create.html"
+
+    @property
+    def can_export(self):
+        return current_user.is_authenticated and current_user.read_access
 
     def is_accessible(self):
         return True
