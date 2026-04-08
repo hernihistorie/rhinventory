@@ -61,11 +61,93 @@
                 <h2>Pro přihlášené uživatele</h2>
                 <p>Omrkni další info <a href="https://retroherna.org/wiki/doku.php?id=inventar:navod">na wiki</a>.
 
-                {# <script src="https://cdnjs.cloudflare.com/ajax/libs/bokeh/2.4.1/bokeh.min.js" integrity="sha512-2Eg0zNXJlBmICBS/KO67OamNxpln5shamyEK7UiUjvLdtYyCoAhzeAgUWYjJxilTZiPrGYZzlqWfiH1+8DBmVg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> #}
-                
-                {# {{ plot_div | safe }}
+                {% if stats %}
+                <h3>Statistiky</h3>
+                <table class="table table-bordered table-condensed" style="max-width: 400px;>
+                    <thead>
+                        <tr>
+                            <th rowspan="2"></th>
+                            <th rowspan="2"></th>
+                            {% for cat in category_labels %}
+                                <th colspan="{{ event_type_labels|length }}" style="text-align: center;">{{ cat }}</th>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            {% for cat in category_labels %}
+                                {% for evt in event_type_labels %}
+                                    <th style="text-align: right;">{{ evt }}</th>
+                                {% endfor %}
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for period in period_labels %}
+                        <tr>
+                            <td><strong>{{ period }}</strong></td>
+                            {% for cat in category_labels %}
+                                {% for evt in event_type_labels %}
+                                    <td style="text-align: right;">{{ stats[period][cat][evt] }}</td>
+                                {% endfor %}
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% endif %}
 
-                {{ plot_script | safe }} #}
+                {% if asset_chart_data %}
+                <h3>New assets per month</h3>
+                <canvas id="assetChart" style="max-width: 800px; max-height: 400px;"></canvas>
+                <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+                <script>
+                    (function() {
+                        var data = {{ asset_chart_data | safe }};
+                        new Chart(document.getElementById('assetChart'), {
+                            type: 'bar',
+                            data: {
+                                labels: data.labels,
+                                datasets: [
+                                    {
+                                        label: 'New assets',
+                                        data: data.counts,
+                                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                                        borderColor: 'rgba(54, 162, 235, 1)',
+                                        borderWidth: 1,
+                                        yAxisID: 'y'
+                                    },
+                                    {
+                                        label: 'Total assets',
+                                        data: data.cumulative,
+                                        type: 'line',
+                                        borderColor: 'rgba(255, 99, 132, 1)',
+                                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                                        fill: true,
+                                        tension: 0.3,
+                                        pointRadius: 0,
+                                        yAxisID: 'y1'
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        position: 'left',
+                                        title: { display: true, text: 'New per month' }
+                                    },
+                                    y1: {
+                                        beginAtZero: true,
+                                        position: 'right',
+                                        title: { display: true, text: 'Total' },
+                                        grid: { drawOnChartArea: false }
+                                    }
+                                }
+                            }
+                        });
+                    })();
+                </script>
+                {% endif %}
 
             {% endif %}
         </div>

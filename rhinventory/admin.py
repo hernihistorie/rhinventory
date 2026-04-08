@@ -20,21 +20,21 @@ from rhinventory.event_store.event_store import event_store
 class CustomIndexView(AdminIndexView):
     @expose('/')
     def index(self):
-        # plot_script, plot_div = figure_counter(
-        #     db.session,
-        #     LogItem.id,
-        #     LogItem.datetime,
-        #     LogItem.table == "Asset" and LogItem.event == "Create",
-        #     ['year', 'month', 'day'],
-        #     lambda x: datetime.datetime(int(x.year), int(x.month), int(x.day)),
-        #     count_total=True,
-        #     title='Total assets')
+        import json as json_module
+        from rhinventory.stats import get_stats_table, get_asset_chart_data, PERIOD_LABELS, CATEGORY_LABELS, EVENT_TYPE_LABELS
 
         next = request.args.get('next')
 
         featured_tags = db.session.query(AssetTag).filter(AssetTag.is_featured == True).all()
 
-        return self.render('admin/index.html',  featured_tags=featured_tags, next=next)
+        stats = None
+        asset_chart_data = None
+        if current_user.is_authenticated and current_user.read_access:
+            stats = get_stats_table()
+            asset_chart_data = json_module.dumps(get_asset_chart_data())
+
+        return self.render('admin/index.html', featured_tags=featured_tags, next=next, stats=stats, asset_chart_data=asset_chart_data,
+            period_labels=PERIOD_LABELS, category_labels=CATEGORY_LABELS, event_type_labels=EVENT_TYPE_LABELS)
 
 admin._set_admin_index_view(CustomIndexView()) # XXX this is not great
 

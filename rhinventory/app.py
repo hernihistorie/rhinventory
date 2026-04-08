@@ -185,6 +185,19 @@ def create_app(config_object='rhinventory.config'):
         if current_user.is_authenticated:
             return current_user.github_access_token
     
+    @app.route('/stats.json')
+    @login_required
+    def stats_json():
+        if not current_user.read_access:
+            abort(403)
+        from rhinventory.stats import get_stats_table, get_asset_chart_data, get_current_totals, get_latest_public_asset
+        return jsonify({
+            'stats': get_stats_table(),
+            'asset_chart': get_asset_chart_data(),
+            'current_totals': get_current_totals(),
+            'latest_public_asset': get_latest_public_asset(),
+        })
+
     @app.route('/robots.txt')
     def robots():
         text = """
