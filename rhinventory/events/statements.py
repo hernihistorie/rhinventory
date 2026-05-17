@@ -1,9 +1,7 @@
-import uuid
-
 from rhinventory.events.event import Event
+from rhinventory.models.properties.property import PropertyID
 
-AssetID = int
-PropertyID = uuid.UUID
+type AssetID = int
 
 
 class StatementCreated(Event, kw_only=True, frozen=True):

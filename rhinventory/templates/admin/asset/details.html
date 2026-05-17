@@ -221,8 +221,15 @@
                     </td></tr>
                 {% endif %}
                 {% for statement in statements %}
+                    {% set property = properties_by_id.get(statement.property_id) %}
                     <tr>
-                        <td><strong>{{ statement.property_id }}</strong></td>
+                        <td data-property-id="{{ statement.property_id }}">
+                            {% if property %}
+                                <strong>{{ property.name if property else "Unknown" }}</strong>
+                            {% else %}
+                                <strong class="text-error">Unknown property</strong>
+                            {% endif %}
+                        </td>
                         <td>{{ statement.value }}</td>
                     </tr>
                 {% endfor %}

@@ -1,8 +1,9 @@
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy_utils.expressions import ColumnElement
 
-from rhinventory.events.statements import StatementCreated, AssetID, PropertyID
+from rhinventory.events.statements import StatementCreated, AssetID
 from rhinventory.models.aggregates.aggregate import Aggregate, registered_aggregate_class
+from rhinventory.models.properties.property import PropertyID
 
 
 @registered_aggregate_class

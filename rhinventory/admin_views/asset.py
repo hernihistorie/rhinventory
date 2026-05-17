@@ -32,6 +32,7 @@ from rhinventory.models.enums import Privacy, PUBLIC_PRIVACIES
 from rhinventory.models.events import DBEvent
 from rhinventory.models.file import IMAGE_CATEGORIES, File
 from rhinventory.models.log import LogEvent, log
+from rhinventory.models.properties.properties import properties_by_id
 from rhinventory.forms import FileForm, StatementForm
 from rhinventory.events.statements import StatementCreated
 from rhinventory.models.aggregates.statement import Statement
@@ -525,7 +526,8 @@ class AssetView(CustomModelView):
                             AssetCategory=AssetCategory,
                             private_implicit_files=private_implicit_files,
                             latest_events=latest_events,
-                            related_events_count=related_events_count
+                            related_events_count=related_events_count,
+                            properties_by_id=properties_by_id
         )
     
     @expose('/new2/', methods=['GET'])

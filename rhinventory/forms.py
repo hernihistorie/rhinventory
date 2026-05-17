@@ -6,6 +6,7 @@ from wtforms.validators import ValidationError
 
 from rhinventory.db import FileCategory
 from rhinventory.models.enums import Privacy
+from rhinventory.models.properties.properties import properties
 
 
 class UUIDValidator:
@@ -39,5 +40,5 @@ class FileAssignForm(Form):
 
 class StatementForm(Form):
     subject_id = HiddenField("Subject ID")
-    property_id = StringField("Property ID", validators=[UUIDValidator()])
+    property_id = Select2Field("Property", choices=[(prop.id, prop.name) for prop in properties], validators=[UUIDValidator()])
     value = TextAreaField("Value")
