@@ -230,7 +230,13 @@
                                 <strong class="text-error">Unknown property</strong>
                             {% endif %}
                         </td>
-                        <td>{{ statement.value }}</td>
+                        <td>
+                            {% if statement.value.startswith("http") %}
+                                <a href="{{ statement.value }}" target="_blank">{{ statement.value }}</a>
+                            {% else %}
+                                {{ statement.value }}
+                            {% endif %}
+                        </td>
                     </tr>
                 {% endfor %}
                 <tr>
