@@ -92,6 +92,7 @@
         </script>
     #}
     <script>
-        $('[rel=tooltip]').tooltip({'animation': false, 'html': true});
+        const root = document.getElementById('rhinventory-root').shadowRoot;
+        $(root).find('[rel=tooltip]').tooltip({'animation': false, 'html': true});
     </script>
 {% endblock %}

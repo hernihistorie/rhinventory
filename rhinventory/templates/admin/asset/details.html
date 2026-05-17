@@ -225,15 +225,17 @@
         </div>
         <div class="asset-images-files">
             {% macro download_button(file, text, showformat) %}
-                <div style="text-align: center;">
-                    <a href="{{ file.url }}" class="btn btn-primary btn-large" style="margin-bottom: 8px;">
-                        <span class="fa fa-download"></span>
-                        Download {{ text }}
-                        {% if file.size %}
-                            ({% if showformat %}{{ file.file_extension }}, {% endif %}{{ file.size | filesizeformat }})
-                        {% endif %}
-                    </a>
-                </div>
+                {% if visible_to_current_user(file) %}
+                    <div style="text-align: center;">
+                        <a href="{{ file.url }}" class="btn btn-primary btn-large" style="margin-bottom: 8px;">
+                            <span class="fa fa-download"></span>
+                            Download {{ text }}
+                            {% if file.size %}
+                                ({% if showformat %}{{ file.file_extension }}, {% endif %}{{ file.size | filesizeformat }})
+                            {% endif %}
+                        </a>
+                    </div>
+                {% endif %}
             {% endmacro %}
             {% set primary_document = model.get_primary_document() %}
             {% if primary_document %}
