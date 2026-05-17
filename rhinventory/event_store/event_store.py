@@ -3,6 +3,7 @@ from enum import Enum
 import json
 from typing import Iterable, Iterator
 import msgspec
+from tqdm import tqdm
 
 from flask_login import current_user
 
@@ -69,7 +70,10 @@ class EventStore():
                 else:
                     aggregate_instance.apply_event(event)
 
-    def rebuild_aggregates(self, aggregate_classes: Iterable[type[Aggregate]] | None = None) -> None:
+    def rebuild_aggregates(
+            self,
+            aggregate_classes: Iterable[type[Aggregate]] | None = None,
+            show_progress: bool = False) -> None:
         if aggregate_classes is None:
             aggregate_classes = registered_aggregate_classes
         for aggregate_class in aggregate_classes:
@@ -80,6 +84,9 @@ class EventStore():
             q = db.session.query(DBEvent) \
                 .filter(DBEvent.class_name.in_(class_names)) \
                 .order_by(DBEvent.ingested_at.asc())
+            
+            if show_progress:
+                q = tqdm(q, desc=f"Rebuilding {aggregate_class.__name__}")
             
             for db_event in q:
                 event_data = msgspec.json.decode(json.dumps(db_event.data))

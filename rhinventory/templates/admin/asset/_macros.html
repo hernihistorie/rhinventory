@@ -303,3 +303,20 @@
 {% macro render_asset_code(model) %}
     {{ organization_icon(model.organization) -}}{{- model.code_without_organization }}
 {% endmacro %}
+
+{% macro render_statement_form(form) %}
+    <form method="POST" action="{{ url_for('asset.add_statement_view') }}">
+        {{ form.subject_id() }}
+        <div style="display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap;">
+            <div>
+                {{ form.property_id(class="form-control", style="width: 120px;") }}
+            </div>
+            <div style="flex-grow: 1;">
+                {{ form.value(class="form-control", rows=1) }}
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary">Add</button>
+            </div>
+        </div>
+    </form>
+{% endmacro %}

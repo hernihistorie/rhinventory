@@ -4,5 +4,5 @@ app = create_app()
 with app.app_context():
     print("Rebuilding aggregates...")
     event_store = EventStore()
-    event_store.rebuild_aggregates()
+    event_store.rebuild_aggregates(show_progress=True)
     print("Done.")

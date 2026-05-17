@@ -1,7 +1,7 @@
 {% extends 'admin/model/details.html' %}
 
 {% from '_macros.html' import organization_icon %}
-{% from 'admin/asset/_macros.html' import render_privacy_flag, render_tree, render_asset_code %}
+{% from 'admin/asset/_macros.html' import render_privacy_flag, render_tree, render_asset_code, render_statement_form %}
 
 {% set asset = model %}
 
@@ -220,8 +220,21 @@
                         {% endif %}
                     </td></tr>
                 {% endif %}
-                
-                </tbody></table>
+                {% for statement in statements %}
+                    <tr>
+                        <td><strong>{{ statement.property_id }}</strong></td>
+                        <td>{{ statement.value }}</td>
+                    </tr>
+                {% endfor %}
+                <tr>
+                    <td colspan="2">
+                        <strong style="opacity: 0.5;">New statement</strong>
+                        {{ render_statement_form(statement_form) }}
+                    </td>
+                </tr>
+
+                </tbody>
+            </table>
         </div>
         <div class="asset-images-files">
             {% macro download_button(file, text, showformat) %}

@@ -20,7 +20,7 @@ from flask_admin.actions import action
 from flask_admin.contrib.sqla import form
 from flask_admin.helpers import get_form_data
 from flask_login import current_user
-from sqlalchemy import desc, event, nulls_last, func
+from sqlalchemy import nulls_last, func
 from sqlalchemy.sql.functions import coalesce
 from rhinventory.admin_views.utils import get_asset_list_from_request_args, visible_to_current_user
 
@@ -32,7 +32,9 @@ from rhinventory.models.enums import Privacy, PUBLIC_PRIVACIES
 from rhinventory.models.events import DBEvent
 from rhinventory.models.file import IMAGE_CATEGORIES, File
 from rhinventory.models.log import LogEvent, log
-from rhinventory.forms import FileForm
+from rhinventory.forms import FileForm, StatementForm
+from rhinventory.events.statements import StatementCreated
+from rhinventory.models.aggregates.statement import Statement
 from rhinventory.models.asset import AssetCategory
 from rhinventory.models.asset_attributes import AssetTag, Company
 from rhinventory.models.aggregates.floppy_disk_capture import FloppyDiskCapture
@@ -492,6 +494,10 @@ class AssetView(CustomModelView):
 
         batch_number = get_next_file_batch_number()
         file_form = FileForm(batch_number=batch_number)
+        statement_form = StatementForm(subject_id=model.id)
+        statements = db.session.query(Statement).filter(
+            Statement.subject_id == model.id
+        ).order_by(Statement.id.asc()).all()
 
         logs = db.session.query(LogItem).filter(
             LogItem.table.startswith("Asset"), # XXX imperfect! This will also get "AssetTag" and similar
@@ -513,6 +519,8 @@ class AssetView(CustomModelView):
                             get_value=self.get_detail_value,
                             return_url=return_url,
                             file_form=file_form,
+                            statement_form=statement_form,
+                            statements=statements,
                             logs=logs,
                             AssetCategory=AssetCategory,
                             private_implicit_files=private_implicit_files,
@@ -705,6 +713,28 @@ class AssetView(CustomModelView):
     def edit_form(self, obj: Asset):
         form = self.make_asset_form(obj.category)(get_form_data(), obj=obj)
         return form
+
+    @expose('/add_statement/', methods=['POST'])
+    @require_write_access
+    def add_statement_view(self):
+        asset_id = int(request.form['subject_id'])
+        asset = db.session.query(Asset).get(asset_id)
+        assert asset
+
+        form = StatementForm(request.form)
+        if form.validate():
+            event = StatementCreated(
+                subject_id=asset_id,
+                property_id=UUID(form.property_id.data),
+                value=form.value.data,
+            )
+            with event_store.event_session_for_current_user() as event_session:
+                event_session.ingest(event)
+            flash("Statement created.", "success")
+        else:
+            flash(f"Invalid statement: {form.errors}", "error")
+
+        return redirect(asset.url)
 
     @expose('/add_contents/', methods=['POST'])
     @require_write_access

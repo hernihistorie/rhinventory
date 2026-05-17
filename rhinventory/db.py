@@ -18,6 +18,7 @@ from rhinventory.models.events import DBEvent, EventSession, PushKey
 from rhinventory.models.aggregates.test import TestAggregate
 from rhinventory.models.aggregates.floppy_disk_capture import FloppyDiskCapture, AssetIdSource
 from rhinventory.models.aggregates.file import FileAggregate
+from rhinventory.models.aggregates.statement import Statement
 
 
 class Location(db.Model):

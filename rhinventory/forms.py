@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from flask_admin.form.fields import Select2Field
-from wtforms import Form, RadioField, StringField, BooleanField, FileField, MultipleFileField, HiddenField, IntegerField
+from wtforms import Form, RadioField, StringField, BooleanField, FileField, MultipleFileField, HiddenField, IntegerField, TextAreaField
 from wtforms.validators import ValidationError
 
 from rhinventory.db import FileCategory
@@ -36,3 +36,8 @@ class DropzoneFileForm(Form):
 
 class FileAssignForm(Form):
     asset = Select2Field("asset", coerce=int)
+
+class StatementForm(Form):
+    subject_id = HiddenField("Subject ID")
+    property_id = StringField("Property ID", validators=[UUIDValidator()])
+    value = TextAreaField("Value")
