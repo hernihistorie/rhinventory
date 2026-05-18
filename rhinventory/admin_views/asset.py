@@ -34,7 +34,7 @@ from rhinventory.models.file import IMAGE_CATEGORIES, File
 from rhinventory.models.log import LogEvent, log
 from rhinventory.models.properties.properties import properties_by_id
 from rhinventory.forms import FileForm, StatementForm
-from rhinventory.events.statements import StatementCreated
+from rhinventory.events.statements import StatementCreated, StatementDeleted
 from rhinventory.models.aggregates.statement import Statement
 from rhinventory.models.asset import AssetCategory
 from rhinventory.models.asset_attributes import AssetTag, Company
@@ -497,7 +497,8 @@ class AssetView(CustomModelView):
         file_form = FileForm(batch_number=batch_number)
         statement_form = StatementForm(subject_id=model.id)
         statements = db.session.query(Statement).filter(
-            Statement.subject_id == model.id
+            Statement.subject_id == model.id,
+            Statement.deleted_at.is_(None),
         ).order_by(Statement.id.asc()).all()
 
         logs = db.session.query(LogItem).filter(
@@ -736,6 +737,24 @@ class AssetView(CustomModelView):
         else:
             flash(f"Invalid statement: {form.errors}", "error")
 
+        return redirect(asset.url)
+
+    @expose('/delete_statement/', methods=['POST'])
+    @require_write_access
+    def delete_statement_view(self):
+        statement_id = UUID(request.form['statement_id'])
+        statement = db.session.query(Statement).get(statement_id)
+        if not statement or statement.deleted_at is not None:
+            flash("Statement not found.", "error")
+            return redirect(request.referrer or url_for('asset.index_view'))
+
+        asset = db.session.query(Asset).get(statement.subject_id)
+        assert asset
+
+        event = StatementDeleted(statement_id=statement_id)
+        with event_store.event_session_for_current_user() as event_session:
+            event_session.ingest(event)
+        flash("Statement deleted.", "success")
         return redirect(asset.url)
 
     @expose('/add_contents/', methods=['POST'])

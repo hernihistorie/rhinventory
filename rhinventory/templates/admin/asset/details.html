@@ -237,14 +237,26 @@
                                 {{ statement.value }}
                             {% endif %}
                         </td>
+                        {% if current_user.is_authenticated and current_user.write_access %}
+                        <td>
+                            <form method="POST" action="{{ url_for('asset.delete_statement_view') }}" style="display:inline;">
+                                <input type="hidden" name="statement_id" value="{{ statement.id }}">
+                                <button type="submit" class="unstyled" onclick="return confirm('Delete this statement?')">
+                                    <span class="fa fa-trash"></span>
+                                </button>
+                            </form>
+                        </td>
+                        {% endif %}
                     </tr>
                 {% endfor %}
-                <tr>
-                    <td colspan="2">
-                        <strong style="opacity: 0.5;">New statement</strong>
-                        {{ render_statement_form(statement_form) }}
-                    </td>
-                </tr>
+                {% if current_user.is_authenticated and current_user.write_access %}
+                    <tr>
+                        <td colspan="2">
+                            <strong style="opacity: 0.5;">New statement</strong>
+                            {{ render_statement_form(statement_form) }}
+                        </td>
+                    </tr>
+                {% endif %}
 
                 </tbody>
             </table>

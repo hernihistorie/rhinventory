@@ -69,6 +69,14 @@ ul.rating-field label { display: inline; }
   color: var(--color-text);
 }
 
+button.unstyled {
+    border: none;
+    background: none;
+}
+button.unstyled:hover {
+  color: var(--color-primary)
+}
+
 @keyframes cycle {
     0% {
       background-position: 94% 0%; }
