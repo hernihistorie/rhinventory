@@ -39,7 +39,10 @@ class FileAggregate(Aggregate):
     def filter_from_event(cls, event: listen_for_events_type) -> ColumnElement[bool] | bool:
         match event:
             case FileConverted():
-                return cls.hash_blake3 == bytes.fromhex(event.output_file_metadata.checksums.blake3)
+                if event.output_file_metadata:
+                    return cls.hash_blake3 == bytes.fromhex(event.output_file_metadata.checksums.blake3)
+                else:
+                    return False
             case _:
                 raise ValueError(f"Unsupported event type: {type(event)}")
 
