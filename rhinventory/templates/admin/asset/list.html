@@ -70,6 +70,7 @@
                     <button id="selected-show-sheet" class="btn">Show sheet</button>
                     <a id="selected-print-labels" href="#" class="btn">Print labels</a>
                     <a id="selected-print-labels-small" href="#" class="btn">Print labels (small)</a>
+                    <button id="selected-download-files" class="btn">Download files</button>
                 </div>
                 <div class="tab-pane" id="selected-tab-transactions">
                     <button id="selected-create-transaction" class="btn">Create transaction</button>
@@ -218,6 +219,13 @@
         document.getElementById("selected-show-sheet").onclick = function() {
             localStorage.setItem("selected", "[]");
             document.location.href = "{{ get_url('label_assets') }}?asset_ids=" + selected;
+        }
+
+        document.getElementById("selected-download-files").onclick = function() {
+            if (!selected.length) {
+                return;
+            }
+            document.location.href = "{{ get_url('asset.download_files') }}?asset_id=[" + selected + "]";
         }
 
         document.getElementById("selected-create-transaction").onclick = function() {
