@@ -55,7 +55,7 @@
             </div>
 
             {{ render_featured_tags() }}
-            {% if not current_user.is_authenticated %}
+            {% if current_user.is_authenticated %}
                 {% if not current_user.read_access %}
                     <p class="text-warning">Nemáte práva, požádejte si o ně.
                 {% endif %}
