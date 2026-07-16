@@ -1,7 +1,7 @@
 import sys
 import enum
 
-from sqlalchemy import Boolean, Column, DateTime, Integer, String, ForeignKey, Table
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, ForeignKey, Table, UniqueConstraint
 from sqlalchemy.orm import relationship, backref, Mapped, mapped_column
 
 from rhinventory.extensions import db
@@ -18,6 +18,7 @@ def asset_n_to_n_table(other_table: db.Model) -> Table:
         db.Model.metadata,
         Column("asset_id", ForeignKey("assets.id")),
         Column(f"{other_name}_id", ForeignKey(other_table.id)),
+        UniqueConstraint("asset_id", f"{other_name}_id", name=f"uq_asset_{other_name}"),
     )
 
 class Platform(db.Model, SimpleAssetAttribute):
