@@ -92,7 +92,7 @@
         </script>
     #}
     <script>
-        const root = document.getElementById('rhinventory-root').shadowRoot;
+        const root = document.getElementById('rhinventory-root')?.shadowRoot ?? document;
         $(root).find('[rel=tooltip]').tooltip({'animation': false, 'html': true});
     </script>
 {% endblock %}
