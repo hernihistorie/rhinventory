@@ -83,7 +83,7 @@ class AssetView(CustomModelView):
     form_columns = [
         'organization',
         'category',
-#        'custom_code',
+        'custom_code',
         'name',
 #        'manufacturer',
         'companies',
