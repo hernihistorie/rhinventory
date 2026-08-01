@@ -1,10 +1,12 @@
 import enum
+import re
 
 import flask_login
 from sqlalchemy import func, UniqueConstraint
 
 from rhinventory.extensions import db
 from rhinventory.models.user import User
+from rhinventory.util import slugify
 
 
 def get_current_user_id():
@@ -68,6 +70,17 @@ class Magazine(HistoryTrait):
 
     def __str__(self):
         return self.title
+
+    @classmethod
+    def get_or_create(cls, title: str) -> tuple["Magazine", bool]:
+        """Find a magazine by title, or create one (with a slug). Returns (magazine, created)."""
+        magazine = cls.query.filter_by(title=title).one_or_none()
+        if magazine is not None:
+            return magazine, False
+        magazine = cls(title=title, slug=slugify(title))
+        db.session.add(magazine)
+        db.session.flush()
+        return magazine, True
 
     def get_logos(self):
         return [file for file in MagazineIssueVersionFiles.query.all() if file.magazine_issue_version.magazine_issue.magazine_id == self.id]
@@ -186,6 +199,51 @@ class Format(HistoryTrait):
     def __str__(self):
         return self.name
 
+    @classmethod
+    def from_string(cls, value: str | None) -> "Format | None":
+        """Parse '200x270 stapled' into a transient (unsaved) Format."""
+        if value is None or not str(value).strip():
+            return None
+        value = str(value).strip()
+
+        binding = None
+        dims_part = value
+        for word in value.split():
+            try:
+                binding = BindingType[word.lower()]
+                dims_part = value.replace(word, "").strip()
+                break
+            except KeyError:
+                continue
+
+        match = re.search(r"(\d+)\s*[x×]\s*(\d+)", dims_part)
+        if not match:
+            raise ValueError(f"Cannot parse format dimensions: {value!r}")
+        width, height = int(match.group(1)), int(match.group(2))
+        return cls(width=width, height=height, binding_type=binding, name=value)
+
+    @classmethod
+    def get_or_create(cls, template: "Format | None") -> tuple["Format | None", bool, bool]:
+        """Find a format matching ``template``'s dimensions and binding, or persist the
+        template as a new one. Returns (format, created, changed)."""
+        if template is None:
+            return None, False, False
+
+        existing = cls.query.filter_by(
+            width=template.width, height=template.height, binding_type=template.binding_type
+        ).one_or_none()
+        if existing is None:
+            db.session.add(template)
+            db.session.flush()
+            return template, True, False
+
+        changed = bool(template.name) and existing.name != template.name
+        if changed:
+            existing.name = template.name
+        db.session.flush()
+        return existing, False, changed
+
+
 class MagDBFileType(enum.Enum):
     logo        = 10
     scan        = 11
@@ -204,6 +262,7 @@ class MagDBFileType(enum.Enum):
     def __str__(self):
         return str(self.value)
 
+BARCODE_MAX_LEN = 15
 
 class MagazineIssueVersion(HistoryTrait, CheckedTrait):
     __tablename__ = "magazine_issue_versions"
@@ -224,7 +283,7 @@ class MagazineIssueVersion(HistoryTrait, CheckedTrait):
     confirmed = db.Column(db.Boolean())
     issn_or_isbn = db.Column(db.String(25), nullable=True)
     register_number_mccr = db.Column(db.String(), nullable=True)
-    barcode = db.Column(db.String(15), nullable=True)
+    barcode = db.Column(db.String(BARCODE_MAX_LEN), nullable=True)
     status = db.Column(db.Enum(IssueStatus))
 
     note = db.Column(db.Text())
@@ -248,6 +307,45 @@ class MagazineIssueVersionPrice(HistoryTrait):
 
     def __str__(self):
         return f"{self.value} {self.currency} (ID {self.id})"
+
+    @classmethod
+    def from_string(cls, value: str | None) -> "MagazineIssueVersionPrice | None":
+        """Parse '99,90 CZK' into a transient (unsaved) price."""
+        if value is None or not str(value).strip():
+            return None
+        match = re.match(r"^\s*([\d.,]+)\s*([A-Za-z]+)\s*$", str(value))
+        if not match:
+            raise ValueError(f"Cannot parse price: {value!r}")
+        amount = float(match.group(1).replace(" ", "").replace(",", "."))
+        try:
+            currency = Currency[match.group(2).upper()]
+        except KeyError:
+            raise ValueError(f"Unknown currency in price: {value!r}")
+        return cls(value=amount, currency=currency)
+
+    @classmethod
+    def get_or_create(
+        cls, issue_version: "MagazineIssueVersion", template: "MagazineIssueVersionPrice | None"
+    ) -> tuple["MagazineIssueVersionPrice | None", bool, bool]:
+        """Find this version's price in ``template``'s currency, or persist the template.
+        Returns (price, created, changed)."""
+        if template is None:
+            return None, False, False
+
+        existing = cls.query.filter_by(
+            issue_version_id=issue_version.id, currency=template.currency
+        ).one_or_none()
+        if existing is None:
+            template.issue_version_id = issue_version.id
+            db.session.add(template)
+            db.session.flush()
+            return template, True, False
+
+        changed = existing.value != template.value
+        if changed:
+            existing.value = template.value
+        db.session.flush()
+        return existing, False, changed
 
 
 class MagazineIssueVersionFiles(HistoryTrait):
