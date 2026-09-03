@@ -48,6 +48,9 @@ issues_by_year:
       page_count: {{ issue.page_count | default(None) | tojson }}
       note: {{ issue.note | default(None) | tojson }}
       issuer: {{ issue.issuer | default(None) | tojson }}
+      {% if issue.scan_url %}
+        scan_url: {{ issue.scan_url | tojson }}
+      {% endif %}
       versions:
         {% for version in issue.versions %}
         - id: {{ version.id }}

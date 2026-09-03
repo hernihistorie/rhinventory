@@ -162,6 +162,8 @@ class MagazineIssue(HistoryTrait, CheckedTrait):
     magazine = db.relationship("Magazine", backref="issues")
 
     note = db.Column(db.Text())
+    
+    scan_url = db.Column(db.String(), nullable=True)
 
     __table_args__ = (
         UniqueConstraint('issue_number', 'magazine_id', name='_unique_issue'),
