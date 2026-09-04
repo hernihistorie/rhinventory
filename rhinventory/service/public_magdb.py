@@ -52,6 +52,7 @@ class PublicIssue:
     published_year: int
     calendar_id: str | None
     is_special_issue: bool
+    scan_url: str | None
     versions: list[PublicVersion]
     periodicity: Periodicity | None = None
     page_count: int | None = None
@@ -80,6 +81,7 @@ class PublicMagDBService:
                 MagazineIssue.periodicity,
                 MagazineIssue.page_count,
                 MagazineIssue.note,
+                MagazineIssue.scan_url,
                 Issuer.title,
                 MagazineIssueVersion.id,
                 MagazineIssueVersion.name_suffix,
@@ -110,7 +112,7 @@ class PublicMagDBService:
 
         for row in db.session.execute(query).fetchall():
             issue_id, issue_number, issue_title, issue_name, is_special, pub_day, pub_month, pub_year,\
-                calendar_id, periodicity, page_count, note, issuer, \
+                calendar_id, periodicity, page_count, note, scan_url, issuer, \
                 version_id, name_suffix, version_status, \
                 price_id, value, currency, \
                 file_type, file_id, filepath, has_thumbnail = row
@@ -131,6 +133,7 @@ class PublicMagDBService:
                     page_count=page_count,
                     issuer=issuer,
                     note=note,
+                    scan_url=scan_url,
                     versions=[]
                 )
                 issue_index[issue_id] = issue
