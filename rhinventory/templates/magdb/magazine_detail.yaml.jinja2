@@ -49,7 +49,7 @@ issues_by_year:
       note: {{ issue.note | default(None) | tojson }}
       issuer: {{ issue.issuer | default(None) | tojson }}
       {% if issue.scan_url %}
-        scan_url: {{ issue.scan_url | tojson }}
+      scan_url: {{ issue.scan_url | tojson }}
       {% endif %}
       versions:
         {% for version in issue.versions %}
