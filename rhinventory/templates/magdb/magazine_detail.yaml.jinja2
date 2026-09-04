@@ -36,7 +36,7 @@ issues_by_year:
   {{ year | default('null') | string | tojson }}:
     {% for issue in issues %}
     - id: {{ issue.id }}
-      current_magazine_name: {{ (issue.current_name | default(issue.current_magazine_name)) | tojson }}
+      current_magazine_name: {{ issue.current_magazine_name | tojson }}
       issue_number: {{ issue.issue_number | tojson }}
       calendar_id: {{ issue.calendar_id | default(None) | tojson }}
       issue_title: {{ issue.issue_title | default(None) | tojson }}
@@ -47,7 +47,7 @@ issues_by_year:
       periodicity: {{ issue.periodicity.value if issue.periodicity else None | tojson }}
       page_count: {{ issue.page_count | default(None) | tojson }}
       note: {{ issue.note | default(None) | tojson }}
-      issuer: {{ issue.issuer | default(None) | tojson }}
+      issuer: {{ (issue.issuer.title if issue.issuer else None) | tojson }}
       {% if issue.scan_url %}
       scan_url: {{ issue.scan_url | tojson }}
       {% endif %}
@@ -60,20 +60,20 @@ issues_by_year:
           note: {{ version.note | default(None) | tojson }}
           cover_pages:
             {% for file in version.cover_pages %}
-            - path: {{ file.path | tojson }}
-              thumbnail_path: {{ file.thumbnail_path | tojson }}
+            - path: {{ file.url | tojson }}
+              thumbnail_path: {{ (file.url_thumbnail if file.has_thumbnail else None) | tojson }}
             {% else %}
             []
             {% endfor %}
           index_pages:
             {% for file in version.index_pages %}
-            - path: {{ file.path | tojson }}
-              thumbnail_path: {{ file.thumbnail_path | tojson }}
+            - path: {{ file.url | tojson }}
+              thumbnail_path: {{ (file.url_thumbnail if file.has_thumbnail else None) | tojson }}
             {% else %}
             []
             {% endfor %}
           prices:
-            {% for price in version.prices %}
+            {% for price in version.prices_sorted %}
             - value: {{ price.value }}
               currency: {{ price.currency.name | tojson }}
             {% else %}

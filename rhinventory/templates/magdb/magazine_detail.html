@@ -93,11 +93,11 @@
                                         </td>
                                         <td>
                                             {% for file in version.cover_pages %}
-                                                <a href="{{ file.path }}"
+                                                <a href="{{ file.url }}"
                                                     data-lightbox="lightbox"
                                                     data-title="{{ issue.current_magazine_name }} {{ date_text }} Cover page"
                                                 >
-                                                    <img class="img-thumbnail img-rounded" src="{{ file.thumbnail_path }}">
+                                                    <img class="img-thumbnail img-rounded" src="{{ file.url_thumbnail }}">
                                                 </a>
                                             {% else %}
                                                 <img class="img-thumbnail img-rounded" src="{{ url_for('static', filename='magdb/missing-a4.png') }}">
@@ -105,11 +105,11 @@
                                         </td>
                                         <td>
                                             {% for file in version.index_pages %}
-                                                <a href="{{ file.path }}"
+                                                <a href="{{ file.url }}"
                                                     data-lightbox="lightbox"
                                                     data-title="{{ issue.current_magazine_name }} {{ date_text }} Index page"
                                                 >
-                                                  <img class="img-thumbnail img-rounded" src="{{ file.thumbnail_path }}">
+                                                  <img class="img-thumbnail img-rounded" src="{{ file.url_thumbnail }}">
                                                 </a>
                                             {% else %}
                                                 <img class="img-thumbnail img-rounded" src="{{ url_for('static', filename='magdb/missing-a4.png') }}">
@@ -118,7 +118,7 @@
                                         <td>
                                             <table class="table table-vcenter">
 
-                                                {% for price in version.prices %}
+                                                {% for price in version.prices_sorted %}
                                                 <tr>
                                                     <td>{{ price.value }}</td>
                                                     <td>{{ price.currency.name}}</td>

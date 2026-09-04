@@ -1,12 +1,16 @@
 import enum
 import re
+from typing import TYPE_CHECKING
 
 import flask_login
-from sqlalchemy import func, UniqueConstraint
+from sqlalchemy import UniqueConstraint, func
 
 from rhinventory.extensions import db
 from rhinventory.models.user import User
 from rhinventory.util import slugify
+
+if TYPE_CHECKING:
+    from rhinventory.models.file import File
 
 
 def get_current_user_id():
@@ -274,7 +278,9 @@ class MagazineIssueVersion(HistoryTrait, CheckedTrait):
     #   confirmed is True
     id = db.Column(db.Integer(), unique=True, primary_key=True)
     magazine_issue_id = db.Column(db.Integer(), db.ForeignKey("magazine_issues.id"), nullable=False)
-    magazine_issue = db.relationship("MagazineIssue", backref="versions")
+    magazine_issue = db.relationship(
+        "MagazineIssue", backref=db.backref("versions", order_by="MagazineIssueVersion.name_suffix")
+    )
     name_suffix = db.Column(db.String(127))
 
     form = db.Column(db.Enum(MagazineForm), nullable=True)
@@ -295,6 +301,30 @@ class MagazineIssueVersion(HistoryTrait, CheckedTrait):
 
     def get_logos(self):
         return [file for file in self.files if file.file_type == MagDBFileType.logo]
+
+    def files_of_type(self, file_type: MagDBFileType) -> list["File"]:
+        """The distinct files of one type attached to this version."""
+        files = []
+        for association in self.files:
+            if association.file_type == file_type and association.file not in files:
+                files.append(association.file)
+        return files
+
+    @property
+    def cover_pages(self) -> list["File"]:
+        return self.files_of_type(MagDBFileType.cover_page)
+
+    @property
+    def index_pages(self) -> list["File"]:
+        return self.files_of_type(MagDBFileType.index_page)
+
+    @property
+    def prices_sorted(self) -> list["MagazineIssueVersionPrice"]:
+        """Fully filled in prices, ordered by currency."""
+        return sorted(
+            (price for price in self.prices if price.value is not None and price.currency is not None),
+            key=lambda price: price.currency.name,
+        )
 
 
 class MagazineIssueVersionPrice(HistoryTrait):
