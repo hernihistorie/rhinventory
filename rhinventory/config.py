@@ -15,10 +15,11 @@ DEBUG_TB_INTERCEPT_REDIRECTS: bool = False
 GITHUB_CLIENT_ID: str = env.str('GITHUB_CLIENT_ID')
 GITHUB_CLIENT_SECRET: str = env.str('GITHUB_CLIENT_SECRET')
 GITHUB_REDIRECT_URI: str = env.str('GITHUB_REDIRECT_URI')
+FILE_STORE_LOCAL_NAS: typing.Optional[str] = env.str('FILE_STORE_LOCAL_NAS', default=None)
 
 FILE_STORE_LOCATIONS: typing.Dict[str, typing.Optional[str]] = {
     "local": os.path.abspath(env.str('FILE_STORE_LOCAL') or env.str('FILES_DIR')),
-    "local_nas": os.path.abspath(env.str('FILE_STORE_LOCAL_NAS')) if 'FILE_STORE_LOCAL_NAS' in os.environ else None,
+    "local_nas": os.path.abspath(FILE_STORE_LOCAL_NAS) if FILE_STORE_LOCAL_NAS else None,
 }
 
 DEFAULT_FILE_STORE: str = env.str('DEFAULT_FILE_STORE', default='local')

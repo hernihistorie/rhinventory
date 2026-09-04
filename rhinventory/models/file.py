@@ -39,8 +39,8 @@ class FileStoreNotConfigured(Exception):
     def __init__(self, store: FileStore):
         self.store = store
         super().__init__(
-            f"File store {store.value!r} has no location configured on this instance, "
-            f"set {store.config_env_var}"
+            f"File store {store.value!r} has no location configured on this instance "
+            f"(is {store.config_env_var} set?)"
         )
 
 class BackgroundColor(enum.Enum):
