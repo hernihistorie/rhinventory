@@ -14,7 +14,12 @@
 
     <div style="margin: 8px 0 8px 0; display: flex; justify-content: space-between;">
         <div>
-            {% if model.has_thumbnail and not model.thumbnail_file_exists() %}
+            {% if not model.file_store_configured %}
+                <div class="text-error">
+                    File is stored in {{ model.storage.value }}, which is not configured
+                    on this instance -- it cannot be read or downloaded here.
+                </div>
+            {% elif model.has_thumbnail and not model.thumbnail_file_exists() %}
                 <div class="text-error">
                     File has thumbnail entry in DB, but file is missing!
                 </div>

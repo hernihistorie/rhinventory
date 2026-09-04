@@ -10,8 +10,10 @@ import zipfile
 
 from flask.testing import FlaskClient
 
+import pytest
+
 from rhinventory.models.asset import Asset, AssetCategory
-from rhinventory.models.file import File, FileCategory, FileStore, Privacy
+from rhinventory.models.file import File, FileCategory, FileStore, FileStoreNotConfigured, Privacy
 
 
 def test_index(client: FlaskClient):
@@ -115,3 +117,24 @@ def test_asset_download_files(client: FlaskClient, db_session):
     with zipfile.ZipFile(io.BytesIO(response.data)) as zf:
         assert zf.namelist() == [f"hh{asset_id}/{filepath}"]
         assert zf.read(f"hh{asset_id}/{filepath}") == contents
+
+
+def test_file_details_store_not_configured(client: FlaskClient, app, db_session):
+    """A file in a store this instance has no location for still has a details page."""
+    app.config['FILE_STORE_LOCATIONS'] = {"local": "files", "local_nas": None}
+
+    file = File(
+        filepath="uploads/on_the_nas.png",
+        storage=FileStore.local_nas,
+        category=FileCategory.image,
+        has_thumbnail=True,
+    )
+    db_session.add(file)
+    db_session.commit()
+
+    response = client.get(f"/file/details/?id={file.id}")
+    assert response.status_code == 200
+    assert "which is not configured" in response.data.decode('utf-8')
+
+    with pytest.raises(FileStoreNotConfigured):
+        file.full_filepath

@@ -28,6 +28,21 @@ class FileStore(enum.Enum):
     local = "local"
     local_nas = "local_nas"
 
+    @property
+    def config_env_var(self) -> str:
+        return f"FILE_STORE_{self.name.upper()}"
+
+
+class FileStoreNotConfigured(Exception):
+    """A file lives in a store this instance has no location configured for."""
+
+    def __init__(self, store: FileStore):
+        self.store = store
+        super().__init__(
+            f"File store {store.value!r} has no location configured on this instance, "
+            f"set {store.config_env_var}"
+        )
+
 class BackgroundColor(enum.Enum):
     light = "light"
     dark = "dark"
@@ -125,6 +140,8 @@ class File(db.Model):
         return '.'.join(path) 
     
     def thumbnail_file_exists(self) -> bool:
+        if not self.file_store_configured:
+            return False
         return os.path.exists(self.full_filepath_thumbnail)
     
     @property
@@ -136,8 +153,16 @@ class File(db.Model):
         return self.filepath.split('.')[-1]
     
     @property
+    def file_store_configured(self) -> bool:
+        """Whether this instance can reach the store this file lives in."""
+        return current_app.config['FILE_STORE_LOCATIONS'][self.storage.value] is not None
+
+    @property
     def _file_store_path(self) -> str:
-        return current_app.config['FILE_STORE_LOCATIONS'][self.storage.value]
+        path = current_app.config['FILE_STORE_LOCATIONS'][self.storage.value]
+        if path is None:
+            raise FileStoreNotConfigured(self.storage)
+        return path
 
     @property
     def full_filepath(self) -> str:
