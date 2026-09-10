@@ -28,6 +28,9 @@ class TransactionType(enum.Enum):
     return_in   = 6
     lend        = -6
 
+    trade_in = 7
+    trade_out = -7
+
 
 class Transaction(db.Model):
     __tablename__ = 'transactions'
