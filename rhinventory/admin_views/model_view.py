@@ -11,13 +11,6 @@ class CustomModelView(ModelView):
 
     form_excluded_columns = ['transactions']
 
-    column_searchable_list = [
-        'id',
-        'name',
-        'serial',
-        'alias',
-    ]
-
     @property
     def _write_access_acl(self):
         return current_user and current_user.is_authenticated and current_user.write_access

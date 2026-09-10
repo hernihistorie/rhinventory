@@ -51,6 +51,13 @@ class AssetTagView(CustomModelView):
     column_default_sort = ('id', True)
     details_template = 'admin/asset_tag/details.html'
 
+class CompanyView(CustomModelView):
+    column_default_sort = ('name', False)
+    column_searchable_list = [
+        'name'
+    ]
+
+
 def add_admin_views(admin: Admin) -> None:
     admin.add_view(AssetView(Asset, db.session))
 
@@ -62,7 +69,7 @@ def add_admin_views(admin: Admin) -> None:
 
     admin.add_view(CustomModelView(Location, db.session, category="Misc"))
 
-    admin.add_view(CustomModelView(Company, db.session, category="Misc"))
+    admin.add_view(CompanyView(Company, db.session, category="Misc"))
     admin.add_view(CustomModelView(CompanyAlias, db.session, category="Misc"))
 
     admin.add_view(MediumView(Medium, db.session, category="Misc"))
