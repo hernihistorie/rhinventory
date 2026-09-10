@@ -6,6 +6,7 @@ import random
 import string
 from io import BufferedReader
 from pathlib import Path
+import shutil
 
 import blake3
 from flask import (
@@ -117,7 +118,7 @@ def upload_file(file: FileStorage | Path, category: int | FileCategory=0, batch_
         file.save(files_dir + "/" + filepath)
     else:
         # move the file
-        os.rename(file, files_dir + "/" + filepath)
+        shutil.move(file, files_dir + "/" + filepath)
     size = os.path.getsize(files_dir + "/" + filepath)
 
     if isinstance(category, int):
