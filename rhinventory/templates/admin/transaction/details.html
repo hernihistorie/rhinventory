@@ -73,6 +73,18 @@
         >
             Print HA label for each
         </a>
+        <button
+            class="btn btn-primary"
+            id="btn-select-all"
+        >
+            Select all
+        </button>
+        <script>
+            document.getElementById("btn-select-all").addEventListener("click", function() {
+                localStorage.setItem("selected", "[{{ model.assets | map(attribute='id') | join(',') }}]");
+                window.location = "{{ url_for('asset.index_view') }}";
+            });
+        </script>
     </div>
 
     <ul>
