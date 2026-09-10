@@ -27,6 +27,7 @@ from rhinventory.extensions import db
 class FileStore(enum.Enum):
     local = "local"
     local_nas = "local_nas"
+    coruscant = "coruscant"
 
     @property
     def config_env_var(self) -> str:

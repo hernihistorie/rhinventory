@@ -1,31 +1,39 @@
-from io import BufferedReader, FileIO
-import os
-import os.path
 import datetime
 import hashlib
-import multiprocessing as mp
-from pathlib import Path
+import os
+import os.path
 import random
 import string
+from io import BufferedReader
+from pathlib import Path
 
 import blake3
-from flask import abort, get_template_attribute, request, flash, redirect, url_for, current_app, jsonify
-from flask_login import current_user
+from flask import (
+    abort,
+    current_app,
+    flash,
+    get_template_attribute,
+    jsonify,
+    redirect,
+    request,
+    url_for,
+)
 from flask_admin import expose
 from flask_admin.helpers import get_redirect_target
 from flask_admin.model.helpers import get_mdict_item_or_list
+from flask_login import current_user
 from werkzeug.datastructures.file_storage import FileStorage
 from werkzeug.utils import secure_filename
-from rhinventory.admin_views.utils import visible_to_current_user
 
-from rhinventory.datatypes.hashes import BLAKE3Hash, Hashes, MD5Hash, SHA256Hash
-from rhinventory.db import log, Asset, File, FileCategory, get_next_file_batch_number
-from rhinventory.extensions import db, simple_eval
-from rhinventory.files.utils import get_dropzone_path, get_dropzone_files
-from rhinventory.forms import DropzoneFileForm, FileForm, FileAssignForm
 from rhinventory.admin_views.model_view import CustomModelView
-from rhinventory.models.file import FileStore
+from rhinventory.admin_views.utils import visible_to_current_user
+from rhinventory.datatypes.hashes import BLAKE3Hash, Hashes, MD5Hash, SHA256Hash
+from rhinventory.db import Asset, File, FileCategory, get_next_file_batch_number, log
+from rhinventory.extensions import db, simple_eval
+from rhinventory.files.utils import get_dropzone_files, get_dropzone_path
+from rhinventory.forms import DropzoneFileForm, FileAssignForm, FileForm
 from rhinventory.models.enums import Privacy
+from rhinventory.models.file import FileStore
 from rhinventory.util import parse_hh_code, require_write_access
 
 
