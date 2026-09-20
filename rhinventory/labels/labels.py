@@ -67,7 +67,8 @@ def make_label(id, custom_code, name, subtitle="", medium="", small=False, logo_
         filename += "-ha"
     if logo_ucm:
         filename += "-ucm"
-    open(filename+'.svg', 'w').write(label_svg)
+    with open(filename+'.svg', 'w') as f:
+        f.write(label_svg)
 
     inkscape_version = subprocess.check_output(['inkscape', '--version']).decode('utf-8').split('\n')[0].split(' ')[1]
     if inkscape_version.startswith('0.'):

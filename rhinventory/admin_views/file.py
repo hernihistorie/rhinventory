@@ -80,7 +80,8 @@ def upload_file(file: FileStorage | Path, category: int | FileCategory=0, batch_
 
         size = os.path.getsize(file)
 
-        hashes = calculate_file_hashes(open(file, 'rb'))
+        with open(file, 'rb') as f:
+            hashes = calculate_file_hashes(f)
 
     else:
         filename = file.filename

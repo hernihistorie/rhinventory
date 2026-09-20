@@ -303,7 +303,7 @@ Disallow: *
 
         label_filename = make_asset_label(asset, small=small, logo_ha=logo_ha, big=big, logo_ucm=logo_ucm)
 
-        return send_file(open(label_filename, 'rb'), mimetype='image/png')
+        return send_file(os.path.abspath(label_filename), mimetype='image/png')
     
     
     @login_required
@@ -342,7 +342,7 @@ Disallow: *
         id = f"RHL{location_id:04}"
         label_filename = make_label(id, "LOCATION", location.name)
 
-        return send_file(open(label_filename, 'rb'), mimetype='image/png')
+        return send_file(os.path.abspath(label_filename), mimetype='image/png')
     
     @app.route('/files/<int:file_id>/thumb', defaults={'thumb': True})
     @app.route('/files/<int:file_id>/thumb_<filename>', defaults={'thumb': True})

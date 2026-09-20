@@ -204,12 +204,13 @@ class File(db.Model):
         if self.filename.endswith('.pdf'):
             # PDF files are not supported for thumbnail generation
             return False
-        im = self.open_image()
-        if not im:
+        source = self.open_image()
+        if not source:
             return False
-        im = ImageOps.exif_transpose(im)
-        im.thumbnail(self.THUMBNAIL_SIZE)
-        im.save(os.path.join(self.full_filepath_thumbnail))
+        with source:
+            im = ImageOps.exif_transpose(source)
+            im.thumbnail(self.THUMBNAIL_SIZE)
+            im.save(self.full_filepath_thumbnail)
         self.has_thumbnail = True
         return True
     
@@ -252,22 +253,24 @@ class File(db.Model):
 
         if not self.is_image:
             return
-        im = self.open_image()
-        if not im:
+        source = self.open_image()
+        if not source:
             return
-        try:
-            im = ImageEnhance.Color(im).enhance(0)
-            im = ImageEnhance.Contrast(im).enhance(2)
-            im = ImageEnhance.Sharpness(im).enhance(-1)
-        except ValueError:
-            return None
-        
-        im.thumbnail((1200, 1200))
+        with source:
+            # Downscale before enhancing: each enhance pass makes a full copy of the image,
+            # and for JPEGs thumbnail() can decode at reduced size in the first place
+            source.thumbnail((1200, 1200))
+            try:
+                im = ImageEnhance.Color(source).enhance(0)
+                im = ImageEnhance.Contrast(im).enhance(2)
+                im = ImageEnhance.Sharpness(im).enhance(-1)
+            except ValueError:
+                return None
 
-        if symbols:
-            return pyzbar.decode(im, symbols=symbols)
-        else:
-            return pyzbar.decode(im)
+            if symbols:
+                return pyzbar.decode(im, symbols=symbols)
+            else:
+                return pyzbar.decode(im)
     
     def read_rh_barcode(self):
         if not self.is_image:
