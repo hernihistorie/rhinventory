@@ -34,6 +34,10 @@ jobs:
       - name: Set up Python
         run: uv python install
 
+      - name: Install system dependencies
+        # pyzbar needs the zbar shared library for barcode detection
+        run: sudo apt-get update && sudo apt-get install -y libzbar-dev
+
       - name: Install Python dependencies
         run: uv sync --locked --all-extras --dev
 

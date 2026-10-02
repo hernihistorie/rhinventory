@@ -14,7 +14,7 @@ from flask.testing import FlaskClient
 import pytest
 
 from rhinventory.models.asset import Asset, AssetCategory
-from rhinventory.models.file import File, FileCategory, FileStore, FileStoreNotConfigured, Privacy
+from rhinventory.models.file import File, FileCategory, FileStore, FileStoreNotConfigured, Privacy, pyzbar
 
 
 def test_index(client: FlaskClient):
@@ -144,12 +144,18 @@ def test_file_details_store_not_configured(client: FlaskClient, app, db_session)
 TEST_PHOTOS_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "test_photos")
 
 
+@pytest.fixture()
+def zbar():
+    """Barcode detection silently does nothing without zbar, so fail loudly instead."""
+    assert pyzbar is not None, "pyzbar failed to import, is the zbar library installed? (e.g. libzbar0 on Debian/Ubuntu)"
+
+
 @pytest.mark.parametrize("filename, asset_id", [
     ("hh10461.jpg", 10461),
     ("hh10480.jpg", 10480),
     ("hh10509.jpg", 10509),
 ])
-def test_read_rh_barcode(app, filename, asset_id):
+def test_read_rh_barcode(app, zbar, filename, asset_id):
     app.config['FILE_STORE_LOCATIONS'] = {"local": TEST_PHOTOS_DIR}
 
     with app.app_context():
@@ -161,7 +167,7 @@ def test_read_rh_barcode(app, filename, asset_id):
         assert file.read_rh_barcode() == asset_id
 
 
-def test_upload_result_reprocess_barcodes(client: FlaskClient, app, db_session, tmp_path):
+def test_upload_result_reprocess_barcodes(client: FlaskClient, app, db_session, zbar, tmp_path):
     """Reprocessing barcodes from the upload result page assigns images that weren't assigned yet."""
     app.config['FILE_STORE_LOCATIONS'] = {"local": str(tmp_path)}
     os.makedirs(tmp_path / "uploads")
