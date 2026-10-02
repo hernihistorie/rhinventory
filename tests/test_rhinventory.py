@@ -138,3 +138,23 @@ def test_file_details_store_not_configured(client: FlaskClient, app, db_session)
 
     with pytest.raises(FileStoreNotConfigured):
         file.full_filepath
+
+
+TEST_PHOTOS_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "test_photos")
+
+
+@pytest.mark.parametrize("filename, asset_id", [
+    ("hh10461.jpg", 10461),
+    ("hh10480.jpg", 10480),
+    ("hh10509.jpg", 10509),
+])
+def test_read_rh_barcode(app, filename, asset_id):
+    app.config['FILE_STORE_LOCATIONS'] = {"local": TEST_PHOTOS_DIR}
+
+    with app.app_context():
+        file = File(
+            filepath=filename,
+            storage=FileStore.local,
+            category=FileCategory.image,
+        )
+        assert file.read_rh_barcode() == asset_id

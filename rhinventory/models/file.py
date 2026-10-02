@@ -258,12 +258,10 @@ class File(db.Model):
             return
         with source:
             # Downscale before enhancing: each enhance pass makes a full copy of the image,
-            # and for JPEGs thumbnail() can decode at reduced size in the first place
-            source.thumbnail((1200, 1200))
+            # and for JPEGs thumbnail() can decode at reduced size in the first place.
+            source.thumbnail((1600, 1600))
             try:
-                im = ImageEnhance.Color(source).enhance(0)
-                im = ImageEnhance.Contrast(im).enhance(2)
-                im = ImageEnhance.Sharpness(im).enhance(-1)
+                im = ImageEnhance.Contrast(source.convert('L')).enhance(2)
             except ValueError:
                 return None
 
