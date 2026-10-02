@@ -6,6 +6,7 @@ The conftest.py file manages the container lifecycle and database setup.
 """
 import io
 import os
+import shutil
 import zipfile
 
 from flask.testing import FlaskClient
@@ -158,3 +159,34 @@ def test_read_rh_barcode(app, filename, asset_id):
             category=FileCategory.image,
         )
         assert file.read_rh_barcode() == asset_id
+
+
+def test_upload_result_reprocess_barcodes(client: FlaskClient, app, db_session, tmp_path):
+    """Reprocessing barcodes from the upload result page assigns images that weren't assigned yet."""
+    app.config['FILE_STORE_LOCATIONS'] = {"local": str(tmp_path)}
+    os.makedirs(tmp_path / "uploads")
+    shutil.copy(os.path.join(TEST_PHOTOS_DIR, "hh10461.jpg"), tmp_path / "uploads" / "hh10461.jpg")
+
+    asset = Asset(id=10461, organization_id=1, category=AssetCategory.game, name="Barcode Test Asset")
+    file = File(
+        filepath="uploads/hh10461.jpg",
+        storage=FileStore.local,
+        category=FileCategory.image,
+        batch_number=42,
+    )
+    db_session.add_all([asset, file])
+    db_session.commit()
+    file_id = file.id
+
+    response = client.get("/file/upload/result?batch_number=42")
+    assert response.status_code == 200
+    assert "Reprocess barcodes" in response.data.decode('utf-8')
+
+    response = client.post("/file/upload/result/reprocess_barcodes?batch_number=42", follow_redirects=True)
+    assert response.status_code == 200
+    assert "1 assigned to assets" in response.data.decode('utf-8')
+
+    file = db_session.get(File, file_id)
+    assert file.asset_id == 10461
+    assert file.filepath == "assets/10461/hh10461.jpg"
+    assert (tmp_path / "assets" / "10461" / "hh10461.jpg").exists()

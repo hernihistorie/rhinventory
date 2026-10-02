@@ -16,6 +16,10 @@
         {% endif %}
     {% endmacro %}
     <strong>Order by</strong>: {{ order_by_link('upload_date') }} | {{ order_by_link('filename') }}
+    <form method="POST" action="{{ url_for('file.reprocess_barcodes_view', **request.args) }}" style="display: inline; margin-left: 1em;">
+        <input type="submit" value="Reprocess barcodes" class="btn btn-secondary"
+            title="Read barcodes again in all images in this batch which aren't assigned to an asset yet">
+    </form>
     <table class="table table-hover table-bordered">
         <thead>
             <tr>

@@ -364,6 +364,21 @@ class FileView(CustomModelView):
         
         return redirect(url_for("file.upload_view"))
 
+    def _get_upload_result_files(self, order_by=File.upload_date) -> list[File]:
+        """Files shown on the upload result page, given either a `batch_number` or a `files` id list in the request args."""
+        if 'batch_number' in request.args:
+            assert 'files' not in request.args
+
+            return db.session.query(File).filter(File.batch_number == request.args['batch_number']) \
+                .order_by(order_by).all()
+        else:
+            files: list[File] = []
+            file_id_list: list[int] = simple_eval.eval(request.args['files'])
+            for file_id in file_id_list:
+                assert isinstance(file_id, int)
+                files.append(db.session.query(File).get(file_id))
+            return files
+
     @expose('/upload/result', methods=['GET'])
     @require_write_access
     def upload_result_view(self):
@@ -374,21 +389,10 @@ class FileView(CustomModelView):
             order_by = File.filepath
         else:
             abort(403)
-        
-        if 'batch_number' in request.args:
-            batch_number = request.args['batch_number']
-            assert 'files' not in request.args
 
-            files = db.session.query(File).filter(File.batch_number == batch_number) \
-                .order_by(order_by).all()
-        else:
-            batch_number = None
-            files: list[File] = []
-            file_id_list: list[int] = simple_eval.eval(request.args['files'])
-            for file_id in file_id_list:
-                assert isinstance(file_id, int)
-                files.append(db.session.query(File).get(file_id))
-        
+        batch_number = request.args.get('batch_number')
+        files = self._get_upload_result_files(order_by)
+
         duplicate_files = []
         if 'duplicate_files' in request.args:
             for f0, f1_id in simple_eval.eval(request.args['duplicate_files']):
@@ -405,6 +409,39 @@ class FileView(CustomModelView):
             duplicate_count = None
         
         return self.render('admin/file/upload_result.html', files=files, duplicate_files=duplicate_files, auto_assign=auto_assign, batch_number=batch_number, duplicate_count=duplicate_count, order_by=order_by_str)
+
+    @expose('/upload/result/reprocess_barcodes', methods=['POST'])
+    @require_write_access
+    def reprocess_barcodes_view(self):
+        """Read barcodes again in all images on an upload result page which aren't assigned to an asset yet."""
+        files = self._get_upload_result_files()
+
+        num_processed = 0
+        num_assigned = 0
+        for file in files:
+            if file.is_deleted or file.asset_id or not file.is_image or not file.file_store_configured:
+                continue
+            num_processed += 1
+            asset_id = file.read_rh_barcode()
+            if not asset_id:
+                continue
+            try:
+                file.assign(asset_id)
+            except ValueError:
+                # Probably failed to assign file to asset because asset doesn't exist
+                # Ignore this
+                continue
+            db.session.add(file)
+            log("Update", file, user=current_user)
+            num_assigned += 1
+        db.session.commit()
+
+        flash(f"Barcodes reprocessed in {num_processed} unassigned images, {num_assigned} assigned to assets", 'success')
+
+        # Go back to the same result page, showing which images still have no barcode detected
+        args = request.args.to_dict()
+        args['auto_assign'] = 'True'
+        return redirect(url_for("file.upload_result_view", **args))
 
 
     @expose('/make_thumbnail/', methods=['POST'])
