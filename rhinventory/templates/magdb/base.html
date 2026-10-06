@@ -17,7 +17,7 @@
             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
             <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;700;800&display=swap" rel="stylesheet">
 
-            <link href="/static/public_magdb.css" rel="stylesheet" type="text/css">
+            <link href="{{ url_for('static', filename='public_magdb.css') }}" rel="stylesheet" type="text/css">
         {% endblock %}
 
         <title>{% block title %}Databáze časopisů - ČSHA{% endblock %}</title>

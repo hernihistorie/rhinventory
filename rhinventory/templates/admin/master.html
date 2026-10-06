@@ -5,7 +5,7 @@
 {% block head_css %}
 {{ super() }}
 <link rel="shortcut icon" href="{{ url_for('static', filename='img/hainventory_icon.png') }}">
-<link href="/static/main.css" rel="StyleSheet" type="text/css">
+<link href="{{ url_for('static', filename='main.css') }}" rel="StyleSheet" type="text/css">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,7 +32,7 @@
 {% endblock head_css %}
 
 {% block brand %}
-    <a class="brand" href="{{ admin_view.admin.url }}"
+    <a class="brand" href="{{ url_for('admin.index') }}"
         style="position: relative; width: 28px;"
     >
         <img

@@ -84,6 +84,14 @@ def create_app(config_object='rhinventory.config'):
 
     app.jinja_env.globals['url_for_here'] = url_for_here
 
+    # For root-relative URLs not built by url_for, e.g. ones stored in the database
+    def site_url(url: str) -> str:
+        if url.startswith('/') and not url.startswith('//'):
+            return request.script_root + url
+        return url
+
+    app.jinja_env.filters['site_url'] = site_url
+
     md = markdown.Markdown(extensions=['meta'])
     app.jinja_env.filters['markdown'] = lambda text: Markup(md.convert(text))
 

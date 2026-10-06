@@ -3,8 +3,8 @@
     <head>
         <meta charset="utf-8">
         <title>Authorize Event Push</title>
-        <link href="/static/main.css" rel="StyleSheet" type="text/css">
-        <link rel="shortcut icon" href="/static/img/hainventory_icon.png">
+        <link href="{{ url_for('static', filename='main.css') }}" rel="StyleSheet" type="text/css">
+        <link rel="shortcut icon" href="{{ url_for('static', filename='img/hainventory_icon.png') }}">
         <style>
             button {
                 font-size: 24px;
@@ -31,8 +31,8 @@
     <body>
         <div style="max-width: 800px; margin: auto; margin-top: 24px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <a href="/"><img
-                    src="/static/img/rhinventory_logo.png"
+                <a href="{{ url_for('admin.index') }}"><img
+                    src="{{ url_for('static', filename='img/rhinventory_logo.png') }}"
                     style=" max-height: 56px;"
                 ></a>
                 <div>

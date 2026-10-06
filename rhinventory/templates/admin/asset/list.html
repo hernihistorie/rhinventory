@@ -239,7 +239,7 @@
             }
 
             selected.forEach(function(assetId, index) {
-                var url = "/asset/edit/?id=" + encodeURIComponent(assetId);
+                var url = "{{ get_url('asset.edit_view') }}?id=" + encodeURIComponent(assetId);
                 var target = index === 0 ? '_blank' : '_blank';
                 window.open(url, target);
             });

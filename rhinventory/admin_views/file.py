@@ -184,7 +184,7 @@ class FileView(CustomModelView):
         
         if not visible_to_current_user(model):
             flash('You do not have permission to view this file.', 'error')
-            return redirect('/')
+            return redirect(url_for('admin.index'))
 
         template = self.details_template
 
