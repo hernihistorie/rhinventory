@@ -35,6 +35,7 @@ from rhinventory.files.utils import get_dropzone_files, get_dropzone_path
 from rhinventory.forms import DropzoneFileForm, FileAssignForm, FileForm
 from rhinventory.models.enums import Privacy
 from rhinventory.models.file import FileStore
+from rhinventory.models.user import User
 from rhinventory.util import parse_hh_code, require_write_access
 
 
@@ -65,14 +66,15 @@ def calculate_file_hashes(file: BufferedReader | FileStorage) -> Hashes:
     return hashes
 
 
-def upload_file(file: FileStorage | Path, category: int | FileCategory=0, batch_number: int | None=None, privacy: int | Privacy=Privacy.private_implicit) -> File:
+def upload_file(file: FileStorage | Path, category: int | FileCategory=0, batch_number: int | None=None, privacy: int | Privacy=Privacy.private_implicit, user: User | None=None) -> File:
     """
     Handles file upload, check for duplicacy and save the file, but doesn't commit File object data to database.
 
-    :param file: File handler.
+    :param file: File handler. A Path is moved into the file store.
     :param category: category of file, int from FileCategory
     :param batch_number:
     :param privacy: privacy setting, int from Privacy enum, defaults to private_implicit
+    :param user: uploader, defaults to current_user (pass explicitly outside of a request)
     :return: object of type File, not committed to database.
     """
     if isinstance(file, Path):
@@ -141,7 +143,7 @@ def upload_file(file: FileStorage | Path, category: int | FileCategory=0, batch_
     if batch_number:
         db_file.batch_number = batch_number
     db_file.upload_date = datetime.datetime.now()
-    db_file.user_id = current_user.id
+    db_file.user_id = (user or current_user).id
     db_file.size = size
     db_file.privacy = privacy
     return db_file
