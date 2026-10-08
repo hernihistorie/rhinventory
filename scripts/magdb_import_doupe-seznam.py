@@ -1,5 +1,6 @@
 """
-Import ``data/doupe-seznam.xlsx`` into the MagDB tables.
+Import magazine spreadsheets (``data/doupe-seznam.xlsx``, ``data/opsm-seznam.xlsx``)
+into the MagDB tables.
 
 The importer is designed to be idemportent.
 """
@@ -23,7 +24,8 @@ from rhinventory.models.magdb import (
     Periodicity,
 )
 
-DEFAULT_XLSX_PATH = Path(__file__).resolve().parent.parent / "data" / "doupe-seznam.xlsx"
+DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+DEFAULT_XLSX_PATHS = [DATA_DIR / "doupe-seznam.xlsx", DATA_DIR / "opsm-seznam.xlsx"]
 
 DEFAULT_FORM = MagazineForm.paper
 
@@ -37,16 +39,16 @@ MagazineRow = TypedDict(
         "magazine": str,
         "issue number": int | str,  # '7+8' doubles and 'speciál …' come through as str
         "published year": int,
-        "published month": int,
+        "published month": int | None,
         "calendar id": str | None,  # None for special issues
         "periodicity": str | None,  # None for special issues
-        "page count": int,
+        "page count": int | None,
         "format": str,
-        "name suffix": str,
+        "name suffix": str | None,
         "price": str,
-        "barcode": str,
+        "barcode": str | int | None,  # occasionally typed in as a number
         "issn or isbn": str,
-        "register number mccr": str,
+        "register number mccr": str | None,
     },
 )
 
@@ -78,6 +80,8 @@ def read_rows(path: Path) -> list[MagazineRow]:
 
 def normalize_barcode(value):
     """Strip whitespace from a barcode; drop (with a warning) if it still won't fit."""
+    if value is None:
+        return None
     normalized = re.sub(r"\s+", "", str(value))
     if len(normalized) > BARCODE_MAX_LEN:
         print(f"    ! barcode {value!r} is {len(normalized)} chars (> {BARCODE_MAX_LEN}), leaving empty")
@@ -183,11 +187,9 @@ def upsert_version(
     return version, created, changed
 
 
-def run(path: Path, dry_run: bool):
+def import_file(path: Path, stats: dict[str, Stats]):
     rows = read_rows(path)
     print(f"Read {len(rows)} data row(s) from {path}")
-
-    stats = {name: Stats() for name in ("magazine", "format", "issue", "version", "price")}
 
     for i, row in enumerate(rows, start=1):
         magazine_title = row.get("magazine")
@@ -212,6 +214,13 @@ def run(path: Path, dry_run: bool):
         )
         stats["price"].note(*price_flags)
 
+
+def run(paths: list[Path], dry_run: bool):
+    stats = {name: Stats() for name in ("magazine", "format", "issue", "version", "price")}
+
+    for path in paths:
+        import_file(path, stats)
+
     if dry_run:
         db.session.rollback()
         print("\nDRY RUN — rolled back, nothing was written.")
@@ -226,7 +235,13 @@ def run(path: Path, dry_run: bool):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--file", type=Path, default=DEFAULT_XLSX_PATH, help="Path to the .xlsx file")
+    parser.add_argument(
+        "--file",
+        type=Path,
+        action="append",
+        dest="files",
+        help="Path to an .xlsx file; may be given multiple times (default: all known spreadsheets)",
+    )
     parser.add_argument(
         "--dry-run", action="store_true", help="Parse and process but roll back instead of committing"
     )
@@ -234,7 +249,7 @@ def main():
 
     app = create_app()
     with app.app_context():
-        run(args.file, args.dry_run)
+        run(args.files or DEFAULT_XLSX_PATHS, args.dry_run)
 
 
 if __name__ == "__main__":
