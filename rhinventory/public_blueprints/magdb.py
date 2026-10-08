@@ -15,7 +15,6 @@ magdb_bp = Blueprint("magdb", __name__, url_prefix="/public-magdb")
 
 @magdb_bp.route("/")
 def index():
-    # return render_template("magdb/index.html")
     return redirect('https://herniarchiv.cz/magazines/', 308)
 
 def is_data_endpoint():
@@ -47,7 +46,6 @@ def catalog():
 
     if is_data_endpoint():
         return render_yaml_data_template("magdb/catalog.yaml.jinja2", context)
-    # return render_template("magdb/catalog.html", **context)
     return redirect('https://herniarchiv.cz/magazines/catalog/', 308)
 
 
@@ -111,7 +109,6 @@ def magazine_detail(magazine_id: int | None = None, magazine_slug: str | None = 
 
     if is_data_endpoint():
         return render_yaml_data_template("magdb/magazine_detail.yaml.jinja2", context)
-    # return render_template("magdb/magazine_detail.html", **context)
     return redirect(f'https://herniarchiv.cz/magazines/catalog/{magazine.slug or magazine.id}', 308)
 
 
@@ -156,5 +153,4 @@ def miss_list():
 
     if is_data_endpoint():
         return render_yaml_data_template("magdb/miss-list.yaml.jinja2", context)
-    # return render_template("magdb/miss-list.html", **context)
     return redirect('https://herniarchiv.cz/magazines/miss-list/', 308)
