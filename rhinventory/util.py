@@ -3,7 +3,7 @@ from functools import wraps
 import re
 import unicodedata
 
-from flask import flash, redirect
+from flask import flash, redirect, url_for
 from flask_login import current_user
 
 from sqlalchemy.orm import Query
@@ -91,7 +91,7 @@ def require_write_access(func: F) -> F:
     def wrapper(*args, **kwargs):
         if not current_user.write_access:
             flash("You do not have permission to edit", "error")
-            return redirect("/")
+            return redirect(url_for('admin.index'))
         return func(*args, **kwargs)
     return cast(F, wrapper)
 

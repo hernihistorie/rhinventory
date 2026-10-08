@@ -1,0 +1,35 @@
+/* Loaded when rhinventory is embedded in herniarchiv.cz (see "Embedding" in README.md). */
+
+html, body {
+  background: transparent;
+}
+
+body {
+  color: var(--color-text);
+  padding-top: 0;
+}
+
+/* Staff-only tools, staff use rhinventory directly */
+#selected, .rhinventory-login-link {
+  display: none;
+}
+
+/* herniarchiv.cz's dark theme, light colors are in main.css.  The embedding page
+   sets data-theme, otherwise the system preference applies. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg: #18170c;
+  --color-text: #fff;
+  --color-primary: #ef4d37;
+  --color-secondary: #927f49;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --color-bg: #18170c;
+    --color-text: #fff;
+    --color-primary: #ef4d37;
+    --color-secondary: #927f49;
+  }
+}

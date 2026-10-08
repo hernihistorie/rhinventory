@@ -29,6 +29,12 @@
     .plain {border: none; background: none;}
 </style>
 
+{% if g.embedded %}
+<meta name="robots" content="noindex, indexifembedded">
+<link href="{{ url_for('static', filename='embed.css') }}" rel="StyleSheet" type="text/css">
+<script src="{{ url_for('static', filename='embed.js') }}" {% if g.embed_theme %}data-theme="{{ g.embed_theme }}"{% endif %}></script>
+{% endif %}
+
 {% endblock head_css %}
 
 {% block brand %}
@@ -69,7 +75,9 @@
 {% endblock %}
 
 {% block page_body %}
-    {{ ha_header('inventory') }}
+    {% if not g.embedded %}
+        {{ ha_header('inventory') }}
+    {% endif %}
     {{ super() }}
 {% endblock %}
 
@@ -92,7 +100,6 @@
         </script>
     #}
     <script>
-        const root = document.getElementById('rhinventory-root')?.shadowRoot ?? document;
-        $(root).find('[rel=tooltip]').tooltip({'animation': false, 'html': true});
+        $('[rel=tooltip]').tooltip({'animation': false, 'html': true});
     </script>
-{% endblock %}
+{% endblock %}

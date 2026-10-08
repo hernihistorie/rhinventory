@@ -6,10 +6,12 @@ from flask import Flask, render_template, redirect, url_for, send_file, Response
 from markupsafe import Markup
 import sentry_sdk
 from flask_login import current_user, login_required, login_user, logout_user
+from flask_admin.menu import BaseMenu, MenuView
 from flask_bootstrap import Bootstrap5
 import flask_sqlalchemy.record_queries
 import markdown
 import msgspec
+from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.wrappers.response import Response
 
 from rhinventory.event_store.event_store import EventNamespaceName, EventStore
@@ -53,14 +55,26 @@ def create_app(config_object='rhinventory.config'):
     app = Flask(__name__.split('.')[0], template_folder='templates')
     app.config.from_object(config_object)
 
+    # Lets a proxy serve rhinventory under a path prefix, such as herniarchiv.cz
+    # embedding it (see "Embedding" in README.md).  Only the prefix is trusted.
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=0, x_proto=0, x_prefix=1)
+
     app.config.SQLALCHEMY_RECORD_QUERIES = True
     db.init_app(app)
-    admin.init_app(app, 
+    admin.init_app(app,
         index_view=CustomIndexView(
             name='Úvod',
             url='/'
         )
     )
+    # flask-admin caches menu URLs from the first request, but they depend on
+    # the request's X-Forwarded-Prefix
+    def disable_menu_url_cache(items: list[BaseMenu]):
+        for item in items:
+            if isinstance(item, MenuView):
+                item._cache = False
+            disable_menu_url_cache(item._children)
+    disable_menu_url_cache(admin._menu)
     github.init_app(app)
     login_manager.init_app(app)
     login_manager.anonymous_user = AnynomusUser
@@ -176,12 +190,21 @@ def create_app(config_object='rhinventory.config'):
             abort(403)
 
         g.debug = app.debug
+        g.embedded = request.headers.get('X-Haweb-Embed') == '1'
+        theme = request.headers.get('X-Haweb-Theme')
+        g.embed_theme = theme if theme in ('light', 'dark') else None
         g.organizations = Organization.query.order_by(Organization.id).all()
         # XXX
         g.current_user_organization_label = 'ha'
         if current_user.organization and current_user.organization.name.lower() == "ucm":
             g.current_user_organization_label = 'ucm'
         
+
+    @app.after_request
+    def after_request(response: Response) -> Response:
+        # Embedded pages differ, don't let caches mix them up with regular ones
+        response.vary.update(('X-Forwarded-Prefix', 'X-Haweb-Embed', 'X-Haweb-Theme'))
+        return response
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -285,7 +308,7 @@ Disallow: *
 
     @app.route('/')
     def index():
-        return redirect('/admin')
+        return redirect(url_for('admin.index'))
     
     
     @login_required
@@ -376,7 +399,8 @@ Disallow: *
     def admin_redirect(path: str):
         # URLs in 2019-2024 started with admin, in 2024 this was public.
         print(request.url.split('/', 5)[-1])
-        return redirect('/' + request.url.split('/', 4)[-1], code=308)
+        rest = request.url[len(request.url_root):].removeprefix('admin/')
+        return redirect(f'{request.script_root}/{rest}', code=308)
 
     @app.route('/divide-by-zero')
     def divide_by_zero():
