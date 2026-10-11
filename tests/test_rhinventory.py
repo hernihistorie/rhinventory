@@ -4,18 +4,26 @@ Tests for rhinventory application.
 These tests use PostgreSQL running in a podman container.
 The conftest.py file manages the container lifecycle and database setup.
 """
+import datetime
 import io
-import re
 import os
+import re
 import shutil
 import zipfile
 
+import pytest
 from flask.testing import FlaskClient
 
-import pytest
-
 from rhinventory.models.asset import Asset, AssetCategory
-from rhinventory.models.file import File, FileCategory, FileStore, FileStoreNotConfigured, Privacy, pyzbar
+from rhinventory.models.enums import Privacy as AssetPrivacy
+from rhinventory.models.file import (
+    File,
+    FileCategory,
+    FileStore,
+    FileStoreNotConfigured,
+    Privacy,
+    pyzbar,
+)
 
 
 def test_index(client: FlaskClient):
@@ -228,3 +236,22 @@ def test_upload_result_reprocess_barcodes(client: FlaskClient, app, db_session, 
     assert file.asset_id == 10461
     assert file.filepath == "assets/10461/hh10461.jpg"
     assert (tmp_path / "assets" / "10461" / "hh10461.jpg").exists()
+
+
+def test_public_stats(client: FlaskClient, db_session):
+    db_session.add_all([
+        Asset(organization_id=1, category=AssetCategory.game, name="Private Asset"),
+        # Made public before made_public_at existed, must not win over the newer one
+        Asset(organization_id=1, category=AssetCategory.game, name="Old Public Asset",
+              _privacy=AssetPrivacy.public),
+        Asset(organization_id=1, category=AssetCategory.game, name="New Public Asset",
+              _privacy=AssetPrivacy.public, made_public_at=datetime.datetime(2026, 1, 1)),
+    ])
+    db_session.commit()
+
+    response = client.get("/public-stats.json")
+    assert response.status_code == 200
+    assert response.json["asset_count"] == 3
+    latest = response.json["latest_public_asset"]
+    assert latest["name"] == "New Public Asset"
+    assert latest["slug"] == "new-public-asset"

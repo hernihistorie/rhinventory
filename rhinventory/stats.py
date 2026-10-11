@@ -51,6 +51,7 @@ class CurrentTotals(TypedDict):
 class LatestPublicAsset(TypedDict):
     id: int
     name: str
+    slug: str
 
 
 def get_stats_table() -> StatsTable:
@@ -112,9 +113,9 @@ def get_latest_public_asset() -> LatestPublicAsset | None:
     asset = (
         db.session.query(Asset)
         .filter(Asset.privacy == Privacy.public)
-        .order_by(Asset.made_public_at.desc())
+        .order_by(Asset.made_public_at.desc().nulls_last())
         .first()
     )
     if asset is None:
         return None
-    return {'id': asset.id, 'name': asset.name}
+    return {'id': asset.id, 'name': asset.name, 'slug': asset.slug}

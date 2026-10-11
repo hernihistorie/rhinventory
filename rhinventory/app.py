@@ -229,6 +229,15 @@ def create_app(config_object='rhinventory.config'):
             'latest_public_asset': get_latest_public_asset(),
         })
 
+    @app.route('/public-stats.json')
+    def public_stats_json():
+        """Stats safe to show publicly, e.g. on the herniarchiv.cz homepage."""
+        from rhinventory.stats import get_current_totals, get_latest_public_asset
+        return jsonify({
+            'asset_count': get_current_totals()['assets'],
+            'latest_public_asset': get_latest_public_asset(),
+        })
+
     @app.route('/robots.txt')
     def robots():
         text = """
