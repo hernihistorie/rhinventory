@@ -1,13 +1,19 @@
-from collections import defaultdict
 import json
+from collections import defaultdict
 from typing import Any, OrderedDict
 
 import flask.templating
-from flask import Blueprint, redirect, render_template, request
 import yaml
+from flask import Blueprint, jsonify, redirect, render_template, request
 
-from rhinventory.models.magdb import Magazine, MagazineIssue, MagazineIssueVersion, IssueStatus, \
-    MagazineIssueVersionFiles, MagDBFileType
+from rhinventory.models.magdb import (
+    IssueStatus,
+    Magazine,
+    MagazineIssue,
+    MagazineIssueVersion,
+    MagazineIssueVersionFiles,
+    MagDBFileType,
+)
 from rhinventory.service.public_magdb import PublicMagDBService
 
 magdb_bp = Blueprint("magdb", __name__, url_prefix="/public-magdb")
@@ -47,6 +53,30 @@ def catalog():
     if is_data_endpoint():
         return render_yaml_data_template("magdb/catalog.yaml.jinja2", context)
     return redirect('https://herniarchiv.cz/magazines/catalog/', 308)
+
+
+@magdb_bp.route("/stats.json")
+def stats():
+    """Stats shown on the herniarchiv.cz homepage."""
+    latest = Magazine.query.order_by(Magazine.id.desc()).first()
+    logo = latest and MagazineIssueVersionFiles.query \
+        .join(MagazineIssueVersion).join(MagazineIssue) \
+        .filter(MagazineIssue.magazine_id == latest.id,
+                MagazineIssueVersionFiles.file_type == MagDBFileType.logo) \
+        .order_by(MagazineIssueVersionFiles.id) \
+        .first()
+    return jsonify({
+        "magazine_count": Magazine.query.count(),
+        "latest_magazine": latest and {
+            "id": latest.id,
+            "slug": latest.slug,
+            "title": latest.title,
+            "logo": logo and {
+                "url": logo.file.url,
+                "background_color": logo.file.background_color.value if logo.file.background_color else None,
+            },
+        },
+    })
 
 
 @magdb_bp.route("/catalog/magazine-detail/<int:magazine_id>.json")
