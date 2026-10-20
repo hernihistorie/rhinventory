@@ -120,7 +120,7 @@ class Asset(db.Model):
     parent: Relationship[Asset | None] = relationship("Asset", foreign_keys=[parent_id], remote_side=[id], back_populates="children")
 
     contains: Relationship[list[Asset] | None] = relationship("Asset", foreign_keys=[location_id_new], back_populates="location")
-    location: Relationship[Asset | None] = relationship("Asset", foreign_keys=[location_id_new], remote_side=[id], back_populates="children")
+    location: Relationship[Asset | None] = relationship("Asset", foreign_keys=[location_id_new], remote_side=[id], back_populates="contains")
     #medium = relationship("Medium", backref="assets")
     hardware_type: Relationship[HardwareType | None] = relationship(HardwareType, backref="assets")
 
