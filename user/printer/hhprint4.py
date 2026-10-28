@@ -118,6 +118,24 @@ class AvailablePrinter:
         return use_printer
 
 
+class AbstractLogger:
+
+    def log(self, what: str):
+        raise NotImplementedError('TBA')
+
+    def struct_log(self, what: object):
+        raise NotImplementedError('TBA')
+
+
+class CliLogger(AbstractLogger):
+
+    def log(self, what: str):
+        print(what)
+
+    def struct_log(self, what: object):
+        pprint.pprint(what)
+
+
 class AbstractSystemActions:
     instance = None
 
@@ -287,7 +305,7 @@ class WindowsPrinterDriver(AbstractPrinterDriver):
         # first save as temporary file
         temp_file = tempfile.NamedTemporaryFile(delete=False)
         temp_file.seek(0)
-        temp_file.write(image.getvalue())
+        temp_file.write(image.getvalue()) # image is PNG
         temp_file.close()
 
         # then cmd to printer
@@ -362,9 +380,11 @@ class ImageSourceRemoteQuery(AbstractImageSource):
             self,
             label_url: str = '',
             key: str = '',
+            logger: AbstractLogger = CliLogger(),
     ):
         self._label_url: str = label_url
         self._key: str = key
+        self._logger: AbstractLogger = logger
 
     async def get_image(self, code: Code) -> BytesIO:
         async with aiohttp.ClientSession() as session:
@@ -372,9 +392,14 @@ class ImageSourceRemoteQuery(AbstractImageSource):
             for prefix in ['rh', 'hh']:
                 web_code = web_code.removeprefix(prefix)
             label_url = self._label_url + web_code + "?key=" + self._key
-            print(label_url)
+            self._logger.log(label_url)
             async with session.get(label_url) as response:
-                return BytesIO(await response.read()) # returns PNG file
+                if 200 == response.status:
+                    return BytesIO(await response.read()) # returns PNG file when everything is OK
+                # otherwise log the response and kill next processing
+                self._logger.log(f'The code *{code.code}* got response code *{response.status}*.')
+                self._logger.struct_log(await response.read())
+                raise FileNotFoundError(f'The code *{code.code}* returns no image!')
 
 
 class AbstractConnection:
@@ -484,24 +509,6 @@ class ParseParams:
         return default
 
 
-class AbstractLogger:
-
-    def log(self, what: str):
-        raise NotImplementedError('TBA')
-
-    def struct_log(self, what: object):
-        raise NotImplementedError('TBA')
-
-
-class CliLogger(AbstractLogger):
-
-    def log(self, what: str):
-        print(what)
-
-    def struct_log(self, what: object):
-        pprint.pprint(what)
-
-
 class Printing:
     """
     The printing class itself
@@ -540,20 +547,35 @@ class Printing:
                     driver = self._driver_factory.get_driver(printer_class)
                     for code in codes_avail:
                         if code.used:
+                            # already used - skip
                             continue
+
                         try:
-                            driver.print(printer_class, params, await self._image_source.get_image(code))
+                            # try to get image from remote
+                            image = await self._image_source.get_image(code)
+                        except Exception as ex_1:
+                            # log and mark skipped for next step
                             code.used = True
-                        except Exception as ex:
+                            self._logger.log(pprint.pformat(ex_1))
+                            continue
+
+                        try:
+                            # send image to printer to process
+                            driver.print(printer_class, params, image)
+                            code.used = True
+                        except Exception as ex_2:
                             self._logger.log(f'Error during work with printer *{printer_class.model}*')
-                            self._logger.log(pprint.pformat(ex))
-                except Exception as ex2:
+                            self._logger.log(pprint.pformat(ex_2))
+
+                except Exception as ex_3:
                     # another printer will do
                     self._logger.log(
                         f'The printer *{printer_class.model}* on *{printer_class.link}* has problem and must be skipped')
-                    self._logger.log(pprint.pformat(ex2))
+                    self._logger.log(pprint.pformat(ex_3))
+
             if 1 > Printing._count_codes_left(codes_avail):
                 break
+
         if 1 > Printing._count_codes_left(codes_avail):
             return 0
         self._logger.log('Codes still left:')

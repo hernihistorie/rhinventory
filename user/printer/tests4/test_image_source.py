@@ -9,6 +9,12 @@ class MockImageSource(AbstractImageSource):
         return BytesIO(code.code.encode())
 
 
+class MockFailedImageSource(AbstractImageSource):
+
+    async def get_image(self, code: Code) -> BytesIO:
+        raise Exception('MOCK for ' + code.code)
+
+
 class TestImageSource:
 
     def test_simple(self) -> None:

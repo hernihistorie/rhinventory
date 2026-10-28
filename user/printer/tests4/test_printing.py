@@ -3,7 +3,7 @@ import asyncio
 
 from ..hhprint4 import Printing, PrintQuery, AbstractLogger, Code
 from .test_connection import MockConnectionFactory
-from .test_image_source import MockImageSource
+from .test_image_source import MockImageSource, MockFailedImageSource
 from .test_driver import MockDriverFactory, MockDriverMixin, MockDriver, AbstractPrinterDriver, AvailablePrinter, PrinterDriverFactory
 from io import BytesIO
 
@@ -167,5 +167,31 @@ class TestPrinting:
             assert '' == output.get_output(), 'Log must be empty!'
             assert 0 == result, 'Something happened when nothing expected!'
             assert 'PRINT CODE: foo\nlabel: \nlink: is_local\nbackend: \n---\nPRINT CODE: foo\nlabel: \nlink: is_local\nbackend: \n---\n' == print_class.get_output()
+        finally:
+            print_class.clear()
+
+    def test_print_image_fail(self) -> None:
+        query = PrintQuery()
+        query.codes = [Code.from_str('foo')]
+        output = MockLogger()
+        driver = MockDriverFactory()
+        driver.clear()
+        lib = Printing(
+            [
+                ('kind 1', 'mock', 'name 1', 'is_local', None),
+                ('kind 2', 'skip', 'name 2', 'is_remote', None),
+            ],
+            MockConnectionFactory(),
+            MockFailedImageSource(),
+            driver,
+            output,
+        )
+        result = asyncio.run(lib.run(query))
+        print_class = driver.get_anyway()
+        assert isinstance(print_class, MockDriver), 'Result must be in mock printer'
+        try:
+            assert 'Exception(\'MOCK for foo\')\n' == output.get_output(), 'Log must not be empty!'
+            assert 0 == result, 'Something happened when nothing expected!'
+            assert '' == print_class.get_output()
         finally:
             print_class.clear()
