@@ -1,5 +1,3 @@
-import pprint
-
 from ..hhprint4 import AbstractPrinterDriver, PrinterDriverFactory, AvailablePrinter, PrintQuery
 from io import BytesIO
 import pytest
@@ -64,7 +62,7 @@ class MockDriverFactory(PrinterDriverFactory):
 class TestDriver:
 
     def test_run(self) -> None:
-        test_print = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-1', 'lp990',))
+        test_print = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-1', 'lp990', None))
         test_query = PrintQuery.from_tuple((['abc', 'def'], 'my label', 'testing',))
         lib = MockDriverFactory().get_driver(test_print)
         assert isinstance(lib, MockDriver)
@@ -76,7 +74,7 @@ class TestDriver:
                    + '---\n'
         assert output_1 == lib.get_output()
         lib.clear()
-        test_print_2 = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-1', 'lp999',), 'spec')
+        test_print_2 = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-1', 'lp999', None), 'spec')
         assert isinstance(lib, MockDriver)
         lib.print(test_print_2, test_query, BytesIO(b'DEF'))
         output_2 = 'PRINT CODE: DEF\n' \
@@ -88,7 +86,7 @@ class TestDriver:
         lib.clear()
 
     def test_factory_unknown(self) -> None:
-        test_print = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-1', 'lp990',))
+        test_print = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-1', 'lp990', None))
         lib = PrinterDriverFactory()
         with pytest.raises(FileNotFoundError):
             lib.get_driver(test_print)

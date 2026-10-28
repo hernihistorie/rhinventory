@@ -36,14 +36,14 @@ class TestSystemActions:
 
     def test_unix_is_connected_locally(self) -> None:
         lib = MockUnixActions()
-        test_print_1 = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-1', 'lp990',))
-        test_print_2 = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-2', 'lp999',))
+        test_print_1 = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-1', 'lp990', None))
+        test_print_2 = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-2', 'lp999', None))
         assert lib.is_connected_locally(test_print_1), 'Connected printer not found'
         assert not lib.is_connected_locally(test_print_2), 'Disabled printer found'
 
     def test_unix_is_known(self) -> None:
         lib = MockUnixActions()
-        test_print_1 = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-1', 'lp990',))
-        test_print_2 = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-2', 'lp999',))
+        test_print_1 = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-1', 'lp990', None))
+        test_print_2 = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-2', 'lp999', None))
         assert lib.is_known(test_print_1), 'Connected printer disabled'
         assert not lib.is_known(test_print_2), 'Disabled printer enabled'

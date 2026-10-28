@@ -6,6 +6,7 @@ from io import BytesIO
 import socket
 import sys
 import urllib.parse
+from enum import Enum
 
 try:
     import aiohttp
@@ -20,7 +21,7 @@ KEY = "Zu2eebo9oNgeequee6ie"
 print("hhprint v4.0")
 
 
-class AvailableTargets:
+class AvailableTargets(str, Enum):
     """
     Where can be printer located
     """
@@ -29,7 +30,7 @@ class AvailableTargets:
     NETWORK = 'network'  # somewhere in network
 
 
-class AvailablePrinters:
+class AvailablePrinters(str, Enum):
     """
     What printers are available and set here
     """
@@ -41,19 +42,19 @@ class AvailablePrinters:
 # it's in tuples, each printer has own definition
 # what printer group, target (dev, net), printer name - model to find, path to where it will be sent
 # preferred style is local printers first - ping on remotes will delay them
-available_printers: list[tuple[str, str, str, str]] = [
+available_printers: list[tuple[str, str, str, str, str | None]] = [
     # strahov cerna lokal
-    (AvailablePrinters.BROTHER_LABEL, AvailableTargets.LOCAL, 'QL-700', '/dev/usb/lp0'),
-    (AvailablePrinters.BROTHER_LABEL, AvailableTargets.LOCAL, 'QL-700', '/dev/usb/lp1'),
-    (AvailablePrinters.BROTHER_LABEL, AvailableTargets.LOCAL, 'QL-700', '/dev/usb/lp2'),
-    (AvailablePrinters.BROTHER_LABEL, AvailableTargets.LOCAL, 'QL-700', '/dev/usb/lp3'),
+    (AvailablePrinters.BROTHER_LABEL, AvailableTargets.LOCAL, 'QL-700', '/dev/usb/lp0', None),
+    (AvailablePrinters.BROTHER_LABEL, AvailableTargets.LOCAL, 'QL-700', '/dev/usb/lp1', None),
+    (AvailablePrinters.BROTHER_LABEL, AvailableTargets.LOCAL, 'QL-700', '/dev/usb/lp2', None),
+    (AvailablePrinters.BROTHER_LABEL, AvailableTargets.LOCAL, 'QL-700', '/dev/usb/lp3', None),
     # strahov modra lokal
-    (AvailablePrinters.BROTHER_LABEL, AvailableTargets.LOCAL, 'QL-600', '/dev/usb/lp0'),
-    (AvailablePrinters.BROTHER_LABEL, AvailableTargets.LOCAL, 'QL-600', '/dev/usb/lp1'),
-    (AvailablePrinters.BROTHER_LABEL, AvailableTargets.LOCAL, 'QL-600', '/dev/usb/lp2'),
-    (AvailablePrinters.BROTHER_LABEL, AvailableTargets.LOCAL, 'QL-600', '/dev/usb/lp3'),
+    (AvailablePrinters.BROTHER_LABEL, AvailableTargets.LOCAL, 'QL-600', '/dev/usb/lp0', None),
+    (AvailablePrinters.BROTHER_LABEL, AvailableTargets.LOCAL, 'QL-600', '/dev/usb/lp1', None),
+    (AvailablePrinters.BROTHER_LABEL, AvailableTargets.LOCAL, 'QL-600', '/dev/usb/lp2', None),
+    (AvailablePrinters.BROTHER_LABEL, AvailableTargets.LOCAL, 'QL-600', '/dev/usb/lp3', None),
     # vrsky cerna sit na stole s tiskarnama
-    (AvailablePrinters.BROTHER_LABEL, AvailableTargets.NETWORK, 'QL-700', 'tcp://10.8.1.252:9100'),
+    (AvailablePrinters.BROTHER_LABEL, AvailableTargets.NETWORK, 'QL-700', 'tcp://10.8.1.252:9100', None),
 ]
 
 
@@ -102,15 +103,17 @@ class AvailablePrinter:
     location: str = ''
     model: str = ''
     link: str = ''
+    windows_name: str | None = None
     backend: str = ''
 
     @staticmethod
-    def from_tuple(data: tuple[str, str, str, str], backend: str = '') -> 'AvailablePrinter':
+    def from_tuple(data: tuple[str, str, str, str, str | None], backend: str = '') -> 'AvailablePrinter':
         use_printer = AvailablePrinter()
         use_printer.group = data[0]
         use_printer.location = data[1]
         use_printer.model = data[2]
         use_printer.link = data[3]
+        use_printer.windows_name = data[4]
         use_printer.backend = backend
         return use_printer
 
@@ -209,9 +212,11 @@ class WindowsSystemActions(AbstractSystemActions):
         self._connected_printers: list[str] = []  # printer XYZ status IDLE ...
 
     def is_connected_locally(self, printer: AvailablePrinter) -> bool:
-        # todo: dopsat podle windows spec; pripadne prihodit dalsi parametry do konfiguracni tuply a nasledne classy
+        # todo: dopsat podle windows spec
         #       tisk probehne oklikou - protoze windows print neumi grafiku, ale ta je tady podstatna (ikona a carovy kod jsou obrazky)
-        #       proto se nejdriv cely vysledek dotazu nacpe do PDF a az to se pomoci cmdletu posle na tiskarnu (pres acrobat)
+        #       proto se nejdriv cely vysledek dotazu nacpe do souboru a az to se pomoci cmdletu posle na tiskarnu (pres mspaint)
+        #       nebo se nejdriv cely vysledek dotazu nacpe do PDF a az to se pomoci cmdletu posle na tiskarnu (pres acrobat)
+        #       ale nejdriv je potreba zdetekovat, jestli v systemu tiskarna vubec je - to je prace tehle classy
         for connected_printer in self._get_connected():
             connected_printer = connected_printer.strip()
             if '' == connected_printer:
@@ -266,6 +271,32 @@ class AbstractPrinterDriver:
         raise NotImplementedError('Must be implemented first!')
 
 
+class WindowsPrinterDriver(AbstractPrinterDriver):
+    """
+    Universal pass for Windows
+
+    It prints through the mspaint app
+    @link https://thatpainter.com/microsoft-paint-command-line-options-open-print-and-automate-paint/
+    @link https://tutorialreference.com/batch-scripting/examples/faq/batch-script-how-to-open-ms-paint
+    """
+
+    def print(self, printer: AvailablePrinter, query: PrintQuery, image: BytesIO) -> None:
+        import tempfile
+        import os
+
+        # first save as temporary file
+        temp_file = tempfile.NamedTemporaryFile(delete=False)
+        temp_file.seek(0)
+        temp_file.write(image.getvalue())
+        temp_file.close()
+
+        # then cmd to printer
+        subprocess.run(
+            ['mspaint', '/pt', str(printer.windows_name), temp_file.name],
+            capture_output=True)
+        os.remove(temp_file.name)
+
+
 class BrotherLabelPrinterDriver(AbstractPrinterDriver):
     """
     Small label printers from Brother
@@ -301,6 +332,12 @@ class PrinterDriverFactory:
     """
 
     def get_driver(self, printer: AvailablePrinter) -> AbstractPrinterDriver:
+        import platform
+        # first by OS - Windows got a different treatment
+        if 'Windows' == platform.system():
+            return WindowsPrinterDriver()
+
+        # then group
         if AvailablePrinters.BROTHER_LABEL == printer.group:
             return BrotherLabelPrinterDriver()
 
@@ -337,7 +374,7 @@ class ImageSourceRemoteQuery(AbstractImageSource):
             label_url = self._label_url + web_code + "?key=" + self._key
             print(label_url)
             async with session.get(label_url) as response:
-                return BytesIO(await response.read())
+                return BytesIO(await response.read()) # returns PNG file
 
 
 class AbstractConnection:
@@ -474,13 +511,13 @@ class Printing:
 
     def __init__(
             self,
-            use_printers: list[tuple[str, str, str, str]],
+            use_printers: list[tuple[str, str, str, str, str | None]],
             location: ConnectionFactory = ConnectionFactory(),
             image_source: AbstractImageSource | None = None,
             driver_factory: PrinterDriverFactory | None = None,
             logger: AbstractLogger = CliLogger(),
     ):
-        self._available_printers: list[tuple[str, str, str, str]] = use_printers
+        self._available_printers: list[tuple[str, str, str, str, str | None]] = use_printers
         self._location: ConnectionFactory = location
         self._driver_factory: PrinterDriverFactory = driver_factory or PrinterDriverFactory()
         self._image_source: AbstractImageSource = image_source or ImageSourceRemoteQuery()

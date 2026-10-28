@@ -73,8 +73,8 @@ class TestPrinting:
         driver.clear()
         lib = Printing(
             [
-                ('kind 1', 'skip', 'name 1', 'is_local'),
-                ('kind 2', 'mock', 'name 2', 'is_remote'),
+                ('kind 1', 'skip', 'name 1', 'is_local', None),
+                ('kind 2', 'mock', 'name 2', 'is_remote', None),
             ],
             MockConnectionFactory(),
             MockImageSource(),
@@ -99,8 +99,8 @@ class TestPrinting:
         driver.clear()
         lib = Printing(
             [
-                ('kind 1', 'mock', 'name 1', 'is_local'),
-                ('kind 2', 'mock', 'name 2', 'is_remote'),
+                ('kind 1', 'mock', 'name 1', 'is_local', None),
+                ('kind 2', 'mock', 'name 2', 'is_remote', None),
             ],
             MockConnectionFactory(),
             MockImageSource(),
@@ -126,8 +126,8 @@ class TestPrinting:
         driver.clear()
         lib = Printing(
             [
-                ('kind 1', 'skip', 'name 1', 'is_local'),
-                ('kind 2', 'mock', 'name 2', 'is_remote'),
+                ('kind 1', 'skip', 'name 1', 'is_local', None),
+                ('kind 2', 'mock', 'name 2', 'is_remote', None),
             ],
             MockConnectionFactory(),
             MockImageSource(),
@@ -152,8 +152,8 @@ class TestPrinting:
         driver.clear()
         lib = Printing(
             [
-                ('kind 1', 'mock', 'name 1', 'is_local'),
-                ('kind 2', 'skip', 'name 2', 'is_remote'),
+                ('kind 1', 'mock', 'name 1', 'is_local', None),
+                ('kind 2', 'skip', 'name 2', 'is_remote', None),
             ],
             MockConnectionFactory(),
             MockImageSource(),

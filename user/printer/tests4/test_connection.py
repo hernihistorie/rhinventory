@@ -33,27 +33,27 @@ class MockViaNetwork(ConnectedViaNetwork):
 class TestConnections:
 
     def test_connect_local_ok(self) -> None:
-        test_print = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-1', 'mock',), 'mock')
+        test_print = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-1', 'mock', None), 'mock')
         lib = ConnectedLocally(test_print, MockSystemActions())
         assert lib.can(), 'The connection config say ok, but the result is not'
 
     def test_connect_local_fail(self) -> None:
-        test_print = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-1', 'nope',))
+        test_print = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-1', 'nope', None))
         lib = ConnectedLocally(test_print, MockSystemActions())
         assert not lib.can(), 'The connection config say no, but the result passes'
 
     def test_connect_network_ok(self) -> None:
-        test_print = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-1', 'pass://xx.yy.z',))
+        test_print = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-1', 'pass://xx.yy.z', None))
         lib = MockViaNetwork(test_print)
         assert lib.can(), 'The connection config say ok, but the result is not'
 
     def test_connect_network_fail(self) -> None:
-        test_print = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-1', 'nope://xx.yy.z',))
+        test_print = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-1', 'nope://xx.yy.z', None))
         lib = MockViaNetwork(test_print)
         assert not lib.can(), 'The connection config say no, but the result passes'
 
     def test_factory_unknown(self) -> None:
-        test_print = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-1', 'lp990',))
+        test_print = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-1', 'lp990', None))
         lib = ConnectionFactory()
         with pytest.raises(FileNotFoundError):
             lib.get_location(test_print)
