@@ -11,6 +11,7 @@ from sqlalchemy import BigInteger, Integer, String, Text, \
 from sqlalchemy.orm import Relationship, relationship, Mapped, mapped_column
 from PIL import Image, ImageEnhance, ImageOps
 
+from rhinventory.files.hh_code import find_hh_code_suggestion, parse_hh_code
 from rhinventory.models.enums import Privacy
 from rhinventory.models.user import User
 if TYPE_CHECKING:
@@ -32,6 +33,12 @@ class FileStore(enum.Enum):
     @property
     def config_env_var(self) -> str:
         return f"FILE_STORE_{self.name.upper()}"
+
+
+class AssetIdSource(enum.Enum):
+    """How File.auto_assign() found the asset."""
+    filename = "filename"
+    barcode = "barcode"
 
 
 class FileStoreNotConfigured(Exception):
@@ -149,6 +156,14 @@ class File(db.Model):
     def filename(self) -> str:
         return self.filepath.split('/')[-1]
     
+    @property
+    def filename_hh_code(self) -> int | None:
+        return parse_hh_code(self.filename)
+
+    @property
+    def filename_hh_code_suggestion(self) -> int | None:
+        return find_hh_code_suggestion(self.filename)
+
     @property
     def file_extension(self) -> str:
         return self.filepath.split('.')[-1]
@@ -280,21 +295,27 @@ class File(db.Model):
         if not barcodes:
             return
         for barcode in barcodes:
-            if barcode.type == "CODE128" and barcode.data.decode('utf-8').startswith("RH") or barcode.data.decode('utf-8').startswith("HH"):
+            data = barcode.data.decode('utf-8')
+            if barcode.type == "CODE128" and (data.startswith("RH") or data.startswith("HH")):
                 try:
-                    asset_id = int(barcode.data.decode('utf-8')[2:])
+                    asset_id = int(data[2:])
                 except Exception:
                     continue
                 return asset_id
 
-    def auto_assign(self):
-        if not self.is_image:
-            return
-        # only read CODE128 to speed up decoding
-        asset_id = self.read_rh_barcode()
-        if asset_id:
+    def auto_assign(self, read_barcode: bool = True) -> AssetIdSource | None:
+        '''Assigns File to the asset given by the hh code at the start of its filename,
+        or failing that, by an RH barcode in the image.  If the filename has a code, the barcode isn't read.
+
+        Raises ValueError if the asset doesn't exist.'''
+        if asset_id := self.filename_hh_code:
             self.assign(asset_id)
-    
+            return AssetIdSource.filename
+        if read_barcode and (asset_id := self.read_rh_barcode()):
+            self.assign(asset_id)
+            return AssetIdSource.barcode
+        return None
+
     def assign(self, asset_id: int):
         '''Assigns File to a given Asset and renames file and thumbnail'''
 

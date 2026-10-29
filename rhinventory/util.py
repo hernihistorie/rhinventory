@@ -114,13 +114,3 @@ def slugify(value: str, allow_unicode: bool=False) -> str:
 def print_sql_query(query: Query):
     compiled_query = query.compile(compile_kwargs={"literal_binds": True})
     print(str(compiled_query))
-
-def parse_hh_code(value: str) -> int | None:
-    code: int | None = None
-    if value.lower().startswith('rh') or value.lower().startswith('hh'):
-        try:
-            code = int(value[2:])
-        except ValueError:
-            pass
-    
-    return code

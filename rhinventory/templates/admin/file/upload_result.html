@@ -16,9 +16,9 @@
         {% endif %}
     {% endmacro %}
     <strong>Order by</strong>: {{ order_by_link('upload_date') }} | {{ order_by_link('filename') }}
-    <form method="POST" action="{{ url_for('file.reprocess_barcodes_view', **request.args) }}" style="display: inline; margin-left: 1em;">
-        <input type="submit" value="Reprocess barcodes" class="btn btn-secondary"
-            title="Read barcodes again in all images in this batch which aren't assigned to an asset yet">
+    <form method="POST" action="{{ url_for('file.rerun_auto_assign_view', **request.args) }}" style="display: inline; margin-left: 1em;">
+        <input type="submit" value="Rerun auto assign" class="btn btn-secondary"
+            title="Read hh codes in filenames and barcodes in images again for all files in this batch which aren't assigned to an asset yet">
     </form>
     <table class="table table-hover table-bordered">
         <thead>
@@ -86,10 +86,29 @@
                         {% endif %}
                     </td>
                     <td>
+                        {% set filename_code = file.filename_hh_code %}
+                        {% set suggested_code = filename_code or file.filename_hh_code_suggestion %}
                         {% if file.asset %}
                             <a href="{{ file.asset.url }}">
                                 {{ file.asset }}
                             </a>
+                            {% if filename_code == file.asset.id %}
+                                <br><small class="muted">Assigned from filename{% if file.is_image %} (barcode not read){% endif %}</small>
+                                {# TODO: offer a button to read the barcode anyway for images #}
+                            {% endif %}
+                        {% elif filename_code and filename_code not in filename_assets %}
+                            <span class="text-error">
+                                Filename says hh{{ filename_code }}, but that asset doesn't exist
+                            </span>
+                        {% elif suggested_code in filename_assets %}
+                            Filename suggests
+                            <a href="{{ filename_assets[suggested_code].url }}">
+                                {{ filename_assets[suggested_code] }}
+                            </a>
+                            <button hx-post="{{ url_for('file.assign_view', id=file.id, asset_id=suggested_code, refresh=True) }}"
+                                class="btn btn-secondary">
+                                Assign
+                            </button>
                         {% elif file.is_image and auto_assign %}
                             <span class="text-warning">
                                 RH barcode not detected

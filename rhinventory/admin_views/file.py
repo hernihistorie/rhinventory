@@ -36,7 +36,7 @@ from rhinventory.forms import DropzoneFileForm, FileAssignForm, FileForm
 from rhinventory.models.enums import Privacy
 from rhinventory.models.file import FileStore
 from rhinventory.models.user import User
-from rhinventory.util import parse_hh_code, require_write_access
+from rhinventory.util import require_write_access
 
 
 class DuplicateFile(RuntimeError):
@@ -271,24 +271,15 @@ class FileView(CustomModelView):
             if assign_asset:
                 for file in files:
                     file.assign(assign_asset.id)
-            else:
-                print("Reading barcodes...")
-                # Read barcodes in parallel
-                if form.auto_assign.data and image_files:
-                    if pool is not None:
-                        result_objects = [pool.apply_async(File.read_rh_barcode, args=(file,)) for file in image_files]
-                        asset_ids = [r.get() for r in result_objects]
-                    else:
-                        asset_ids = [File.read_rh_barcode(file) for file in image_files]
-                    for file, asset_id in zip(image_files, asset_ids):
-                        if not asset_id:
-                            continue
-                        try:
-                            file.assign(asset_id)
-                        except ValueError:
-                            # Probably failed to assign file to asset because asset doesn't exist
-                            # Ignore this
-                            pass
+                mismatched_files = [file for file in files if file.filename_hh_code not in (None, assign_asset.id)]
+            elif form.auto_assign.data:
+                print("Auto assigning...")
+                for file in files:
+                    try:
+                        file.auto_assign()
+                    except ValueError:
+                        # The asset doesn't exist, the upload result page points this out
+                        pass
 
             print("Creating thumbnails...")
             # Create thumbnails in parallel
@@ -316,7 +307,10 @@ class FileView(CustomModelView):
             if assign_asset:
                 flash(f"{len(files)} files uploaded and attached to asset", 'success')
                 if duplicate_files:
-                    flash(f"{len(files)} files skipped as duplicates", 'warning')
+                    flash(f"{len(duplicate_files)} files skipped as duplicates", 'warning')
+                if mismatched_files:
+                    flash(f"{len(mismatched_files)} files have a different hh code in their filename, but were attached to this asset anyway: "
+                        + ", ".join(file.filename for file in mismatched_files), 'warning')
                 return redirect(location=assign_asset.url)
             else:
                 if request.form.get('xhr', False):
@@ -348,13 +342,11 @@ class FileView(CustomModelView):
                     duplicate_files.append((filepath.name, e.matching_file))
                     continue
 
-                asset_id = parse_hh_code(filepath.name.split('.')[0].split('_')[0])
-                if asset_id and dropzone_form.auto_assign.data:
+                if dropzone_form.auto_assign.data:
                     try:
-                        file.assign(asset_id)
+                        file.auto_assign(read_barcode=False)
                     except ValueError:
-                        # Probably failed to assign file to asset because asset doesn't exist
-                        # Ignore this
+                        # The asset doesn't exist, the upload result page points this out
                         pass
 
                 db.session.add(file)
@@ -409,38 +401,39 @@ class FileView(CustomModelView):
             duplicate_count = simple_eval.eval(request.args['duplicate_count'])
         else:
             duplicate_count = None
-        
-        return self.render('admin/file/upload_result.html', files=files, duplicate_files=duplicate_files, auto_assign=auto_assign, batch_number=batch_number, duplicate_count=duplicate_count, order_by=order_by_str)
 
-    @expose('/upload/result/reprocess_barcodes', methods=['POST'])
+        # Assets named by codes in filenames of unassigned files, to point out missing assets and suggest assignments
+        filename_codes = {file.filename_hh_code or file.filename_hh_code_suggestion for file in files if not file.asset_id} - {None}
+        filename_assets = {asset.id: asset for asset in db.session.query(Asset).filter(Asset.id.in_(filename_codes))}
+
+        return self.render('admin/file/upload_result.html', files=files, duplicate_files=duplicate_files, auto_assign=auto_assign, batch_number=batch_number, duplicate_count=duplicate_count, order_by=order_by_str, filename_assets=filename_assets)
+
+    @expose('/upload/result/rerun_auto_assign', methods=['POST'])
     @require_write_access
-    def reprocess_barcodes_view(self):
-        """Read barcodes again in all images on an upload result page which aren't assigned to an asset yet."""
+    def rerun_auto_assign_view(self):
+        """Auto assign again all files on an upload result page which aren't assigned to an asset yet."""
         files = self._get_upload_result_files()
 
         num_processed = 0
         num_assigned = 0
         for file in files:
-            if file.is_deleted or file.asset_id or not file.is_image or not file.file_store_configured:
+            if file.is_deleted or file.asset_id or not file.file_store_configured:
                 continue
             num_processed += 1
-            asset_id = file.read_rh_barcode()
-            if not asset_id:
-                continue
             try:
-                file.assign(asset_id)
+                if not file.auto_assign():
+                    continue
             except ValueError:
-                # Probably failed to assign file to asset because asset doesn't exist
-                # Ignore this
+                # The asset doesn't exist, the upload result page points this out
                 continue
             db.session.add(file)
             log("Update", file, user=current_user)
             num_assigned += 1
         db.session.commit()
 
-        flash(f"Barcodes reprocessed in {num_processed} unassigned images, {num_assigned} assigned to assets", 'success')
+        flash(f"Auto assign rerun on {num_processed} unassigned files, {num_assigned} assigned to assets", 'success')
 
-        # Go back to the same result page, showing which images still have no barcode detected
+        # Go back to the same result page, showing which files still couldn't be assigned
         args = request.args.to_dict()
         args['auto_assign'] = 'True'
         return redirect(url_for("file.upload_result_view", **args))
@@ -549,14 +542,19 @@ class FileView(CustomModelView):
         model = self.get_one(id)
         assert isinstance(model, File)
 
-        asset_id = model.auto_assign()
-        if asset_id:
+        try:
+            source = model.auto_assign()
+        except ValueError as e:
+            flash(f"Failed to assign file to asset: {e}", 'error')
+            return redirect(url_for("file.details_view", id=id))
+
+        if source:
             db.session.add(model)
             log("Update", model, user=current_user)
             db.session.commit()
-            flash(f"Automatically assigned to asset #{asset_id:05}", 'success')
+            flash(f"Automatically assigned to asset #{model.asset_id:05} by {source.value}", 'success')
         else:
-            flash("No RH barcode found.", 'success')
+            flash("No hh code in filename and no RH barcode found.", 'success')
         return redirect(url_for("file.details_view", id=id))
 
     @expose('/delete/', methods=['POST'])
