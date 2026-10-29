@@ -201,10 +201,31 @@ def create_app(config_object='rhinventory.config'):
             g.current_user_organization_label = 'ucm'
         
 
+    def should_redirect_to_haweb(response: Response) -> bool:
+        """Whether this is a public page that a visitor who isn't logged in should
+        browse on herniarchiv.cz instead."""
+        return bool(
+            app.config.get('HAWEB_INVENTORY_URL')
+            and not current_user.is_authenticated
+            and not g.get('embedded')
+            and request.method in ('GET', 'HEAD')
+            and request.blueprint in {view.endpoint for view in admin._views}
+            # Not files, downloads, errors or redirects, such as to the login
+            and response.status_code == 200
+            and response.mimetype == 'text/html'
+            # Not htmx or other requests made by a page
+            and 'HX-Request' not in request.headers
+            and request.headers.get('Sec-Fetch-Dest', 'document') == 'document'
+        )
+
     @app.after_request
     def after_request(response: Response) -> Response:
+        if should_redirect_to_haweb(response):
+            path = request.full_path if request.query_string else request.path
+            # Temporary, as staff see the page here after logging in
+            response = redirect(app.config['HAWEB_INVENTORY_URL'].rstrip('/') + path)
         # Embedded pages differ, don't let caches mix them up with regular ones
-        response.vary.update(('X-Forwarded-Prefix', 'X-Haweb-Embed', 'X-Haweb-Theme'))
+        response.vary.update(('X-Forwarded-Prefix', 'X-Haweb-Embed', 'X-Haweb-Theme', 'Cookie'))
         return response
 
     @login_manager.user_loader

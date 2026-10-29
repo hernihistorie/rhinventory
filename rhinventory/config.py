@@ -31,3 +31,7 @@ DROPZONE_PATH: str = env.str('DROPZONE_PATH', default='dropzone')
 MULTIPROCESSING_ENABLED: bool = env.bool("MULTIPROCESSING_ENABLED")
 
 SENTRY_DSN = env.str('SENTRY_DSN', None)
+
+# Where herniarchiv.cz shows rhinventory, e.g. https://herniarchiv.cz/inventory.  When set,
+# visitors who aren't logged in are redirected there (see "Embedding" in README.md).
+HAWEB_INVENTORY_URL: str | None = env.str('HAWEB_INVENTORY_URL', default=None)

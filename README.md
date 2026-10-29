@@ -75,6 +75,8 @@ To try it locally:
 curl -H 'X-Forwarded-Prefix: /inventory/_frame' -H 'X-Haweb-Embed: 1' http://127.0.0.1:5000/asset/
 ```
 
+When `HAWEB_INVENTORY_URL` is set (`https://herniarchiv.cz/inventory` in production), visitors who aren't logged in are redirected from rhinventory's pages to the same page on herniarchiv.cz.  Its "Log in" link leads to `/login/github?next=<path>`, which returns them to the page in rhinventory.  Files, JSON and other responses that aren't pages are not redirected.
+
 ## How to run scripts
 
 `PYTHONPATH=. python scripts/script.py`
