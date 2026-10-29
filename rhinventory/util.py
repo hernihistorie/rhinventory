@@ -2,6 +2,7 @@ from typing import Callable, TypeVar, Any, cast
 from functools import wraps
 import re
 import unicodedata
+import urllib.parse
 
 from flask import flash, redirect, url_for
 from flask_login import current_user
@@ -94,6 +95,19 @@ def require_write_access(func: F) -> F:
             return redirect(url_for('admin.index'))
         return func(*args, **kwargs)
     return cast(F, wrapper)
+
+def safe_next_path(url: str | None, host: str) -> str | None:
+    """Returns the path (with query) of `url` to redirect to after logging in,
+    or None if it's not a path or a URL on `host`, to prevent open redirects."""
+    if not url or '\\' in url or any(c < ' ' or c == '\x7f' for c in url):
+        return None
+    parts = urllib.parse.urlsplit(url)
+    if parts.scheme not in ('', 'http', 'https') or parts.netloc not in ('', host):
+        return None
+    if not parts.path.startswith('/') or parts.path.startswith('//'):
+        return None
+    # Only keep the path, as browsers interpret URLs like `http:/evil.example` loosely
+    return urllib.parse.urlunsplit(('', '', parts.path, parts.query, parts.fragment))
 
 # From https://gist.github.com/berlotto/6295018
 def slugify(value: str, allow_unicode: bool=False) -> str:

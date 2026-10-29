@@ -74,6 +74,13 @@ def client(app):
 
 
 @pytest.fixture()
+def anonymous_client(app):
+    """Create a test client that isn't logged in automatically (don't combine with `client`)."""
+    app.login_manager.request_loader(lambda request: None)
+    return app.test_client()
+
+
+@pytest.fixture()
 def runner(app):
     """Create a test CLI runner for the app."""
     return app.test_cli_runner()

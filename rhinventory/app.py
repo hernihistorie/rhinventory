@@ -19,6 +19,7 @@ from rhinventory.extensions import db, admin, github, login_manager
 from rhinventory.admin import CustomIndexView, add_admin_views
 from rhinventory.db import User, Asset, Location, File, log
 from rhinventory.admin_views.utils import visible_to_current_user
+from rhinventory.util import safe_next_path
 
 from rhinventory.labels.labels import make_barcode, make_label, make_asset_label
 
@@ -267,7 +268,7 @@ Disallow: *
     @app.route('/github-callback')
     @github.authorized_handler
     def authorized(access_token):
-        next_url = request.args.get('next')
+        next_url = session.pop('login_next', None)
         if access_token is None:
             return redirect(url_for('index'))
         
@@ -285,23 +286,22 @@ Disallow: *
 
         login_user(user)
 
-        if next_url and next_url.startswith(request.host_url):
-            return redirect(next_url)
-
-        return redirect(url_for('index'))
+        return redirect(next_url or url_for('index'))
 
 
+    # `next` is where to go after logging in, e.g. the page a visitor was browsing on herniarchiv.cz
     @app.route('/login/github')
     def login():
+        next_url = safe_next_path(request.args.get('next'), request.host)
         if current_user.is_authenticated:
-            return redirect(url_for('index'))
-        
-        if request.args.get('next'):
-            redirect_uri = app.config['GITHUB_REDIRECT_URI'] + "?next=" + request.args.get('next')
-        else:
-            redirect_uri = None
-        
-        return github.authorize(redirect_uri=redirect_uri)
+            return redirect(next_url or url_for('index'))
+
+        # Kept in the session rather than GitHub's redirect_uri
+        session.pop('login_next', None)
+        if next_url:
+            session['login_next'] = next_url
+
+        return github.authorize()
 
 
     @app.route('/logout')

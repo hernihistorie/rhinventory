@@ -14,6 +14,8 @@ import zipfile
 import pytest
 from flask.testing import FlaskClient
 
+from rhinventory.extensions import github
+
 from rhinventory.models.asset import Asset, AssetCategory
 from rhinventory.models.enums import Privacy as AssetPrivacy
 from rhinventory.models.magdb import Magazine, MagazineIssue, MagazineIssueVersion, \
@@ -27,6 +29,7 @@ from rhinventory.models.file import (
     Privacy,
     pyzbar,
 )
+from rhinventory.util import safe_next_path
 
 
 def test_index(client: FlaskClient):
@@ -314,3 +317,63 @@ def test_public_magdb_stats(client: FlaskClient, db_session):
     assert latest["slug"] == "newer-magazine"
     assert latest["logo"]["url"].endswith("newer_logo.svg")
     assert latest["logo"]["background_color"] == "dark"
+
+
+@pytest.mark.parametrize("url,expected", [
+    ("/asset/12-foo", "/asset/12-foo"),
+    ("/asset/?page=2&sort=1", "/asset/?page=2&sort=1"),
+    ("http://localhost/event_store/authorize?key=x", "/event_store/authorize?key=x"),
+    ("https://localhost/asset/", "/asset/"),
+    (None, None),
+    ("", None),
+    ("asset/", None),
+    ("//evil.example/", None),
+    ("///evil.example/", "/evil.example/"),
+    ("/\\evil.example/", None),
+    ("/\t/evil.example/", None),
+    ("https://evil.example/", None),
+    ("https://localhost@evil.example/", None),
+    ("http:/evil.example/", "/evil.example/"),
+    ("javascript:alert(1)", None),
+])
+def test_safe_next_path(url, expected):
+    assert safe_next_path(url, "localhost") == expected
+
+
+def test_login_when_logged_in_goes_to_next(client: FlaskClient):
+    response = client.get("/login/github", query_string={"next": "/asset/?page=2&sort=1"})
+    assert response.status_code == 302
+    assert response.location == "/asset/?page=2&sort=1"
+
+
+def test_login_when_logged_in_rejects_foreign_next(client: FlaskClient):
+    response = client.get("/login/github", query_string={"next": "https://evil.example/"})
+    assert response.status_code == 302
+    assert response.location == "/"
+
+
+def test_login_goes_to_next(anonymous_client: FlaskClient, monkeypatch):
+    response = anonymous_client.get("/login/github", query_string={"next": "/asset/?page=2&sort=1"})
+    assert response.status_code == 302
+    assert response.location.startswith("https://github.com/login/oauth/authorize?")
+    assert "redirect_uri" not in response.location
+
+    monkeypatch.setattr(github, "_handle_response", lambda: "token")
+    monkeypatch.setattr(github, "get", lambda *args, **kwargs: {"id": 1234, "login": "octocat"})
+    response = anonymous_client.get("/github-callback", query_string={"code": "code"})
+    assert response.status_code == 302
+    assert response.location == "/asset/?page=2&sort=1"
+
+    # Used up
+    with anonymous_client.session_transaction() as session:
+        assert "login_next" not in session
+
+
+def test_login_without_next_forgets_previous(anonymous_client: FlaskClient, monkeypatch):
+    anonymous_client.get("/login/github", query_string={"next": "/asset/"})
+    anonymous_client.get("/login/github")
+
+    monkeypatch.setattr(github, "_handle_response", lambda: "token")
+    monkeypatch.setattr(github, "get", lambda *args, **kwargs: {"id": 1234, "login": "octocat"})
+    response = anonymous_client.get("/github-callback", query_string={"code": "code"})
+    assert response.location == "/"
