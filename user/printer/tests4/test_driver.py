@@ -1,4 +1,4 @@
-from ..hhprint4 import AbstractPrinterDriver, PrinterDriverFactory, AvailablePrinter, PrintQuery
+from ..hhprint4 import AbstractPrinterDriver, PrinterDriverFactory, AvailablePrinter, PrintQuery, PrinterException
 from io import BytesIO
 import pytest
 
@@ -86,7 +86,13 @@ class TestDriver:
         lib.clear()
 
     def test_factory_unknown(self) -> None:
+        import platform
         test_print = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-1', 'lp990', None))
         lib = PrinterDriverFactory()
-        with pytest.raises(FileNotFoundError):
-            lib.get_driver(test_print)
+        if 'Windows' == platform.system():
+            # Windows has driver - ALWAYS
+            assert lib.get_driver(test_print)
+        else:
+            # Unix not
+            with pytest.raises(PrinterException):
+                lib.get_driver(test_print)

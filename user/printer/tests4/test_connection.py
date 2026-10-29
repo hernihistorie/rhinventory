@@ -1,4 +1,4 @@
-from ..hhprint4 import AbstractConnection, ConnectionFactory, AbstractSystemActions, AvailablePrinter, ConnectedLocally, ConnectedViaNetwork
+from ..hhprint4 import AbstractConnection, ConnectionFactory, AbstractSystemActions, AvailablePrinter, ConnectedLocally, ConnectedViaNetwork, PrinterException
 import urllib.parse
 import pytest
 
@@ -55,5 +55,5 @@ class TestConnections:
     def test_factory_unknown(self) -> None:
         test_print = AvailablePrinter.from_tuple(('driver', 'somewhere', 'TEST-1', 'lp990', None))
         lib = ConnectionFactory()
-        with pytest.raises(FileNotFoundError):
+        with pytest.raises(PrinterException):
             lib.get_location(test_print)

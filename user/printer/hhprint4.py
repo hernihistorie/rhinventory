@@ -54,8 +54,15 @@ available_printers: list[tuple[str, str, str, str, str | None]] = [
     (AvailablePrinters.BROTHER_LABEL, AvailableTargets.LOCAL, 'QL-600', '/dev/usb/lp2', None),
     (AvailablePrinters.BROTHER_LABEL, AvailableTargets.LOCAL, 'QL-600', '/dev/usb/lp3', None),
     # vrsky cerna sit na stole s tiskarnama
-    (AvailablePrinters.BROTHER_LABEL, AvailableTargets.NETWORK, 'QL-700', 'tcp://10.8.1.252:9100', None),
+    (AvailablePrinters.BROTHER_LABEL, AvailableTargets.NETWORK, 'QL-700', 'tcp://10.8.1.252:9100', 'QL-700'),
 ]
+
+
+class PrinterException(Exception):
+    """
+    Exceptions used inside this code
+    """
+    pass
 
 
 class Code:
@@ -235,20 +242,22 @@ class WindowsSystemActions(AbstractSystemActions):
         #       proto se nejdriv cely vysledek dotazu nacpe do souboru a az to se pomoci cmdletu posle na tiskarnu (pres mspaint)
         #       nebo se nejdriv cely vysledek dotazu nacpe do PDF a az to se pomoci cmdletu posle na tiskarnu (pres acrobat)
         #       ale nejdriv je potreba zdetekovat, jestli v systemu tiskarna vubec je - to je prace tehle classy
+        if not printer.windows_name:
+            return False
         for connected_printer in self._get_connected():
             connected_printer = connected_printer.strip()
             if '' == connected_printer:
                 # skip empty string
                 continue
 
-            if printer.model in connected_printer:
+            if printer.windows_name in connected_printer:
                 # we got the printer
-                if 'disabled' in connected_printer:
-                    # this printer is now disabled - choose another one;
-                    # if there is another with the same name and configuration it must pass
-                    continue
+                printer.windows_name = connected_printer
                 return True
         return False
+
+    def is_known(self, printer: AvailablePrinter) -> bool:
+        return True
 
     def _get_connected(self) -> list[str]:
         if not len(self._connected_printers):
@@ -257,7 +266,7 @@ class WindowsSystemActions(AbstractSystemActions):
 
     def _local_lines(self) -> list[str]:
         locally_known_printers = subprocess.run(
-            ['powershell', '-Command', 'Get-Printer | Format-Table Name, Type, DriverName, PortName, Shared'],
+            ['powershell', '-Command', 'Get-Printer | Format-Table Name -AutSize'],
             capture_output=True)
         return locally_known_printers.stdout.decode().split('\n')
 
@@ -302,17 +311,23 @@ class WindowsPrinterDriver(AbstractPrinterDriver):
         import tempfile
         import os
 
+        if not printer.windows_name:
+            raise PrinterException('Printer must have name used in Windows!')
+
         # first save as temporary file
         temp_file = tempfile.NamedTemporaryFile(delete=False)
         temp_file.seek(0)
         temp_file.write(image.getvalue()) # image is PNG
         temp_file.close()
 
+        # extension problem
+        os.rename(temp_file.name, temp_file.name + '.png')
+
         # then cmd to printer
         subprocess.run(
-            ['mspaint', '/pt', str(printer.windows_name), temp_file.name],
+            ['mspaint', '/pt', temp_file.name + '.png', str(printer.windows_name)],
             capture_output=True)
-        os.remove(temp_file.name)
+        os.remove(temp_file.name + '.png')
 
 
 class BrotherLabelPrinterDriver(AbstractPrinterDriver):
@@ -359,7 +374,7 @@ class PrinterDriverFactory:
         if AvailablePrinters.BROTHER_LABEL == printer.group:
             return BrotherLabelPrinterDriver()
 
-        raise FileNotFoundError('No printer driver with this settings!')
+        raise PrinterException('No printer driver with this settings!')
 
 
 class AbstractImageSource:
@@ -399,7 +414,7 @@ class ImageSourceRemoteQuery(AbstractImageSource):
                 # otherwise log the response and kill next processing
                 self._logger.log(f'The code *{code.code}* got response code *{response.status}*.')
                 self._logger.struct_log(await response.read())
-                raise FileNotFoundError(f'The code *{code.code}* returns no image!')
+                raise PrinterException(f'The code *{code.code}* returns no image!')
 
 
 class AbstractConnection:
@@ -475,7 +490,7 @@ class ConnectionFactory:
         if AvailableTargets.NETWORK == printer.location:
             return ConnectedViaNetwork(printer)
 
-        raise FileNotFoundError('No printer connection with this settings!')
+        raise PrinterException('No printer connection with this settings!')
 
 
 class ParseParams:
