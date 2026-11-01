@@ -83,6 +83,15 @@ def create_app(config_object='rhinventory.config'):
     #files_blueprint = Blueprint('files', __name__, static_url_path='/files', static_folder=app.config['FILES_DIR'])
     #app.register_blueprint(files_blueprint)
 
+    # Not via SEND_FILE_MAX_AGE_DEFAULT, which would also apply to /files and labels
+    @app.after_request
+    def cache_static(response: Response) -> Response:
+        if request.endpoint == 'static' and response.status_code < 400:
+            response.cache_control.no_cache = None
+            response.cache_control.public = True
+            response.cache_control.max_age = 4 * 60 * 60
+        return response
+
     bootstrap = Bootstrap5(app)
 
     from rhinventory.public_blueprints.magdb import magdb_bp
@@ -419,11 +428,16 @@ Disallow: *
         if not visible_to_current_user(file):
             return abort(403)
 
+        # md5 rather than sha256 because rotating only recalculates md5
+        etag: str | bool = file.md5.hex() if file.md5 else True
+
         if thumb:
             if not file.has_thumbnail:
                 abort(404)
-            return send_file(file.full_filepath_thumbnail)
-        return send_file(file.full_filepath)
+            if file.md5:
+                etag = f'{etag}-thumb'
+            return send_file(file.full_filepath_thumbnail, etag=etag)
+        return send_file(file.full_filepath, etag=etag)
         
     @app.route('/admin/<path:path>')
     def admin_redirect(path: str):
