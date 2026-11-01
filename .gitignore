@@ -109,6 +109,9 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+# editor
+.idea/
+
 /files/
 /files2/
 alembic.ini
