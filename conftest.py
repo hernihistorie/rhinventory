@@ -6,12 +6,17 @@ This module sets up a PostgreSQL test database using podman, and the Flask app f
 import os
 import subprocess
 import time
+from pathlib import Path
+
 import pytest
 
 from rhinventory.app import create_app
 from rhinventory.extensions import db
 from rhinventory.db import User, Organization
+from rhinventory.models.file import pyzbar
 
+
+REPO_ROOT = Path(__file__).parent
 
 # PostgreSQL test container configuration (for local development)
 POSTGRES_CONTAINER_NAME = "rhinventory_test_db"
@@ -157,3 +162,30 @@ def db_session(app):
     """Provide a database session for tests."""
     with app.app_context():
         yield db.session
+
+
+@pytest.fixture()
+def read_only_user(app, db_session):
+    """Log requests in as a user without write access (combine with `client`)."""
+    user = User(username="reader", read_access=True, write_access=False)
+    db_session.add(user)
+    db_session.commit()
+    user_id = user.id
+    app.login_manager.request_loader(lambda request: db_session.get(User, user_id))
+
+
+@pytest.fixture()
+def zbar():
+    """Barcode detection silently does nothing without zbar, so fail loudly instead."""
+    assert pyzbar is not None, "pyzbar failed to import, is the zbar library installed? (e.g. libzbar0 on Debian/Ubuntu)"
+
+
+@pytest.fixture()
+def test_photos_dir() -> Path:
+    """Photos of assets with their barcodes visible, named by asset."""
+    return REPO_ROOT / "data" / "test_photos"
+
+
+@pytest.fixture()
+def test_image() -> Path:
+    return REPO_ROOT / "tests" / "data" / "test_image.png"

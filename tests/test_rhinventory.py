@@ -29,9 +29,7 @@ from rhinventory.models.file import (
     FileStore,
     FileStoreNotConfigured,
     Privacy,
-    pyzbar,
 )
-from rhinventory.models.user import User
 from rhinventory.util import safe_next_path
 
 
@@ -112,7 +110,7 @@ def test_file_list(client: FlaskClient):
     assert response.status_code == 200
 
 
-def test_file_upload(client: FlaskClient):
+def test_file_upload(client: FlaskClient, test_image):
     response = client.get("/file/upload/")
     assert response.status_code == 200
     # Prepare a dummy file to upload
@@ -125,7 +123,7 @@ def test_file_upload(client: FlaskClient):
         'sort_by_filename': '',
     }
 
-    file_storage = (open('tests/data/test_image.png', 'rb'), 'test_image.png')
+    file_storage = (open(test_image, 'rb'), 'test_image.png')
     data['files'] = [file_storage]
 
     response = client.post(
@@ -190,22 +188,13 @@ def test_file_details_store_not_configured(client: FlaskClient, app, db_session)
         file.full_filepath
 
 
-TEST_PHOTOS_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "test_photos")
-
-
-@pytest.fixture()
-def zbar():
-    """Barcode detection silently does nothing without zbar, so fail loudly instead."""
-    assert pyzbar is not None, "pyzbar failed to import, is the zbar library installed? (e.g. libzbar0 on Debian/Ubuntu)"
-
-
 @pytest.mark.parametrize("filename, asset_id", [
     ("hh10461.jpg", 10461),
     ("hh10480.jpg", 10480),
     ("hh10509.jpg", 10509),
 ])
-def test_read_rh_barcode(app, zbar, filename, asset_id):
-    app.config['FILE_STORE_LOCATIONS'] = {"local": TEST_PHOTOS_DIR}
+def test_read_rh_barcode(app, zbar, test_photos_dir, filename, asset_id):
+    app.config['FILE_STORE_LOCATIONS'] = {"local": str(test_photos_dir)}
 
     with app.app_context():
         file = File(
@@ -216,12 +205,12 @@ def test_read_rh_barcode(app, zbar, filename, asset_id):
         assert file.read_rh_barcode() == asset_id
 
 
-def test_upload_result_rerun_auto_assign(client: FlaskClient, app, db_session, zbar, tmp_path):
+def test_upload_result_rerun_auto_assign(client: FlaskClient, app, db_session, zbar, test_photos_dir, tmp_path):
     """Rerunning auto assign from the upload result page assigns images that weren't assigned yet."""
     app.config['FILE_STORE_LOCATIONS'] = {"local": str(tmp_path)}
     os.makedirs(tmp_path / "uploads")
     # Without an hh code in the filename, so the barcode gets read
-    shutil.copy(os.path.join(TEST_PHOTOS_DIR, "hh10461.jpg"), tmp_path / "uploads" / "IMG_0001.jpg")
+    shutil.copy(test_photos_dir / "hh10461.jpg", tmp_path / "uploads" / "IMG_0001.jpg")
 
     asset = Asset(id=10461, organization_id=1, category=AssetCategory.game, name="Barcode Test Asset")
     file = File(
@@ -262,14 +251,6 @@ def unassigned_file(app, db_session, tmp_path) -> File:
     return file
 
 
-def log_in_read_only(app, db_session):
-    user = User(username="reader", read_access=True, write_access=False)
-    db_session.add(user)
-    db_session.commit()
-    user_id = user.id
-    app.login_manager.request_loader(lambda request: db_session.get(User, user_id))
-
-
 @pytest.mark.parametrize("term, asset_id", [
     ("1234", 1234),
     ("01234", 1234),
@@ -302,8 +283,7 @@ def test_asset_lookup_hidden_from_anonymous(anonymous_client: FlaskClient, db_se
 
 
 @pytest.mark.parametrize("url", LOOKUP_URLS)
-def test_asset_lookup_hidden_from_read_only_users(client: FlaskClient, app, db_session, url):
-    log_in_read_only(app, db_session)
+def test_asset_lookup_hidden_from_read_only_users(client: FlaskClient, read_only_user, url):
     assert client.get(url).status_code == 403
 
 
@@ -408,9 +388,7 @@ def test_file_details_rejects_post(anonymous_client: FlaskClient, db_session, un
     assert unassigned_file.asset_id is None
 
 
-def test_file_assign_requires_write_access(client: FlaskClient, app, db_session, unassigned_file):
-    log_in_read_only(app, db_session)
-
+def test_file_assign_requires_write_access(client: FlaskClient, read_only_user, db_session, unassigned_file):
     client.post(f"/file/assign/?id={unassigned_file.id}", data={"asset_id": "10461"})
     db_session.refresh(unassigned_file)
     assert unassigned_file.asset_id is None
