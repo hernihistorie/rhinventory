@@ -13,14 +13,32 @@ The test infrastructure automatically starts the PostgreSQL container when you r
 uv run pytest
 
 # Run specific test file
-uv run pytest tests/test_rhinventory.py
+uv run pytest rhinventory/admin_views/tests/test_file.py
+
+# Run all tests of a package
+uv run pytest rhinventory/admin_views
 
 # Run with verbose output
 uv run pytest -v
 
 # Run specific test
-uv run pytest tests/test_rhinventory.py::test_index
+uv run pytest rhinventory/tests/test_index.py::test_index
 ```
+
+Run pytest from the root of the repository, as the test configuration uses paths relative to it.
+
+## Where Tests Live
+
+Tests live next to the code they test, in `<package>/tests/test_<module>.py`:
+
+- Tests that go through HTTP belong with the view serving the URL, so `client.get("/file/...")` goes in `rhinventory/admin_views/tests/`.
+- Tests that call code directly belong with that module, so `File.read_rh_barcode()` goes in `rhinventory/models/tests/`.
+- Behaviour in `create_app()` has no module of its own, so it's tested in `rhinventory/tests/`, split by concern.
+- When a test file gets large, split it by workflow, like `test_file_assign.py` and `test_file_upload.py`.
+
+This directory is only for tests spanning several systems, such as `test_hhfloppy_integration.py`, and for test data.
+
+Fixtures used across packages go in the root `conftest.py`, others in a `conftest.py` in the `tests/` directory that uses them. Pytest runs in importlib mode, so test files and conftests can't be imported from. It's fine for test files in different packages to share a name.
 
 ## Managing the Test Database Container
 
