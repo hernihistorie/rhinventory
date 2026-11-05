@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from sqlalchemy import ColumnElement, and_, or_
+from sqlalchemy import ColumnElement, and_, func, nulls_last, or_, select
 from sqlalchemy.orm import selectinload
 
 from rhinventory.db import Asset
@@ -35,15 +35,31 @@ def find_tag(requested: str) -> AssetTag | None:
     return db.session.query(AssetTag).filter(AssetTag.name == requested).order_by(AssetTag.id).first()
 
 
+def _file_not_deleted() -> ColumnElement[bool]:
+    return or_(File.is_deleted == False, File.is_deleted == None)
+
+
 def _needs_judging() -> ColumnElement[bool]:
     """Unjudged assets, and judged ones with unjudged files, such as newly uploaded ones."""
     return or_(
         Asset.privacy == Privacy.private_implicit,
-        Asset.files.any(and_(
-            File.privacy == Privacy.private_implicit,
-            or_(File.is_deleted == False, File.is_deleted == None),
-        )),
+        Asset.files.any(and_(File.privacy == Privacy.private_implicit, _file_not_deleted())),
     )
+
+
+def _queue_order(sort: str) -> list[ColumnElement]:
+    """The order for `sort`, ending in the ID so that batches stay stable between requests."""
+    if sort == 'oldest':
+        return [Asset.id.asc()]
+    if sort == 'name':
+        return [func.lower(Asset.name).asc(), Asset.id.asc()]
+    if sort == 'latest_files':
+        latest_upload = select(func.max(File.upload_date)).where(
+            File.asset_id == Asset.id,
+            _file_not_deleted(),
+        ).scalar_subquery()
+        return [nulls_last(latest_upload.desc()), Asset.id.desc()]
+    return [Asset.id.desc()]
 
 
 def get_progress() -> tuple[int, int]:
@@ -52,17 +68,14 @@ def get_progress() -> tuple[int, int]:
     return needs_judging, db.session.query(Asset).count()
 
 
-def get_queue(start_id: int, count: int, tag: AssetTag | None) -> list[PublicizeItem]:
-    """The next assets that need judging, with their non-deleted files."""
-    query = db.session.query(Asset).options(selectinload(Asset.files)).filter(
-        _needs_judging(),
-        Asset.id >= start_id,
-    )
+def get_queue(sort: str, offset: int, count: int, tag: AssetTag | None) -> list[PublicizeItem]:
+    """A batch of the assets that need judging, with their non-deleted files."""
+    query = db.session.query(Asset).options(selectinload(Asset.files)).filter(_needs_judging())
     if tag:
         query = query.filter(Asset.tags.any(AssetTag.id == tag.id))
 
     items = []
-    for asset in query.order_by(Asset.id.asc()).limit(count):
+    for asset in query.order_by(*_queue_order(sort)).offset(offset).limit(count):
         files = asset._sorted_files
         items.append(PublicizeItem(
             asset=asset,
@@ -102,10 +115,7 @@ def apply_decisions(
             asset.privacy = decision
             result.assets_changed += 1
 
-    files = db.session.query(File).filter(
-        File.id.in_(list(file_decisions)),
-        or_(File.is_deleted == False, File.is_deleted == None),
-    )
+    files = db.session.query(File).filter(File.id.in_(list(file_decisions)), _file_not_deleted())
     for file in files:
         decision = file_decisions[file.id]
         if decision is None and file.privacy == Privacy.private_implicit:

@@ -33,7 +33,9 @@
         }
 
         .publicize-thumb {
-            margin: auto;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
             display: block;
             transition: transform .2s;
             transform-origin: top center;
@@ -79,15 +81,29 @@
         {% endif %}
     </p>
 
+    <p>
+        Sort by:
+        <span class="btn-group">
+            {% for label, url, active in sort_links %}
+                <a class="btn btn-small {% if active %}active{% endif %}" href="{{ url }}">{{ label }}</a>
+            {% endfor %}
+        </span>
+    </p>
+
     {% if tag %}
         <p>
             Filtering for tag: <strong>{{ tag.name }}</strong> (id {{ tag.id }}).
-            <a href="{{ url_for('asset.publicize_view') }}">Clear filter</a>
+            <a href="{{ clear_tag_url }}">Clear filter</a>
         </p>
     {% else %}
         <form method="GET">
             Filter by tag:
             <input style="vertical-align: top;" type="text" name="tag" placeholder="Tag name or ID">
+            {% for name in ('sort', 'count') %}
+                {% if filter_args[name] %}
+                    <input type="hidden" name="{{ name }}" value="{{ filter_args[name] }}">
+                {% endif %}
+            {% endfor %}
             <input class="btn" type="submit" value="Filter">
         </form>
     {% endif %}

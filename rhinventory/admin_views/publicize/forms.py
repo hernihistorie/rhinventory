@@ -11,6 +11,14 @@ from rhinventory.models.enums import Privacy
 DEFAULT_COUNT = 50
 MAX_COUNT = 500
 
+SORTS = {
+    'newest': "Newest",
+    'oldest': "Oldest",
+    'name': "Name",
+    'latest_files': "Latest files",
+}
+DEFAULT_SORT = 'newest'
+
 # None is a blank decision: the reviewer didn't judge the asset or file.
 DECISIONS: dict[str, Privacy | None] = {
     'public': Privacy.public,
@@ -21,17 +29,19 @@ DECISION_FIELD_NAME = re.compile(r'(asset|file)-([0-9]{1,18})')
 
 
 class PublicizeFilterForm(Form):
-    start_id = IntegerField(default=0, validators=[Optional(), NumberRange(min=0)])
+    offset = IntegerField(default=0, validators=[Optional(), NumberRange(min=0)])
     count = IntegerField(default=DEFAULT_COUNT, validators=[Optional(), NumberRange(min=1, max=MAX_COUNT)])
     tag = StringField(validators=[Optional()])
+    sort = SelectField(choices=list(SORTS.items()), default=DEFAULT_SORT)
 
     @property
     def url_args(self) -> dict[str, Any]:
         """The filters that differ from the defaults, to carry over to other URLs."""
         return {
-            'start_id': self.start_id.data or None,
+            'offset': self.offset.data or None,
             'count': self.count.data if self.count.data != DEFAULT_COUNT else None,
             'tag': self.tag.data or None,
+            'sort': self.sort.data if self.sort.data != DEFAULT_SORT else None,
         }
 
 

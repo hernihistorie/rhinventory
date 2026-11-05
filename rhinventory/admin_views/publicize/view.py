@@ -1,7 +1,7 @@
 from flask import Blueprint, flash, redirect, request, url_for
 from flask_admin import expose
 
-from rhinventory.admin_views.publicize.forms import DEFAULT_COUNT, PublicizeFilterForm, make_publicize_form
+from rhinventory.admin_views.publicize.forms import DEFAULT_COUNT, SORTS, PublicizeFilterForm, make_publicize_form
 from rhinventory.admin_views.publicize.service import apply_decisions, find_tag, get_progress, get_queue
 from rhinventory.extensions import db
 from rhinventory.util import require_write_access
@@ -31,13 +31,12 @@ class PublicizeMixin:
                 return redirect(url_for('.publicize_view'))
 
         count = filters.count.data or DEFAULT_COUNT
-        items = get_queue(filters.start_id.data or 0, count, tag)
+        offset = filters.offset.data or 0
+        items = get_queue(filters.sort.data, offset, count, tag)
         needs_judging_count, all_assets_count = get_progress()
 
-        skip_url = None
-        if items:
-            next_batch = filters.url_args | {'start_id': items[-1].asset.id + 1}
-            skip_url = url_for('.publicize_view', **next_batch)
+        def filtered_url(**changes) -> str:
+            return url_for('.publicize_view', **(filters.url_args | changes))
 
         return self.render('publicize/index.html',
                            items=items,
@@ -46,8 +45,14 @@ class PublicizeMixin:
                            needs_judging_count=needs_judging_count,
                            count=count,
                            tag=tag,
-                           skip_url=skip_url,
-                           first_batch_url=url_for('.publicize_view', **(filters.url_args | {'start_id': None})))
+                           filter_args=filters.url_args,
+                           sort_links=[
+                               (label, filtered_url(sort=sort, offset=None), sort == filters.sort.data)
+                               for sort, label in SORTS.items()
+                           ],
+                           skip_url=filtered_url(offset=offset + len(items)) if items else None,
+                           first_batch_url=filtered_url(offset=None),
+                           clear_tag_url=filtered_url(tag=None, offset=None))
 
     def _save_publicize_decisions(self, filters: PublicizeFilterForm):
         form = make_publicize_form(request.form)

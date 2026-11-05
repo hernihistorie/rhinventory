@@ -1,5 +1,6 @@
 import re
 from dataclasses import dataclass
+from datetime import datetime
 
 import pytest
 
@@ -45,6 +46,13 @@ def set_file(app, file_id, **attributes):
         db.session.commit()
 
 
+def tag_asset(app, asset_id, tag_name):
+    with app.app_context():
+        asset = db.session.get(Asset, asset_id)
+        asset.tags.append(AssetTag(name=tag_name))
+        db.session.commit()
+
+
 def asset_privacy(app, asset_id) -> Privacy:
     with app.app_context():
         return db.session.get(Asset, asset_id).privacy
@@ -53,6 +61,10 @@ def asset_privacy(app, asset_id) -> Privacy:
 def file_privacy(app, file_id) -> Privacy:
     with app.app_context():
         return db.session.get(File, file_id).privacy
+
+
+def skip_url(response) -> str:
+    return re.search(rb'href="([^"]+)">Skip</a>', response.data)[1].decode().replace("&amp;", "&")
 
 
 def get_csrf_token(client) -> str:
@@ -108,7 +120,7 @@ def test_invalid_decision_saves_nothing(app, client, item):
     assert asset_privacy(app, item.asset_id) == Privacy.private_implicit
 
 
-@pytest.mark.parametrize("query", ["?start_id=abc", "?count=abc", "?count=0", "?count=-1", "?start_id=-1"])
+@pytest.mark.parametrize("query", ["?offset=abc", "?count=abc", "?count=0", "?count=-1", "?offset=-1", "?sort=nonsense"])
 def test_invalid_filter_redirects(client, query):
     response = client.get(URL + query)
     assert response.status_code == 302
@@ -151,7 +163,7 @@ def test_only_unjudged_assets_are_affected_by_set_all(app, client, item, privacy
     unjudged = make_asset(app, name="Unjudged Asset")
     set_asset(app, item.asset_id, privacy)
 
-    html = client.get(URL).data.decode()
+    html = client.get(URL + "?sort=oldest").data.decode()
 
     assert html.count('class="asset-row asset-unjudged"') == 1
     assert html.index('class="asset-row asset-unjudged"') > html.index(f'name="asset-{item.asset_id}-public"')
@@ -303,13 +315,13 @@ def test_only_real_changes_are_counted(app, client, item):
 
 
 def test_save_keeps_filters(client, item):
-    query = "?start_id=5&count=10&tag=foo"
+    query = "?offset=5&count=10&tag=foo&sort=name"
     response = submit(client, url=URL + query)
-    assert response.location == URL + "?start_id=5&count=10&tag=foo"
+    assert response.location == URL + query
 
 
-def test_skip_links_past_the_last_asset_and_keeps_filters(app, client):
-    first = make_asset(app)
+def test_skip_links_to_the_next_batch_and_keeps_filters(app, client):
+    first = make_asset(app, name="Earlier Asset")
     second = make_asset(app, name="Later Asset")
     with app.app_context():
         assets = [db.session.get(Asset, first.asset_id), db.session.get(Asset, second.asset_id)]
@@ -318,20 +330,85 @@ def test_skip_links_past_the_last_asset_and_keeps_filters(app, client):
             asset.tags.append(tag)
         db.session.commit()
 
-    response = client.get(URL + f"?tag=foo&count=1&start_id={first.asset_id}")
-    assert b"Secret Asset" in response.data
+    response = client.get(URL + "?tag=foo&count=1&sort=oldest")
+    assert b"Earlier Asset" in response.data
     assert b"Later Asset" not in response.data
 
-    skip_url = re.search(rb'href="([^"]+)">Skip</a>', response.data)[1].decode().replace("&amp;", "&")
-    response = client.get(skip_url)
-    assert b"Secret Asset" not in response.data
+    response = client.get(skip_url(response))
+    assert b"Earlier Asset" not in response.data
     assert b"Later Asset" in response.data
 
 
+def test_saving_a_batch_brings_in_the_next_one(app, client):
+    first = make_asset(app, name="Earlier Asset")
+    make_asset(app, name="Later Asset")
+
+    submit(client, url=URL + "?count=1&sort=oldest", **{
+        f"asset_{first.asset_id}": "public",
+        f"file_{first.photo_id}": "default",
+        f"file_{first.dump_id}": "default",
+    })
+
+    assert b"Later Asset" in client.get(URL + "?count=1&sort=oldest").data
+
+
 def test_no_skip_link_at_the_end_of_the_queue(client, item):
-    response = client.get(URL + f"?start_id={item.asset_id + 1}")
+    response = client.get(URL + "?offset=1")
     assert b">Skip<" not in response.data
     assert b"Back to the first batch" in response.data
+
+
+def asset_order(client, query="") -> list[str]:
+    html = client.get(URL + query).data.decode()
+    return re.findall(r'font-size: 24px;">\s*<a href="[^"]*">([^<]+)</a>', html)
+
+
+def test_newest_assets_are_shown_first_by_default(app, client):
+    make_asset(app, name="First")
+    make_asset(app, name="Second")
+
+    assert asset_order(client) == ["Second", "First"]
+
+
+@pytest.mark.parametrize("sort,expected", [
+    ("newest", ["banana", "Cherry", "apple"]),
+    ("oldest", ["apple", "Cherry", "banana"]),
+    ("name", ["apple", "banana", "Cherry"]),
+    ("latest_files", ["Cherry", "apple", "banana"]),
+])
+def test_sorting(app, client, sort, expected):
+    apple = make_asset(app, name="apple")
+    cherry = make_asset(app, name="Cherry")
+    banana = make_asset(app, name="banana")
+    set_file(app, apple.photo_id, upload_date=datetime(2020, 1, 1))
+    set_file(app, cherry.photo_id, upload_date=datetime(2024, 1, 1))
+    # The newest file was deleted, so it shouldn't count
+    set_file(app, banana.photo_id, upload_date=datetime(2026, 1, 1), is_deleted=True)
+
+    assert asset_order(client, f"?sort={sort}") == expected
+
+
+def test_sort_links_keep_filters_but_restart_the_queue(app, client, item):
+    tag_asset(app, item.asset_id, "foo")
+
+    html = client.get(URL + "?tag=foo&count=10&offset=5").data.decode().replace("&amp;", "&")
+
+    assert 'href="/asset/publicize/?count=10&tag=foo&sort=name"' in html
+
+
+def test_clearing_the_tag_keeps_sort(app, client, item):
+    tag_asset(app, item.asset_id, "foo")
+
+    html = client.get(URL + "?tag=foo&sort=name").data.decode()
+
+    assert f'<a href="{URL}?sort=name">Clear filter</a>' in html
+
+
+def test_tag_form_keeps_sort_and_count(client):
+    html = client.get(URL + "?sort=name&count=10").data.decode()
+
+    assert '<input type="hidden" name="sort" value="name">' in html
+    assert '<input type="hidden" name="count" value="10">' in html
 
 
 def test_tag_filter_prefers_id_and_handles_ambiguous_names(app, client):
