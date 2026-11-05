@@ -23,6 +23,7 @@ from flask_login import current_user
 from sqlalchemy import nulls_last, func
 from sqlalchemy.sql.functions import coalesce
 from rhinventory.admin_views.asset_files.stream_asset_files_zip import stream_asset_files_zip
+from rhinventory.admin_views.publicize import PublicizeMixin
 from rhinventory.admin_views.utils import get_asset_list_from_request_args, visible_to_current_user
 
 from rhinventory.extensions import db
@@ -73,7 +74,7 @@ def _last_used_query_factory_factory(cls: db.Model):
         nulls_last(cls.last_used.desc())
     )
 
-class AssetView(CustomModelView):
+class AssetView(PublicizeMixin, CustomModelView):
     form_overrides: dict[str, type[Field]] = {
         'condition_new': ConditionField,
         'privacy': PrivacyField
@@ -580,85 +581,8 @@ class AssetView(CustomModelView):
 
 
         return self.render('admin/asset/map.html', image_count_by_id=image_count_by_id, asset_by_id=asset_by_id, max_id=max_id, assets_with_image_fraction=assets_with_image / len(assets_with_image_count))
-                    
-    
-
-    @expose('/publicize/', methods=['GET', 'POST'])
-    def publicize_view(self):
-        start_id = int(request.args.get('start_id', 0))
-        requested_tag = request.args.get('tag', 0)
-        count = int(request.args.get('count', 50))
-        if request.method != "POST":
-            all_assets = db.session.query(Asset)
-            private_implicit_assets = db.session.query(Asset)\
-                .filter(Asset.privacy == Privacy.private_implicit)
-            
-            all_assets_count = all_assets.count()
-            private_implicit_count = private_implicit_assets.count()
-
-            assets = private_implicit_assets
-            if requested_tag:
-                try:
-                    requested_tag_id = int(requested_tag)
-                except ValueError:
-                    requested_tag_id = None
-                tag = db.session.query(AssetTag).filter(
-                    (AssetTag.id == requested_tag_id) | (AssetTag.name == requested_tag)).scalar()
-                if not tag:
-                    flash(f"Tag {requested_tag} not found.", 'error')
-                    return redirect(url_for('.publicize_view'))
-                
-                assets = assets.filter(Asset.tags.any(AssetTag.id == tag.id))
-            else:
-                tag = None
-            assets = assets.filter(Asset.id >= start_id).order_by(Asset.id.asc()).limit(count).all()
-        else:
-            if '_skip' in request.form:
-                return redirect(url_for('.publicize_view'))
-            PRIVACY_DICT = {
-                'public': Privacy.public,
-                'private': Privacy.private,
-                'default': Privacy.public
-            }
-            num_files_changed = 0
-            num_assets_changed = 0
-            for key, value in request.form.items():
-                if key.startswith("file"):
-                    file_id = int(key.split('-')[1])
-                    file = db.session.query(File).filter(File.id == file_id).one()
-                    if value == 'default' and '_publicize' not in request.form:
-                        continue
-                    file.privacy = PRIVACY_DICT[value]
-                    db.session.add(file)
-                    num_files_changed += 1
-            
-            for key, value in request.form.items():
-                if key.startswith("asset"):
-                    asset_id = int(key.split('-')[1])
-                    asset = db.session.query(Asset).filter(Asset.id == asset_id).one()
-                    if value == 'default' and '_publicize' not in request.form:
-                        continue
-                    asset.privacy = PRIVACY_DICT[value]
-                    db.session.add(asset)
-                    for file in asset.files:
-                        if file.privacy == Privacy.private_implicit:
-                            file.privacy = PRIVACY_DICT[value]
-                            db.session.add(file)
-                            num_files_changed += 1
-                    num_assets_changed += 1
-            db.session.commit()
-            flash(f"Saved {num_assets_changed} assets and {num_files_changed} files.")
-            return redirect(url_for('.publicize_view'))
 
 
-        return self.render('admin/asset/publicize.html',
-                           assets=assets,
-                           all_assets_count=all_assets_count,
-                           private_implicit_count=private_implicit_count,
-                           count=count,
-                           tag=tag)
-                    
-    
     @action('create_transaction', 'Create transaction')
     @require_write_access
     def create_transaction(self, asset_ids):

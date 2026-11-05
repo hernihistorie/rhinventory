@@ -1,7 +1,5 @@
 {% extends 'admin/model/details.html' %}
 
-{% from 'admin/asset/_macros.html' import new_asset_form %}
-
 {% block body %}
     <style>
         .assets {
@@ -33,21 +31,52 @@
         .asset-row .btn.btn-private.active {
             background: rgb(255, 116, 95) !important;
         }
+
+        .publicize-thumb {
+            margin: auto;
+            display: block;
+            transition: transform .2s;
+            transform-origin: top center;
+            z-index: 100;
+        }
+
+        .publicize-thumb:hover {
+            position: relative;
+            transform: scale(6, 6);
+        }
+
+        .other-files {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .other-file {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .other-file a {
+            overflow-wrap: anywhere;
+        }
     </style>
     {% from 'admin/asset/menu_bar.html' import asset_menu_bar with context %}
     {{ asset_menu_bar() }}
 
     <h2><em>Publicize!</em></h2>
     <p>
-        Using this interface, judge whether the following {{ assets | count }} assets and their photos should be displayed publicly or not.
+        Using this interface, judge whether the following {{ items | count }} assets and their files should be displayed publicly or not.
+        A file left blank follows the decision made for its asset.
     </p>
     <p>
-        Note: This currently doesn't show dumps, so don't put any "pesonal" floppies or cassettes that you don't know the contents of.
-    </p>
-    <p>
-        Total unjudged assets:
-        {{ private_implicit_count }} / {{ all_assets_count }}
-        (<strong>{{ "{:3.1f}".format((private_implicit_count / all_assets_count)*100) }}%</strong>)
+        Total assets to judge:
+        {{ needs_judging_count }} / {{ all_assets_count }}
+        {% if all_assets_count %}
+            (<strong>{{ "{:3.1f}".format((needs_judging_count / all_assets_count)*100) }}%</strong>)
+        {% endif %}
     </p>
 
     {% if tag %}
@@ -95,7 +124,15 @@
         </div>
     {% endmacro %}
 
+    {% if not items %}
+        <p>
+            There are no assets to judge here.
+            <a href="{{ first_batch_url }}">Back to the first batch</a>
+        </p>
+    {% endif %}
+
     <form method="POST" id="publicize-form">
+        {{ publicize_form.csrf_token }}
         <div class="assets">
             <div class="asset-row">
                 <div class="btn-group">
@@ -115,11 +152,12 @@
                     </button>
                 </div>
                 <div>
-                    <strong>Set all to this value</strong>
+                    <strong>Set all unjudged assets to this value</strong>
                 </div>
             </div>
-            {% for asset in assets %}
-                <div class="asset-row">
+            {% for item in items %}
+                {% set asset = item.asset %}
+                <div class="asset-row {% if asset.privacy == Privacy.private_implicit %}asset-unjudged{% endif %}">
                     {{ render_privacy_buttons('asset', asset.id, asset.privacy, False) }}
                     <div style="flex-grow: 1;">
                         <div>
@@ -130,8 +168,7 @@
                             </span>
                         </div>
                         <div style="display: flex; flex-wrap: wrap; gap: 4px;">
-                            {% set images = asset.get_sorted_images() %}
-                            {% for file in images %}
+                            {% for file in item.images %}
                                 <div style="display: flex; flex-direction: column; align-items: center;">
                                     {{ render_privacy_buttons('file', file.id, file.privacy, True) }}
                                     <a href="{{ url_for('file.details_view', id=file.id) }}" style="display: block; width: 100px; height: 100px;">
@@ -144,25 +181,42 @@
                                 </div>
                             {% endfor %}
                         </div>
+                        {% if item.other_files %}
+                            <div class="other-files">
+                                {% for file in item.other_files %}
+                                    <div class="other-file">
+                                        {{ render_privacy_buttons('file', file.id, file.privacy, True) }}
+                                        <strong>{{ file.category.name if file.category else 'unknown' }}</strong>
+                                        <a href="{{ url_for('file.details_view', id=file.id) }}">{{ file.filename }}</a>
+                                        {% if file.size is not none %}
+                                            <span>{{ file.size | filesizeformat }}</span>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             {% endfor %}
         </div>
 
         <div style="margin: 32px 16px 128px 16px; text-align: center;">
-            <input name="_publicize" type="submit" class="btn btn-large btn-success" value="Publicize all except private">
-            <input name="_save" type="submit" class="btn btn-large btn-primary" value="Save">
-            <input name="_skip" type="submit" class="btn btn-large btn-secondary" value="Skip">
+            {{ publicize_form.publicize_all(class_="btn btn-large btn-success") }}
+            {{ publicize_form.save(class_="btn btn-large btn-primary") }}
+            {% if skip_url %}
+                <a class="btn btn-large btn-secondary" href="{{ skip_url }}">Skip</a>
+            {% endif %}
         </div>
     </form>
     <script>
         document.querySelectorAll('.btn-setall').forEach(
             button => button.addEventListener('click', function() {
                 let value = this.dataset.value;
-                document.querySelectorAll(`.btn:not(.btn-small)`).forEach(button => {
+                // Assets judged earlier are only here for their files, so keep their decisions
+                document.querySelectorAll(`.btn-setall, .asset-unjudged .btn:not(.btn-small)`).forEach(button => {
                     button.classList.remove('active');
                 });
-                document.querySelectorAll(`.btn-${value}:not(.btn-small)`).forEach(button => {
+                document.querySelectorAll(`.btn-setall.btn-${value}, .asset-unjudged .btn-${value}:not(.btn-small)`).forEach(button => {
                     button.classList.add('active');
                 });
             })
@@ -177,9 +231,15 @@
             oldHiddenFields.forEach(field => form.removeChild(field));
             
             buttonGroups.forEach(group => {
-                let fieldName = group.querySelector('.btn.active').name.split('-')[0];
-                let id = group.querySelector('.btn.active').name.split('-')[1];
-                let value = group.querySelector('.btn.active').dataset.value;
+                // Nothing is active for privacies without a button, such as unlinked: leave those as they are
+                let activeButton = group.querySelector('.btn.active');
+                if (!activeButton) {
+                    return;
+                }
+
+                let fieldName = activeButton.name.split('-')[0];
+                let id = activeButton.name.split('-')[1];
+                let value = activeButton.dataset.value;
 
                 // Create new, hidden form input to hold the button's value
                 let field = document.createElement('input');
