@@ -1,6 +1,6 @@
 import uuid
 
-from flask_admin.tests.fileadmin import Flask
+from flask import Flask
 import pytest
 import sqlalchemy.exc
 
