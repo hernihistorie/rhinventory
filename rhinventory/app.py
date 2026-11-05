@@ -269,6 +269,12 @@ def create_app(config_object='rhinventory.config'):
             'latest_public_asset': get_latest_public_asset(),
         })
 
+    @app.route('/public-search.json')
+    def public_search_json():
+        """Public assets and tags, which the search on herniarchiv.cz is built from."""
+        from rhinventory.public_search import get_public_search_data
+        return jsonify(get_public_search_data())
+
     @app.route('/robots.txt')
     def robots():
         text = """
