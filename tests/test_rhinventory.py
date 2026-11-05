@@ -15,6 +15,7 @@ import pytest
 from flask.testing import FlaskClient
 
 from rhinventory.extensions import github
+from rhinventory.files.hh_code import parse_asset_lookup
 
 from rhinventory.models.asset import Asset, AssetCategory
 from rhinventory.models.asset_attributes import AssetTag, Company
@@ -30,6 +31,7 @@ from rhinventory.models.file import (
     Privacy,
     pyzbar,
 )
+from rhinventory.models.user import User
 from rhinventory.util import safe_next_path
 
 
@@ -244,6 +246,265 @@ def test_upload_result_rerun_auto_assign(client: FlaskClient, app, db_session, z
     assert file.asset_id == 10461
     assert file.filepath == "assets/10461/IMG_0001.jpg"
     assert (tmp_path / "assets" / "10461" / "IMG_0001.jpg").exists()
+
+
+@pytest.fixture()
+def unassigned_file(app, db_session, tmp_path) -> File:
+    """A file on disk not assigned to anything, and asset 10461 to assign it to."""
+    app.config['FILE_STORE_LOCATIONS'] = {"local": str(tmp_path)}
+    os.makedirs(tmp_path / "uploads")
+    (tmp_path / "uploads" / "dump.bin").write_bytes(b"data")
+
+    asset = Asset(id=10461, organization_id=1, category=AssetCategory.game, name="Target Asset")
+    file = File(filepath="uploads/dump.bin", storage=FileStore.local, category=FileCategory.dump)
+    db_session.add_all([asset, file])
+    db_session.commit()
+    return file
+
+
+def log_in_read_only(app, db_session):
+    user = User(username="reader", read_access=True, write_access=False)
+    db_session.add(user)
+    db_session.commit()
+    user_id = user.id
+    app.login_manager.request_loader(lambda request: db_session.get(User, user_id))
+
+
+@pytest.mark.parametrize("term, asset_id", [
+    ("1234", 1234),
+    ("01234", 1234),
+    (" hh1234 ", 1234),
+    ("HH01234", 1234),
+    ("rh-1234", 1234),
+    ("hh 1234", 1234),
+    ("0", None),
+    ("hh", None),
+    ("", None),
+    ("1234a", None),
+    ("hh1234 front", None),
+    ("rhythm", None),
+])
+def test_parse_asset_lookup(term, asset_id):
+    assert parse_asset_lookup(term) == asset_id
+
+
+LOOKUP_URLS = ["/asset/ajax/lookup/?name=parent&query=Hidden", "/file/ajax/lookup/?name=asset&query=Hidden"]
+
+
+@pytest.mark.parametrize("url", LOOKUP_URLS)
+def test_asset_lookup_hidden_from_anonymous(anonymous_client: FlaskClient, db_session, url):
+    db_session.add(Asset(organization_id=1, category=AssetCategory.game, name="Hidden", privacy=AssetPrivacy.private))
+    db_session.commit()
+
+    response = anonymous_client.get(url)
+    assert response.status_code == 403
+    assert b"Hidden" not in response.data
+
+
+@pytest.mark.parametrize("url", LOOKUP_URLS)
+def test_asset_lookup_hidden_from_read_only_users(client: FlaskClient, app, db_session, url):
+    log_in_read_only(app, db_session)
+    assert client.get(url).status_code == 403
+
+
+@pytest.mark.parametrize("url", LOOKUP_URLS)
+def test_asset_lookup_available_with_write_access(client: FlaskClient, db_session, url):
+    db_session.add(Asset(organization_id=1, category=AssetCategory.game, name="Hidden", privacy=AssetPrivacy.private))
+    db_session.commit()
+
+    response = client.get(url)
+    assert response.status_code == 200
+    assert len(response.get_json()) == 1
+
+
+def asset_lookup(client: FlaskClient, query: str, **kwargs) -> list[int]:
+    response = client.get("/file/ajax/lookup/", query_string={"name": "asset", "query": query, **kwargs})
+    assert response.status_code == 200
+    return [asset_id for asset_id, _ in response.get_json()]
+
+
+def test_asset_lookup_search(client: FlaskClient, db_session):
+    db_session.add_all([
+        Asset(id=123, organization_id=1, category=AssetCategory.game, name="Alpha"),
+        Asset(id=5123, organization_id=1, category=AssetCategory.game, name="Beta"),
+        Asset(id=6000, organization_id=1, category=AssetCategory.game, name="Game 123"),
+        Asset(id=7000, organization_id=1, category=AssetCategory.game, name="100% Game"),
+    ])
+    db_session.commit()
+
+    # The exact asset comes first, then name matches from newest; ids only match exactly
+    assert asset_lookup(client, "123") == [123, 6000]
+    assert asset_lookup(client, "hh123") == [123]
+    assert asset_lookup(client, "RH00123") == [123]
+    assert asset_lookup(client, "game") == [7000, 6000]
+    assert asset_lookup(client, "100%") == [7000]
+    assert asset_lookup(client, "%") == [7000]
+    assert asset_lookup(client, "_") == []
+    assert asset_lookup(client, "game", limit=1, offset=1) == [6000]
+    assert asset_lookup(client, "9" * 40) == []
+
+
+def test_file_details_has_assign_form_without_listing_assets(client: FlaskClient, db_session, unassigned_file):
+    html = client.get(f"/file/details/?id={unassigned_file.id}").data.decode('utf-8')
+
+    assert f'action="/file/assign/?id={unassigned_file.id}"' in html
+    assert 'data-role="select2-ajax"' in html
+    assert 'value="Assign"' in html
+    assert "Target Asset" not in html
+
+
+def test_file_details_preselects_current_asset(client: FlaskClient, db_session, unassigned_file):
+    unassigned_file.asset_id = 10461
+    db_session.commit()
+
+    html = client.get(f"/file/details/?id={unassigned_file.id}").data.decode('utf-8')
+    assert 'value="Re-assign"' in html
+    assert 'name="asset_id"' in html and 'value="10461"' in html
+
+
+@pytest.mark.parametrize("filepath, preselected", [
+    ("uploads/hh10461.bin", True),
+    ("uploads/IMG_rh10461.bin", True),
+    ("uploads/hh99999.bin", False),
+])
+def test_file_details_preselects_asset_from_filename(client: FlaskClient, db_session, unassigned_file, filepath, preselected):
+    unassigned_file.filepath = filepath
+    db_session.commit()
+
+    html = client.get(f"/file/details/?id={unassigned_file.id}").data.decode('utf-8')
+    assert ('value="10461"' in html) == preselected
+
+
+def test_file_details_assign_form_hidden_from_anonymous(anonymous_client: FlaskClient, db_session, unassigned_file):
+    unassigned_file.privacy = Privacy.public
+    db_session.commit()
+
+    response = anonymous_client.get(f"/file/details/?id={unassigned_file.id}")
+    assert response.status_code == 200
+    assert b"select2-ajax" not in response.data
+
+
+def test_file_details_assign_form_hidden_when_unusable(client: FlaskClient, app, db_session, unassigned_file):
+    url = f"/file/details/?id={unassigned_file.id}"
+    assert b"select2-ajax" in client.get(url).data
+
+    unassigned_file.is_deleted = True
+    db_session.commit()
+    assert b"select2-ajax" not in client.get(url).data
+
+    unassigned_file.is_deleted = False
+    db_session.commit()
+    app.config['FILE_STORE_LOCATIONS'] = {"local": None}
+    assert b"select2-ajax" not in client.get(url).data
+
+
+def test_file_details_rejects_post(anonymous_client: FlaskClient, db_session, unassigned_file):
+    unassigned_file.privacy = Privacy.public
+    db_session.commit()
+
+    response = anonymous_client.post(f"/file/details/?id={unassigned_file.id}", data={"asset_id": "10461"})
+    assert response.status_code == 405
+    db_session.refresh(unassigned_file)
+    assert unassigned_file.asset_id is None
+
+
+def test_file_assign_requires_write_access(client: FlaskClient, app, db_session, unassigned_file):
+    log_in_read_only(app, db_session)
+
+    client.post(f"/file/assign/?id={unassigned_file.id}", data={"asset_id": "10461"})
+    db_session.refresh(unassigned_file)
+    assert unassigned_file.asset_id is None
+
+
+def test_file_assign_form(client: FlaskClient, db_session, tmp_path, unassigned_file):
+    response = client.post(f"/file/assign/?id={unassigned_file.id}", data={"asset_id": "10461"}, follow_redirects=True)
+    assert response.status_code == 200
+    assert "File assigned to asset #10461" in response.data.decode('utf-8')
+
+    db_session.refresh(unassigned_file)
+    assert unassigned_file.asset_id == 10461
+    assert unassigned_file.filepath == "assets/10461/dump.bin"
+    assert (tmp_path / "assets" / "10461" / "dump.bin").exists()
+
+
+def test_file_assign_by_query_string(client: FlaskClient, db_session, unassigned_file):
+    """The buttons on the upload result page pass asset_id in the URL."""
+    response = client.post(f"/file/assign/?id={unassigned_file.id}&asset_id=10461&refresh=True")
+    assert response.headers['HX-Refresh'] == 'true'
+
+    db_session.refresh(unassigned_file)
+    assert unassigned_file.asset_id == 10461
+
+
+@pytest.mark.parametrize("asset_id", ["", "abc", "0", "99999", "9" * 40])
+def test_file_assign_invalid_asset(client: FlaskClient, db_session, unassigned_file, asset_id):
+    response = client.post(f"/file/assign/?id={unassigned_file.id}", data={"asset_id": asset_id}, follow_redirects=True)
+    assert response.status_code == 200
+    assert "Failed to assign file to asset" in response.data.decode('utf-8')
+
+    db_session.refresh(unassigned_file)
+    assert unassigned_file.asset_id is None
+
+
+def test_file_assign_missing_asset_id(client: FlaskClient, db_session, unassigned_file):
+    response = client.post(f"/file/assign/?id={unassigned_file.id}", follow_redirects=True)
+    assert "Failed to assign file to asset" in response.data.decode('utf-8')
+
+
+def test_file_assign_failure_refreshes_htmx_page(client: FlaskClient, db_session, unassigned_file):
+    response = client.post(f"/file/assign/?id={unassigned_file.id}&refresh=True", data={"asset_id": "abc"})
+    assert response.status_code == 200
+    assert response.headers['HX-Refresh'] == 'true'
+
+
+def test_file_assign_to_same_asset_keeps_filename(client: FlaskClient, db_session, unassigned_file):
+    url = f"/file/assign/?id={unassigned_file.id}"
+    client.post(url, data={"asset_id": "10461"})
+    client.post(url, data={"asset_id": "10461"})
+
+    db_session.refresh(unassigned_file)
+    assert unassigned_file.filepath == "assets/10461/dump.bin"
+
+
+def test_file_reassign_moves_file(client: FlaskClient, db_session, tmp_path, unassigned_file):
+    db_session.add(Asset(id=10462, organization_id=1, category=AssetCategory.game, name="Other Asset"))
+    db_session.commit()
+
+    url = f"/file/assign/?id={unassigned_file.id}"
+    client.post(url, data={"asset_id": "10461"})
+    client.post(url, data={"asset_id": "10462"})
+
+    db_session.refresh(unassigned_file)
+    assert unassigned_file.asset_id == 10462
+    assert unassigned_file.filepath == "assets/10462/dump.bin"
+    assert (tmp_path / "assets" / "10462" / "dump.bin").exists()
+    assert not (tmp_path / "assets" / "10461" / "dump.bin").exists()
+
+
+def test_file_assign_refuses_deleted_file(client: FlaskClient, db_session, unassigned_file):
+    unassigned_file.is_deleted = True
+    db_session.commit()
+
+    response = client.post(f"/file/assign/?id={unassigned_file.id}", data={"asset_id": "10461"}, follow_redirects=True)
+    assert "The file has been deleted" in response.data.decode('utf-8')
+    db_session.refresh(unassigned_file)
+    assert unassigned_file.asset_id is None
+
+
+def test_file_assign_refuses_unconfigured_store(client: FlaskClient, app, db_session, unassigned_file):
+    app.config['FILE_STORE_LOCATIONS'] = {"local": None}
+
+    response = client.post(f"/file/assign/?id={unassigned_file.id}", data={"asset_id": "10461"}, follow_redirects=True)
+    assert "which is not configured on this instance" in response.data.decode('utf-8')
+    db_session.refresh(unassigned_file)
+    assert unassigned_file.asset_id is None
+
+
+def test_file_edit_form_does_not_list_assets(client: FlaskClient, db_session, unassigned_file):
+    response = client.get(f"/file/edit/?id={unassigned_file.id}")
+    assert response.status_code == 200
+    assert b"select2-ajax" in response.data
+    assert b"Target Asset" not in response.data
 
 
 def test_file_upload_assigns_by_filename(client: FlaskClient, app, db_session, tmp_path):

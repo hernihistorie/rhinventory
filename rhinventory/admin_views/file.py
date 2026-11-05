@@ -32,7 +32,7 @@ from rhinventory.datatypes.hashes import BLAKE3Hash, Hashes, MD5Hash, SHA256Hash
 from rhinventory.db import Asset, File, FileCategory, get_next_file_batch_number, log
 from rhinventory.extensions import db, simple_eval
 from rhinventory.files.utils import get_dropzone_files, get_dropzone_path
-from rhinventory.forms import DropzoneFileForm, FileAssignForm, FileForm
+from rhinventory.forms import DropzoneFileForm, FileAssignForm, FileForm, asset_lookup_loader
 from rhinventory.models.enums import Privacy
 from rhinventory.models.file import FileStore
 from rhinventory.models.user import User
@@ -156,6 +156,7 @@ class FileView(CustomModelView):
     column_list = ('id', 'category', 'filepath', 'primary', 'asset', 'transaction', 'upload_date')
     #form_excluded_columns = ('user', 'filepath', 'storage', 'has_thumbnail', 'analyzed', 'md5', 'original_md5', 'sha256', 'original_sha256', 'upload_date')
     form_excluded_columns = ['has_thumbnail', 'analyzed', 'md5', 'original_md5', 'sha256', 'original_sha256', 'blake3', 'upload_date']
+    form_ajax_refs = {'asset': asset_lookup_loader}
     column_default_sort = ('id', True)
 
     column_searchable_list = [
@@ -168,7 +169,7 @@ class FileView(CustomModelView):
         return True
 
     # Overridden https://flask-admin.readthedocs.io/en/latest/_modules/flask_admin/model/base/#BaseModelView.details_view
-    @expose('/details/', methods=['GET', 'POST'])
+    @expose('/details/')
     def details_view(self):
         return_url = get_redirect_target() or self.get_url('.index_view')
 
@@ -190,25 +191,11 @@ class FileView(CustomModelView):
 
         template = self.details_template
 
-        file_assign_form = FileAssignForm()
-        assets = [(0, "No asset")]
-        #assets += [(a.id, str(a)) for a in self.session.query(Asset).order_by(Asset.id.asc())]
-        file_assign_form.asset.choices = assets
-        file_assign_form.asset.default = model.asset_id or 0
-        file_assign_form.process(request.form)
-
-        if request.method == "POST" and file_assign_form.validate():
-            try:
-                model.assign(file_assign_form.asset.data)
-            except ValueError as e:
-                flash(f"Failed to assign file to asset: {e}", 'error')
-                return redirect(url_for("file.details_view", id=id))
-            
-            db.session.add(model)
-            log("Update", model, user=current_user)
-            db.session.commit()
-            flash(f"File assigned to asset #{file_assign_form.asset.data}", 'success')
-            return redirect(url_for('.details_view', id=id))
+        # Preselect the current asset, or failing that the one named by the filename
+        preselected_asset = model.asset
+        if not preselected_asset and (filename_code := model.filename_hh_code or model.filename_hh_code_suggestion):
+            preselected_asset = db.session.get(Asset, filename_code)
+        file_assign_form = FileAssignForm(asset_id=preselected_asset)
 
         return self.render(template,
                             model=model,
@@ -498,17 +485,22 @@ class FileView(CustomModelView):
             return redirect(url_for("file.details_view", id=id))
         assert isinstance(model, File)
 
-        if 'asset_id' in request.form:
-            asset_id = int(request.form['asset_id'])
-        else:
-            asset_id = int(request.args['asset_id'])
+        def failed(error):
+            flash(f"Failed to assign file to asset: {error}", 'error')
+            if request.args.get('refresh', False):
+                return 'NG', 200, {'HX-Refresh': 'true'}
+            return redirect(url_for("file.details_view", id=id))
+
+        form = FileAssignForm(request.values)
+        if not form.validate():
+            return failed(form.asset_id.errors[0])
+        asset_id = form.asset_id.data.id
 
         try:
             model.assign(asset_id)
         except ValueError as e:
-            flash(f"Failed to assign file to asset: {e}", 'error')
-            return redirect(url_for("file.details_view", id=id))
-        
+            return failed(e)
+
         db.session.add(model)
         log("Update", model, user=current_user)
         db.session.commit()

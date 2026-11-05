@@ -6,6 +6,8 @@ import re
 _PREFIX_RE = re.compile(r'hh0*([1-9]\d*)(?![^\W_])', re.IGNORECASE)
 # Also IMG_hh1234.jpg, rh1234.jpg, hh-1234.jpg, hh1234a.jpg; not bhh1234.jpg
 _ANYWHERE_RE = re.compile(r'(?<![^\W\d_])[hr]h[ _-]?0*([1-9]\d*)', re.IGNORECASE)
+# What people type to look up an asset: hh1234, RH-01234, 1234
+_LOOKUP_RE = re.compile(r'(?:[hr]h[ _-]?)?0*([1-9]\d*)', re.IGNORECASE)
 
 
 def parse_hh_code(filename: str) -> int | None:
@@ -17,4 +19,10 @@ def parse_hh_code(filename: str) -> int | None:
 def find_hh_code_suggestion(filename: str) -> int | None:
     """Asset ID from the first code anywhere in a filename, which should only be suggested to the user."""
     match = _ANYWHERE_RE.search(filename)
+    return int(match[1]) if match else None
+
+
+def parse_asset_lookup(term: str) -> int | None:
+    """Asset ID from user input that is nothing but an hh code or a plain number."""
+    match = _LOOKUP_RE.fullmatch(term.strip())
     return int(match[1]) if match else None
