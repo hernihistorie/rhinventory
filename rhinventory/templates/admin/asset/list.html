@@ -108,16 +108,17 @@
                 <div class="tab-pane" id="selected-tab-tag">
                     <form
                         id="selected-add-tag-bulk-form"
-                        class="input-append"
                         action="{{ get_url('asset.add_tag_bulk') }}"
                         method="POST"
+                        style="display: flex; align-items: center; gap: 4px; margin: 0;"
                     >
                         <input type="hidden" name="asset_id" value="">
-                        <input name="tag_id" type="text" placeholder="Tag ID" >
-                        <div class="btn-group">
-                            <input type="submit" value="Add tag" class="btn">
-                        </div>
+                        <input type="hidden" name="tag_id" value="">
+                        <input type="hidden" name="new_tag_name" value="">
+                        <input type="hidden" id="selected-tag-picker">
+                        <input type="submit" value="Add tag" class="btn">
                     </form>
+                    <script type="application/json" id="selected-tag-choices">{{ admin_view.selection_tag_choices()|tojson }}</script>
                 </div>
             </div>
         </div>
@@ -332,6 +333,41 @@
 
         makeSelectedForm('set-parent-bulk', 'parent_asset');
 
-        makeSelectedForm('add-tag-bulk', 'tag');
+        /*
+         * Tag picker: search existing tags by name or ID, or create a new one
+         * by typing a name that no tag has yet.
+         */
+        var tagChoices = JSON.parse(document.getElementById('selected-tag-choices').textContent);
+        var tagPicker = $('#selected-tag-picker');
+        tagPicker.select2({
+            placeholder: 'Search or create a tag',
+            width: '300px',
+            data: tagChoices.map(function(tag) {
+                return {id: tag.id, text: tag.name + ' (#' + tag.id + ')'};
+            }),
+            createSearchChoice: function(term) {
+                var name = term.trim();
+                var exists = tagChoices.some(function(tag) {
+                    return tag.name.toLowerCase() === name.toLowerCase();
+                });
+                if (!name || exists) {
+                    return null;
+                }
+                return {id: 'new', text: 'Create tag "' + name + '"', newTagName: name};
+            },
+            createSearchChoicePosition: 'bottom',
+        });
+
+        document.getElementById('selected-add-tag-bulk-form').addEventListener('submit', function(event) {
+            var tag = tagPicker.select2('data');
+            if (!tag) {
+                alert('Choose a tag');
+                event.preventDefault();
+                return false;
+            }
+            this.elements.tag_id.value = tag.newTagName ? '' : tag.id;
+            this.elements.new_tag_name.value = tag.newTagName || '';
+            this.elements.asset_id.value = selection.list().join(',');
+        });
     </script>
 {% endblock %}
