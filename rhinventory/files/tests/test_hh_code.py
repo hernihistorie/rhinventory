@@ -1,6 +1,6 @@
 import pytest
 
-from rhinventory.files.hh_code import find_hh_code_suggestion, parse_hh_code
+from rhinventory.files.hh_code import find_hh_code_suggestion, parse_asset_lookup, parse_hh_code
 
 
 @pytest.mark.parametrize("filename, asset_id", [
@@ -41,3 +41,21 @@ def test_parse_hh_code(filename: str, asset_id: int):
 ])
 def test_find_hh_code_suggestion(filename: str, asset_id: int):
     assert find_hh_code_suggestion(filename) == asset_id
+
+
+@pytest.mark.parametrize("term, asset_id", [
+    ("1234", 1234),
+    ("01234", 1234),
+    (" hh1234 ", 1234),
+    ("HH01234", 1234),
+    ("rh-1234", 1234),
+    ("hh 1234", 1234),
+    ("0", None),
+    ("hh", None),
+    ("", None),
+    ("1234a", None),
+    ("hh1234 front", None),
+    ("rhythm", None),
+])
+def test_parse_asset_lookup(term, asset_id):
+    assert parse_asset_lookup(term) == asset_id
