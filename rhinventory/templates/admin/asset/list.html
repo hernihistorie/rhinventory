@@ -9,6 +9,8 @@
 
 {% block tail %}
     {{ super() }}
+    {# Tabs of the selection panel, from admin_views/selection/templates/selection/ #}
+    {% set selection_actions = ['labels', 'files', 'transactions', 'parent', 'location', 'tag'] %}
     <style>
         body {
             margin-bottom: 32px;
@@ -49,89 +51,20 @@
         </div>
         <div class="selected-buttons">
             <ul class="nav nav-tabs">
-                <li class="active"><a href="#selected-tab-labels" data-toggle="tab">
-                    {{ icon('print') }} Labels
-                </a></li>
-                <li><a href="#selected-tab-transactions" data-toggle="tab">
-                    {{ icon("handshake") }} Transactions
-                </a></li>
-                <li><a href="#selected-tab-parent" data-toggle="tab">
-                    {{ icon("jar") }} Parent
-                </a></li>
-                <li><a href="#selected-tab-location" data-toggle="tab">
-                    {{ icon('cubes') }} Location
-                </a></li>
-                <li><a href="#selected-tab-tag" data-toggle="tab">
-                    {{ icon('tag') }} Tag
-                </a></li>
+                {% for name in selection_actions %}
+                    {% import 'selection/' ~ name ~ '.html' as action with context %}
+                    <li {% if loop.first %}class="active"{% endif %}><a href="#selected-tab-{{ name }}" data-toggle="tab">
+                        {{ action.label() }}
+                    </a></li>
+                {% endfor %}
             </ul>
             <div class="tab-content">
-                <div class="tab-pane active" id="selected-tab-labels">
-                    <button id="selected-show-sheet" class="btn">Show sheet</button>
-                    <a id="selected-print-labels" href="#" class="btn">Print labels</a>
-                    <a id="selected-print-labels-small" href="#" class="btn">Print labels (small)</a>
-                    <button id="selected-download-files" class="btn">Download files</button>
-                </div>
-                <div class="tab-pane" id="selected-tab-transactions">
-                    <button id="selected-create-transaction" class="btn">Create transaction</button>
-                    <form
-                        id="selected-add-to-transaction-form"
-                        class="input-append"
-                        action="{{ get_url('transaction.add_to_view') }}"
-                        method="POST"
-                    >
-                        <input type="hidden" name="asset_id" value="">
-                        <input name="transaction_id" type="text" placeholder="Transaction ID" style="margin: 0; padding: 2px; width: 100px;">
-                        <div class="btn-group">
-                            <input type="submit" value="Add to transaction" class="btn">
-                        </div>
-                    </form>
-                </div>
-                <div class="tab-pane" id="selected-tab-parent">
-                    <form
-                        id="selected-set-parent-bulk-form"
-                        class="input-append"
-                        action="{{ get_url('asset.set_parent_bulk') }}"
-                        method="POST"
-                    >
-                        {{ icon('jar') }}
-                        <input type="hidden" name="asset_id" value="">
-                        <input name="parent_asset_id" type="text" placeholder="Parent asset ID" >
-                        <div class="btn-group">
-                            <input type="submit" value="Set parent" class="btn">
-                        </div>
-                    </form>
-                </div>
-                <div class="tab-pane" id="selected-tab-location">
-                    <form
-                        id="selected-set-location-bulk-form"
-                        action="{{ get_url('asset.set_location_bulk') }}"
-                        method="POST"
-                        style="display: flex; align-items: center; gap: 4px; margin: 0;"
-                    >
-                        <input type="hidden" name="asset_id" value="">
-                        <input type="hidden" name="location_id" value="">
-                        <input type="hidden" id="selected-location-picker">
-                        <button type="submit" class="btn">Set location</button>
-                        <button type="submit" name="clear" value="1" class="btn">Clear location</button>
-                    </form>
-                    <script type="application/json" id="selected-location-choices">{{ admin_view.selection_location_choices()|tojson }}</script>
-                </div>
-                <div class="tab-pane" id="selected-tab-tag">
-                    <form
-                        id="selected-add-tag-bulk-form"
-                        action="{{ get_url('asset.add_tag_bulk') }}"
-                        method="POST"
-                        style="display: flex; align-items: center; gap: 4px; margin: 0;"
-                    >
-                        <input type="hidden" name="asset_id" value="">
-                        <input type="hidden" name="tag_id" value="">
-                        <input type="hidden" name="new_tag_name" value="">
-                        <input type="hidden" id="selected-tag-picker">
-                        <input type="submit" value="Add tag" class="btn">
-                    </form>
-                    <script type="application/json" id="selected-tag-choices">{{ admin_view.selection_tag_choices()|tojson }}</script>
-                </div>
+                {% for name in selection_actions %}
+                    {% import 'selection/' ~ name ~ '.html' as action with context %}
+                    <div class="tab-pane {% if loop.first %}active{% endif %}" id="selected-tab-{{ name }}">
+                        {{ action.pane() }}
+                    </div>
+                {% endfor %}
             </div>
         </div>
     </div>
@@ -221,9 +154,8 @@
             document.getElementById('selected-count').textContent = ids.length;
             document.getElementById('selected-edit-all').disabled = ids.length === 0;
 
-            var reversed = ids.slice().reverse();
-            document.getElementById("selected-print-labels").href = "{{ hhprint_url() }}&codes=" + reversed.map(asset_id => asset_id + "-{{g.current_user_organization_label}}").join(";");
-            document.getElementById("selected-print-labels-small").href = "{{ hhprint_url() }}&codes=" + reversed.map(asset_id => asset_id + "-small-{{g.current_user_organization_label}}").join(";");
+            /* Lets selection actions update themselves */
+            document.dispatchEvent(new CustomEvent('assetselectionchange', {detail: {ids: ids}}));
         }
 
         function commit() {
@@ -305,22 +237,6 @@
             commit();
         }
 
-        document.getElementById("selected-show-sheet").onclick = function() {
-            document.location.href = "{{ get_url('label_assets') }}?asset_ids=" + takeSelection().join(',');
-        }
-
-        document.getElementById("selected-download-files").onclick = function() {
-            var ids = selection.list();
-            if (!ids.length) {
-                return;
-            }
-            document.location.href = "{{ get_url('asset.download_files') }}?asset_id=[" + ids.join(',') + "]";
-        }
-
-        document.getElementById("selected-create-transaction").onclick = function() {
-            document.location.href = "{{ get_url('transaction.create_view') }}?asset_id=[" + takeSelection().join(',') + "]";
-        }
-
         document.getElementById("selected-edit-all").onclick = function() {
             selection.list().forEach(function(assetId) {
                 var url = "{{ get_url('asset.edit_view') }}?id=" + encodeURIComponent(assetId);
@@ -328,85 +244,23 @@
             });
         }
 
-        function makeSelectedForm(action, object_name) {
-            document.getElementById(`selected-${action}-form`).addEventListener('submit', function(event) {
-                var id = document.querySelector(`#selected-${action}-form input[name="${object_name}_id"]`).value;
-                if (id == "") {
-                    alert(`${object_name} ID is required`);
-                    event.preventDefault()
-                    return false;
-                }
-
-                document.querySelector(`#selected-${action}-form input[name="asset_id"]`).value = selection.list().join(',');
-            })
-        }
-
-        makeSelectedForm('add-to-transaction', 'transaction');
-
-        makeSelectedForm('set-parent-bulk', 'parent_asset');
-
         /*
-         * Tag picker: search existing tags by name or ID, or create a new one
-         * by typing a name that no tag has yet.
+         * Fill a selection action form's asset_id with the selection on submit.
+         * `prepare(event)` is called with the form as `this` to fill in the rest
+         * of the form; returning false cancels the submit.
          */
-        var tagChoices = JSON.parse(document.getElementById('selected-tag-choices').textContent);
-        var tagPicker = $('#selected-tag-picker');
-        tagPicker.select2({
-            placeholder: 'Search or create a tag',
-            width: '300px',
-            data: tagChoices.map(function(tag) {
-                return {id: tag.id, text: tag.name + ' (#' + tag.id + ')'};
-            }),
-            createSearchChoice: function(term) {
-                var name = term.trim();
-                var exists = tagChoices.some(function(tag) {
-                    return tag.name.toLowerCase() === name.toLowerCase();
-                });
-                if (!name || exists) {
-                    return null;
-                }
-                return {id: 'new', text: 'Create tag "' + name + '"', newTagName: name};
-            },
-            createSearchChoicePosition: 'bottom',
-        });
-
-        document.getElementById('selected-add-tag-bulk-form').addEventListener('submit', function(event) {
-            var tag = tagPicker.select2('data');
-            if (!tag) {
-                alert('Choose a tag');
-                event.preventDefault();
-                return false;
-            }
-            this.elements.tag_id.value = tag.newTagName ? '' : tag.id;
-            this.elements.new_tag_name.value = tag.newTagName || '';
-            this.elements.asset_id.value = selection.list().join(',');
-        });
-
-        /* Location picker: search existing locations by any part of their path or ID */
-        var locationPicker = $('#selected-location-picker');
-        locationPicker.select2({
-            placeholder: 'Search locations',
-            width: '400px',
-            data: JSON.parse(document.getElementById('selected-location-choices').textContent),
-        });
-
-        document.getElementById('selected-set-location-bulk-form').addEventListener('submit', function(event) {
-            var ids = selection.list();
-            if (event.submitter && event.submitter.name === 'clear') {
-                if (!confirm('Remove ' + ids.length + ' assets from their location?')) {
+        function submitWithSelection(form, prepare) {
+            form.addEventListener('submit', function(event) {
+                if (prepare && prepare.call(form, event) === false) {
                     event.preventDefault();
-                    return false;
+                    return;
                 }
-            } else {
-                var location = locationPicker.select2('data');
-                if (!location) {
-                    alert('Choose a location');
-                    event.preventDefault();
-                    return false;
-                }
-                this.elements.location_id.value = location.id;
-            }
-            this.elements.asset_id.value = ids.join(',');
-        });
+                form.elements.asset_id.value = selection.list().join(',');
+            });
+        }
     </script>
+    {% for name in selection_actions %}
+        {% import 'selection/' ~ name ~ '.html' as action with context %}
+        {{ action.script() }}
+    {% endfor %}
 {% endblock %}

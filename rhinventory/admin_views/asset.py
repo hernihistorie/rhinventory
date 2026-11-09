@@ -6,7 +6,7 @@ from math import ceil
 from typing import Optional, Union, Iterable
 from uuid import UUID
 
-from flask import Response, abort, redirect, request, flash, url_for, get_template_attribute
+from flask import redirect, request, flash, url_for, get_template_attribute
 from flask_admin.model.filters import BaseFilter
 from sqlalchemy.orm import joinedload, subqueryload
 from wtforms import RadioField, TextAreaField, Field
@@ -22,9 +22,9 @@ from flask_admin.helpers import get_form_data
 from flask_login import current_user
 from sqlalchemy import nulls_last, func
 from sqlalchemy.sql.functions import coalesce
-from rhinventory.admin_views.asset_files.stream_asset_files_zip import stream_asset_files_zip
 from rhinventory.admin_views.publicize import PublicizeMixin
-from rhinventory.admin_views.utils import get_asset_list_from_request_args, visible_to_current_user
+from rhinventory.admin_views.selection import SelectionActionsMixin
+from rhinventory.admin_views.utils import visible_to_current_user
 
 from rhinventory.extensions import db
 from rhinventory.admin_views.model_view import CustomModelView
@@ -33,13 +33,13 @@ from rhinventory.models.asset import AssetCondition
 from rhinventory.models.enums import Privacy, PUBLIC_PRIVACIES
 from rhinventory.models.events import DBEvent
 from rhinventory.models.file import IMAGE_CATEGORIES, File
-from rhinventory.models.log import LogEvent, log
+from rhinventory.models.log import log
 from rhinventory.models.properties.properties import properties_by_id
 from rhinventory.forms import FileForm, StatementForm
 from rhinventory.events.statements import StatementCreated, StatementDeleted
 from rhinventory.models.aggregates.statement import Statement
 from rhinventory.models.asset import AssetCategory
-from rhinventory.models.asset_attributes import AssetTag, Company
+from rhinventory.models.asset_attributes import Company
 from rhinventory.models.aggregates.floppy_disk_capture import FloppyDiskCapture
 from rhinventory.events.floppy_disk_captures import FloppyDiskCaptureDisassociated
 from rhinventory.event_store.event_store import event_store
@@ -74,16 +74,7 @@ def _last_used_query_factory_factory(cls: db.Model):
         nulls_last(cls.last_used.desc())
     )
 
-def _containers(asset: Asset) -> list[Asset]:
-    """The locations the asset sits in, innermost first."""
-    containers: list[Asset] = []
-    container = asset.location
-    while container and container is not asset and container not in containers:
-        containers.append(container)
-        container = container.location
-    return containers
-
-class AssetView(PublicizeMixin, CustomModelView):
+class AssetView(PublicizeMixin, SelectionActionsMixin, CustomModelView):
     form_overrides: dict[str, type[Field]] = {
         'condition_new': ConditionField,
         'privacy': PrivacyField
@@ -728,155 +719,6 @@ class AssetView(PublicizeMixin, CustomModelView):
         db.session.commit()
         flash(f"Added {num_assets} assets as contents.", "success")
         return response
-
-    @expose('/set_parent_bulk/', methods=['POST'])
-    @require_write_access
-    def set_parent_bulk(self) -> Response:
-        parent_asset_id = int(request.form['parent_asset_id'])
-        parent_asset: Asset | None = db.session.query(Asset).get(parent_asset_id)
-        if not parent_asset:
-            flash(f"Asset with id {parent_asset_id} not found.", 'error')
-            return redirect(url_for('.index_view'))
-        
-        assert isinstance(parent_asset, Asset)
-
-        bulk_datetime = datetime.utcnow()
-        assets: list[Asset] = get_asset_list_from_request_args()
-        for asset in assets:
-            asset.parent_id = parent_asset.id
-            db.session.add(asset)
-            log(LogEvent.Update, object=asset, user=current_user, is_bulk=True, bulk_datetime=bulk_datetime.isoformat())
-        db.session.commit()
-
-        message = f"Parent for {len(assets)} assets set to be {parent_asset}."
-
-        flash(message, "success")
-
-        return redirect(url_for('.index_view'))
-    
-    def selection_location_choices(self) -> list[dict[str, int | str]]:
-        """Locations offered by the selection panel's location picker, labelled with their full path."""
-        locations = db.session.query(Asset).filter(Asset.category == AssetCategory.location).all()
-        choices: list[dict[str, int | str]] = []
-        for location in locations:
-            path = [location, *_containers(location)]
-            label = " › ".join(asset.name for asset in reversed(path))
-            choices.append({'id': location.id, 'text': f"{label} (#{location.id})"})
-        return sorted(choices, key=lambda choice: str(choice['text']).lower())
-
-    @expose('/set_location_bulk/', methods=['POST'])
-    @require_write_access
-    def set_location_bulk(self) -> Response:
-        """Move the selected assets into a location, or out of theirs with `clear`."""
-        assets: list[Asset] = get_asset_list_from_request_args()
-        bulk_datetime = datetime.utcnow()
-
-        location: Asset | None = None
-        if not request.form.get('clear'):
-            location_id = request.form.get('location_id', '').strip()
-            location = db.session.get(Asset, int(location_id)) if location_id.isdigit() else None
-            if not location or location.category != AssetCategory.location:
-                flash(f"Location with id {location_id} not found.", 'error')
-                return redirect(url_for('.index_view'))
-            looped = [asset for asset in assets if asset is location or asset in _containers(location)]
-            if looped:
-                flash(f"Can't put {', '.join(str(asset) for asset in looped)} inside {location}, "
-                      "as it would end up inside itself.", 'error')
-                return redirect(url_for('.index_view'))
-
-        new_location_id = location.id if location else None
-        assets_to_move = [asset for asset in assets if asset.location_id_new != new_location_id]
-        moved_from_elsewhere = sum(1 for asset in assets_to_move if asset.location_id_new is not None)
-        for asset in assets_to_move:
-            asset.location = location
-            db.session.add(asset)
-            log(LogEvent.Update, object=asset, user=current_user, is_bulk=True,
-                bulk_datetime=bulk_datetime.isoformat(), assigned_location_asset_id=new_location_id)
-        db.session.commit()
-
-        unchanged = len(assets) - len(assets_to_move)
-        if location:
-            message = f"Moved {len(assets_to_move)} assets to {location}."
-            if moved_from_elsewhere:
-                message += f" {moved_from_elsewhere} of them were in another location."
-            if unchanged:
-                message += f" {unchanged} were already there."
-        else:
-            message = f"Removed {len(assets_to_move)} assets from their location."
-            if unchanged:
-                message += f" {unchanged} had no location."
-        flash(message, 'success')
-
-        return redirect(url_for('.index_view'))
-
-    def selection_tag_choices(self) -> list[dict[str, int | str]]:
-        """Tags offered by the selection panel's tag picker, most recently used first."""
-        tags = _last_used_query_factory_factory(AssetTag)().all()
-        return [{'id': tag.id, 'name': tag.name} for tag in tags]
-
-    @expose('/add_tag_bulk/', methods=['POST'])
-    @require_write_access
-    def add_tag_bulk(self) -> Response:
-        """Add one tag to the selected assets.
-
-        The tag is given either as `tag_id`, or as `new_tag_name`, which reuses
-        an existing tag of that name (case-insensitive) or creates a new one.
-        """
-        tag_id = request.form.get('tag_id', '').strip()
-        new_tag_name = request.form.get('new_tag_name', '').strip()
-
-        asset_tag: AssetTag | None
-        if tag_id:
-            asset_tag = db.session.get(AssetTag, int(tag_id)) if tag_id.isdigit() else None
-            if not asset_tag:
-                flash(f"Tag with id {tag_id} not found.", 'error')
-                return redirect(url_for('.index_view'))
-        elif new_tag_name:
-            asset_tag = db.session.query(AssetTag) \
-                .filter(func.lower(AssetTag.name) == new_tag_name.lower()) \
-                .order_by(AssetTag.id).first()
-            if not asset_tag:
-                asset_tag = AssetTag(name=new_tag_name)
-                db.session.add(asset_tag)
-                db.session.flush()
-                flash(f"Created tag {asset_tag}.", 'success')
-        else:
-            flash("Choose a tag to add.", 'error')
-            return redirect(url_for('.index_view'))
-
-        bulk_datetime = datetime.utcnow()
-        assets: list[Asset] = get_asset_list_from_request_args()
-        assets_to_tag = [asset for asset in assets if asset_tag not in asset.tags]
-        for asset in assets_to_tag:
-            asset.tags.append(asset_tag)
-            db.session.add(asset)
-            log(LogEvent.Update, object=asset, user=current_user, is_bulk=True,
-                bulk_datetime=bulk_datetime.isoformat(), added_tag_id=asset_tag.id)
-        asset_tag.last_used = datetime.now()
-        db.session.add(asset_tag)
-        db.session.commit()
-
-        message = f"Given {len(assets_to_tag)} assets the tag {asset_tag}."
-        already_tagged = len(assets) - len(assets_to_tag)
-        if already_tagged:
-            message += f" {already_tagged} already had it."
-        flash(message, 'success')
-
-        return redirect(url_for('.index_view'))
-
-    @expose('/download_files/', methods=['GET'])
-    @require_write_access
-    def download_files(self) -> Response:
-        assets: list[Asset] = get_asset_list_from_request_args()
-        if not assets:
-            abort(404)
-
-        zip_filename = f"asset_files_{datetime.utcnow():%Y-%m-%d}.zip"
-        return Response(
-            stream_asset_files_zip(assets),
-            mimetype='application/zip',
-            headers={'Content-Disposition': f'attachment; filename="{zip_filename}"'},
-        )
 
     @expose('/disassociate_floppy_disk_capture/', methods=['POST'])
     @require_write_access

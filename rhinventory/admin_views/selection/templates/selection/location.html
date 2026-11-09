@@ -1,0 +1,45 @@
+{% from '_macros.html' import icon %}
+
+{% macro label() %}{{ icon('cubes') }} Location{% endmacro %}
+
+{% macro pane() %}
+    <form
+        id="selected-set-location-bulk-form"
+        action="{{ get_url('asset.set_location_bulk') }}"
+        method="POST"
+        style="display: flex; align-items: center; gap: 4px; margin: 0;"
+    >
+        <input type="hidden" name="asset_id" value="">
+        <input type="hidden" name="location_id" value="">
+        <input type="hidden" id="selected-location-picker">
+        <button type="submit" class="btn">Set location</button>
+        <button type="submit" name="clear" value="1" class="btn">Clear location</button>
+    </form>
+    <script type="application/json" id="selected-location-choices">{{ admin_view.selection_location_choices()|tojson }}</script>
+{% endmacro %}
+
+{% macro script() %}
+<script>
+    /* Location picker: search existing locations by any part of their path or ID */
+    (function() {
+        var locationPicker = $('#selected-location-picker');
+        locationPicker.select2({
+            placeholder: 'Search locations',
+            width: '400px',
+            data: JSON.parse(document.getElementById('selected-location-choices').textContent),
+        });
+
+        submitWithSelection(document.getElementById('selected-set-location-bulk-form'), function(event) {
+            if (event.submitter && event.submitter.name === 'clear') {
+                return confirm('Remove ' + selection.list().length + ' assets from their location?');
+            }
+            var location = locationPicker.select2('data');
+            if (!location) {
+                alert('Choose a location');
+                return false;
+            }
+            this.elements.location_id.value = location.id;
+        });
+    })();
+</script>
+{% endmacro %}

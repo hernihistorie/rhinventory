@@ -1,0 +1,32 @@
+{% from '_macros.html' import icon %}
+
+{% macro label() %}{{ icon("jar") }} Parent{% endmacro %}
+
+{% macro pane() %}
+    <form
+        id="selected-set-parent-bulk-form"
+        class="input-append"
+        action="{{ get_url('asset.set_parent_bulk') }}"
+        method="POST"
+    >
+        {{ icon('jar') }}
+        <input type="hidden" name="asset_id" value="">
+        <input name="parent_asset_id" type="text" placeholder="Parent asset ID" >
+        <div class="btn-group">
+            <input type="submit" value="Set parent" class="btn">
+        </div>
+    </form>
+{% endmacro %}
+
+{% macro script() %}
+<script>
+    (function() {
+        submitWithSelection(document.getElementById('selected-set-parent-bulk-form'), function() {
+            if (this.elements.parent_asset_id.value == "") {
+                alert('Parent asset ID is required');
+                return false;
+            }
+        });
+    })();
+</script>
+{% endmacro %}

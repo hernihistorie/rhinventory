@@ -100,6 +100,8 @@ def create_app(config_object='rhinventory.config'):
     app.register_blueprint(event_store_bp)
     from rhinventory.admin_views.publicize import publicize_bp
     app.register_blueprint(publicize_bp)
+    from rhinventory.admin_views.selection import selection_bp
+    app.register_blueprint(selection_bp)
 
     # Supports multiple query args with the same key.
     def url_for_here(**changed_args):

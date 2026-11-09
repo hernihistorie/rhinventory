@@ -1,0 +1,60 @@
+{% from '_macros.html' import icon %}
+
+{% macro label() %}{{ icon('tag') }} Tag{% endmacro %}
+
+{% macro pane() %}
+    <form
+        id="selected-add-tag-bulk-form"
+        action="{{ get_url('asset.add_tag_bulk') }}"
+        method="POST"
+        style="display: flex; align-items: center; gap: 4px; margin: 0;"
+    >
+        <input type="hidden" name="asset_id" value="">
+        <input type="hidden" name="tag_id" value="">
+        <input type="hidden" name="new_tag_name" value="">
+        <input type="hidden" id="selected-tag-picker">
+        <input type="submit" value="Add tag" class="btn">
+    </form>
+    <script type="application/json" id="selected-tag-choices">{{ admin_view.selection_tag_choices()|tojson }}</script>
+{% endmacro %}
+
+{% macro script() %}
+<script>
+    /*
+     * Tag picker: search existing tags by name or ID, or create a new one
+     * by typing a name that no tag has yet.
+     */
+    (function() {
+        var tagChoices = JSON.parse(document.getElementById('selected-tag-choices').textContent);
+        var tagPicker = $('#selected-tag-picker');
+        tagPicker.select2({
+            placeholder: 'Search or create a tag',
+            width: '300px',
+            data: tagChoices.map(function(tag) {
+                return {id: tag.id, text: tag.name + ' (#' + tag.id + ')'};
+            }),
+            createSearchChoice: function(term) {
+                var name = term.trim();
+                var exists = tagChoices.some(function(tag) {
+                    return tag.name.toLowerCase() === name.toLowerCase();
+                });
+                if (!name || exists) {
+                    return null;
+                }
+                return {id: 'new', text: 'Create tag "' + name + '"', newTagName: name};
+            },
+            createSearchChoicePosition: 'bottom',
+        });
+
+        submitWithSelection(document.getElementById('selected-add-tag-bulk-form'), function() {
+            var tag = tagPicker.select2('data');
+            if (!tag) {
+                alert('Choose a tag');
+                return false;
+            }
+            this.elements.tag_id.value = tag.newTagName ? '' : tag.id;
+            this.elements.new_tag_name.value = tag.newTagName || '';
+        });
+    })();
+</script>
+{% endmacro %}
