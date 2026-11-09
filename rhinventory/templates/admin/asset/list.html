@@ -123,131 +123,200 @@
         </div>
     </div>
     <script>
-        var selected = [];
-        var checkboxes = Array.from(document.getElementsByClassName("action-checkbox"));
+        /*
+         * Asset selection.
+         *
+         * Persisted in localStorage under "selected" as a JSON array of numeric
+         * asset IDs, so it survives paging, filtering and searching. All reads
+         * and writes go through `selection`, which normalizes every ID to an
+         * integer: the same asset can never be in the list twice (e.g. as both
+         * 9540 and "9540"), and removing an ID that isn't there is a no-op.
+         */
+        var SELECTION_KEY = "selected";
 
-        /* Parse list of IDs in the selected URL parameter */
-        var urlParams = new URLSearchParams(window.location.search);
-        var selectedParam = urlParams.get('selected');
+        function parseAssetIds(values) {
+            var ids = [];
+            (values || []).forEach(function(value) {
+                var id = parseInt(value, 10);
+                if (Number.isInteger(id) && id > 0) {
+                    ids.push(id);
+                }
+            });
+            return ids;
+        }
 
+        var selection = {
+            ids: new Set(),
+
+            load: function() {
+                var stored = null;
+                try {
+                    stored = JSON.parse(localStorage.getItem(SELECTION_KEY));
+                } catch (e) {
+                    // missing, blocked or malformed storage: start empty
+                }
+                this.replace(Array.isArray(stored) ? stored : []);
+            },
+            save: function() {
+                try {
+                    localStorage.setItem(SELECTION_KEY, JSON.stringify(this.list()));
+                } catch (e) {
+                    // storage unavailable; the selection still works for this page
+                }
+            },
+            replace: function(values) {
+                this.ids = new Set(parseAssetIds(values));
+            },
+            list: function() {
+                return Array.from(this.ids).sort(function(a, b) { return a - b; });
+            },
+            has: function(value) {
+                return this.ids.has(parseInt(value, 10));
+            },
+            set: function(value, isSelected) {
+                parseAssetIds([value]).forEach(function(id) {
+                    if (isSelected) {
+                        this.ids.add(id);
+                    } else {
+                        this.ids.delete(id);
+                    }
+                }, this);
+            },
+            clear: function() {
+                this.ids.clear();
+            },
+        };
+
+        var checkboxes = Array.from(document.querySelectorAll("input.action-checkbox"));
+        var rowtoggleEl = document.querySelector("input.action-rowtoggle");
+
+        /* Redraw checkboxes and the selection panel from `selection`. */
+        function render() {
+            var ids = selection.list();
+
+            checkboxes.forEach(function(checkbox) {
+                checkbox.checked = selection.has(checkbox.value);
+            });
+            if (rowtoggleEl) {
+                rowtoggleEl.checked = checkboxes.length > 0 && checkboxes.every(function(checkbox) {
+                    return checkbox.checked;
+                });
+            }
+
+            document.getElementById('selected-list').textContent = ids.join(', ');
+            document.getElementById('selected').style.display = ids.length ? 'block' : 'none';
+            document.getElementById('selected-count').textContent = ids.length;
+            document.getElementById('selected-edit-all').disabled = ids.length === 0;
+
+            var reversed = ids.slice().reverse();
+            document.getElementById("selected-print-labels").href = "{{ hhprint_url() }}&codes=" + reversed.map(asset_id => asset_id + "-{{g.current_user_organization_label}}").join(";");
+            document.getElementById("selected-print-labels-small").href = "{{ hhprint_url() }}&codes=" + reversed.map(asset_id => asset_id + "-small-{{g.current_user_organization_label}}").join(";");
+        }
+
+        function commit() {
+            selection.save();
+            render();
+        }
+
+        /* Copy the checked state of the given checkboxes into the selection. */
+        function applyCheckboxes(boxes) {
+            boxes.forEach(function(checkbox) {
+                selection.set(checkbox.value, checkbox.checked);
+            });
+            commit();
+        }
+
+        /* Initial state: the ?selected= URL parameter wins over storage */
+        var selectedParam = new URLSearchParams(window.location.search).get('selected');
         if (selectedParam) {
-            selected = selectedParam.split(',').map(String);
-            console.log(selected);
+            selection.replace(selectedParam.split(','));
+            selection.save();
         } else {
-            var selected_local_storage = localStorage.getItem("selected")
-            if (selected_local_storage) {
-                selected = JSON.parse(selected_local_storage);
+            selection.load();
+        }
+        render();
+
+        /* Keep tabs in sync: another tab changed the selection */
+        window.addEventListener('storage', function(event) {
+            if (event.key === SELECTION_KEY || event.key === null) {
+                selection.load();
+                render();
             }
+        });
+
+        checkboxes.forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                applyCheckboxes([checkbox]);
+            });
+        });
+
+        if (rowtoggleEl) {
+            rowtoggleEl.addEventListener("click", function() {
+                checkboxes.forEach(function(checkbox) {
+                    checkbox.checked = rowtoggleEl.checked;
+                });
+                applyCheckboxes(checkboxes);
+            });
         }
 
-        updateCheckboxes();
+        /* Select multiple checkboxes with shift */
+        var lastChecked = null;
 
-        function showSelected() {
-            localStorage.setItem("selected", JSON.stringify(selected));
+        checkboxes.forEach(function(checkbox) {
+            checkbox.addEventListener('click', function(e) {
+                if (lastChecked && e.shiftKey) {
+                    var start = checkboxes.indexOf(this);
+                    var end = checkboxes.indexOf(lastChecked);
+                    var range = checkboxes.slice(Math.min(start, end), Math.max(start, end) + 1);
 
-            document.getElementById('selected-list').innerHTML = selected.join(', ');
-            document.getElementById('selected').style.display = selected.length ? 'block' : 'none';
-            document.getElementById('selected-count').innerHTML = selected.length;
-            document.getElementById('selected-edit-all').disabled = selected.length === 0;
-
-            let reversed_selected = selected.slice().reverse();
-            document.getElementById("selected-print-labels").href = "{{ hhprint_url() }}&codes=" + reversed_selected.map(asset_id => asset_id + "-{{g.current_user_organization_label}}").join(";");
-            document.getElementById("selected-print-labels-small").href = "{{ hhprint_url() }}&codes=" + reversed_selected.map(asset_id => asset_id + "-small-{{g.current_user_organization_label}}").join(";");
-        }
-
-        function updateSelected() {
-            for (var i = 0; i < checkboxes.length; i++) {
-                if (checkboxes[i].value == 'on') {
-                    selected.splice(selected.indexOf(checkboxes[i].value), 1);
+                    range.forEach(function(box) {
+                        box.checked = lastChecked.checked;
+                    });
+                    applyCheckboxes(range);
                 }
-                // if checked and not in array
-                if (
-                    checkboxes[i].checked
-                    && selected.indexOf(checkboxes[i].value) == -1
-                ) {
-                    selected.push(checkboxes[i].value);
-                } else if (
-                    !checkboxes[i].checked
-                    && selected.indexOf(checkboxes[i].value) != -1
-                ) {
-                    // remove checkbox value from selected list
-                    selected.splice(selected.indexOf(checkboxes[i].value), 1);
-                }
-            }
 
-            selected.sort();
+                lastChecked = this;
+            });
+        });
 
-            showSelected();
+        /* Clear the stored selection, returning the IDs it held */
+        function takeSelection() {
+            var ids = selection.list();
+            selection.clear();
+            selection.save();
+            return ids;
         }
-
-        function updateCheckboxes() {
-            for (var i = 0; i < checkboxes.length; i++) {
-                checkboxes[i].checked = selected.indexOf(checkboxes[i].value) != -1;
-            }
-        }
-
-        for (var i = 0; i < checkboxes.length; i++) {
-            checkboxes[i].addEventListener('change', updateSelected);
-        }
-
-        let rowtoggleEl = document.querySelectorAll('input.action-rowtoggle')[0];
-        rowtoggleEl.addEventListener("click", function(){
-            if (rowtoggleEl.checked) {
-                for (var i = 0; i < checkboxes.length; i++) {
-                    console.log(checkboxes[i]);
-                    selected.push(checkboxes[i].value);
-                }
-            } else {
-                for (var i = 0; i < checkboxes.length; i++) {
-                    // remove checkbox value from selected list
-                    selected.splice(selected.indexOf(checkboxes[i].value), 1);
-                }
-            }
-            selected.sort();
-            showSelected();
-        })
-
-        showSelected();
 
         document.getElementById("selected-clear").onclick = function() {
-            selected = [];
-            localStorage.setItem("selected", selected);
-            updateCheckboxes();
-            showSelected();
+            selection.clear();
+            commit();
         }
 
         document.getElementById("selected-show-sheet").onclick = function() {
-            localStorage.setItem("selected", "[]");
-            document.location.href = "{{ get_url('label_assets') }}?asset_ids=" + selected;
+            document.location.href = "{{ get_url('label_assets') }}?asset_ids=" + takeSelection().join(',');
         }
 
         document.getElementById("selected-download-files").onclick = function() {
-            if (!selected.length) {
+            var ids = selection.list();
+            if (!ids.length) {
                 return;
             }
-            document.location.href = "{{ get_url('asset.download_files') }}?asset_id=[" + selected + "]";
+            document.location.href = "{{ get_url('asset.download_files') }}?asset_id=[" + ids.join(',') + "]";
         }
 
         document.getElementById("selected-create-transaction").onclick = function() {
-            localStorage.setItem("selected", "[]");
-            document.location.href = "{{ get_url('transaction.create_view') }}?asset_id=[" + selected + "]";
+            document.location.href = "{{ get_url('transaction.create_view') }}?asset_id=[" + takeSelection().join(',') + "]";
         }
 
         document.getElementById("selected-edit-all").onclick = function() {
-            if (!selected.length) {
-                return;
-            }
-
-            selected.forEach(function(assetId, index) {
+            selection.list().forEach(function(assetId) {
                 var url = "{{ get_url('asset.edit_view') }}?id=" + encodeURIComponent(assetId);
-                var target = index === 0 ? '_blank' : '_blank';
-                window.open(url, target);
+                window.open(url, '_blank');
             });
         }
 
         function makeSelectedForm(action, object_name) {
             document.getElementById(`selected-${action}-form`).addEventListener('submit', function(event) {
-                console.log(`#selected-${action}-form input[name="${object_name}_id"]`)
                 var id = document.querySelector(`#selected-${action}-form input[name="${object_name}_id"]`).value;
                 if (id == "") {
                     alert(`${object_name} ID is required`);
@@ -255,7 +324,7 @@
                     return false;
                 }
 
-                document.querySelector(`#selected-${action}-form input[name="asset_id"]`).value = selected;
+                document.querySelector(`#selected-${action}-form input[name="asset_id"]`).value = selection.list().join(',');
             })
         }
 
@@ -264,31 +333,5 @@
         makeSelectedForm('set-parent-bulk', 'parent_asset');
 
         makeSelectedForm('add-tag-bulk', 'tag');
-
-        /* Select multiple checkboxes with shift */
-
-        var lastChecked = null;
-
-        checkboxes.forEach(function(checkbox) {
-            checkbox.addEventListener('click', function(e) {
-                if (!lastChecked) {
-                    lastChecked = this;
-                    return;
-                }
-
-                if (e.shiftKey) {
-                    var start = checkboxes.indexOf(this);
-                    var end = checkboxes.indexOf(lastChecked);
-
-                    for (var i = Math.min(start,end); i <= Math.max(start,end); i++) {
-                        checkboxes[i].checked = lastChecked.checked;
-                    }
-                }
-
-                lastChecked = this;
-            });
-        });
-
-
     </script>
 {% endblock %}
