@@ -1,0 +1,3 @@
+brother_ql2 # brother ql printer
+aiohttp[speedups] # remote queries
+pytest # testing

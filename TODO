@@ -41,6 +41,12 @@ asset:
 - custom code integer, v create/edit udělat to, že se oprefixuje v inputu dle zvolené kategorie přes JS
 - create/edit: editor metadat, uvážit jako form field typ
 
+kód:
+- Dependency Injector alá PSR-11 (už existuje, ne však v balíkách Pythonu)
+
+Tiskárny:
+- skript pro Windows (z průzkumu: potřebuje to tahat přes tisk v malování nebo Pdfka)
+- Linux je komplet, je třeba to otestovat na Applech a BSD (jiné cesty k Pythonu?)
 
 #######
 
