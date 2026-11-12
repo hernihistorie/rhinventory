@@ -35,7 +35,7 @@ from rhinventory.models.events import DBEvent
 from rhinventory.models.file import IMAGE_CATEGORIES, File
 from rhinventory.models.log import log
 from rhinventory.models.properties.properties import properties_by_id
-from rhinventory.forms import FileForm, StatementForm
+from rhinventory.forms import AssetLookupLoader, FileForm, StatementForm
 from rhinventory.events.statements import StatementCreated, StatementDeleted
 from rhinventory.models.aggregates.statement import Statement
 from rhinventory.models.asset import AssetCategory
@@ -125,7 +125,9 @@ class AssetView(PublicizeMixin, SelectionActionsMixin, CustomModelView):
             'placeholder': '...',
             'page_size': 15,
             'minimum_input_length': 0,
-        }
+        },
+        # The parent picker in the selection panel
+        'selection_parent': AssetLookupLoader('selection_parent'),
     }
 
     form_args = {

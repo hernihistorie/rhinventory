@@ -15,13 +15,11 @@ class SetParentMixin:
     @expose('/set_parent_bulk/', methods=['POST'])
     @require_write_access
     def set_parent_bulk(self) -> Response:
-        parent_asset_id = int(request.form['parent_asset_id'])
-        parent_asset: Asset | None = db.session.query(Asset).get(parent_asset_id)
+        parent_asset_id = request.form.get('parent_asset_id', '').strip()
+        parent_asset = db.session.get(Asset, int(parent_asset_id)) if parent_asset_id.isdigit() else None
         if not parent_asset:
             flash(f"Asset with id {parent_asset_id} not found.", 'error')
             return redirect_back_to_list()
-
-        assert isinstance(parent_asset, Asset)
 
         bulk_datetime = datetime.utcnow()
         assets: list[Asset] = get_asset_list_from_request_args()

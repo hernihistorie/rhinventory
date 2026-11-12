@@ -5,7 +5,11 @@ from rhinventory.models.asset import Asset, AssetCategory
 from rhinventory.models.enums import Privacy as AssetPrivacy
 
 
-LOOKUP_URLS = ["/asset/ajax/lookup/?name=parent&query=Hidden", "/file/ajax/lookup/?name=asset&query=Hidden"]
+LOOKUP_URLS = [
+    "/asset/ajax/lookup/?name=parent&query=Hidden",
+    "/asset/ajax/lookup/?name=selection_parent&query=Hidden",
+    "/file/ajax/lookup/?name=asset&query=Hidden",
+]
 
 
 @pytest.mark.parametrize("url", LOOKUP_URLS)
