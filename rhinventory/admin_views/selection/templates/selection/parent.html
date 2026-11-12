@@ -1,0 +1,56 @@
+{% from '_macros.html' import icon %}
+
+{% macro label() %}{{ icon("jar") }} Parent{% endmacro %}
+
+{% macro pane() %}
+    <form
+        id="selected-set-parent-bulk-form"
+        action="{{ get_url('asset.set_parent_bulk') }}"
+        method="POST"
+        style="display: flex; align-items: center; gap: 4px; margin: 0;"
+    >
+        <input type="hidden" name="asset_id" value="">
+        <input type="hidden" name="url" value="{{ return_url }}">
+        <input type="hidden" name="parent_asset_id" value="">
+        <input type="hidden" id="selected-parent-picker" data-url="{{ get_url('asset.ajax_lookup', name='selection_parent') }}">
+        <input type="submit" value="Set parent" class="btn">
+    </form>
+{% endmacro %}
+
+{% macro script() %}
+<script>
+    /* Parent picker: search assets by name, or by hh code or ID */
+    (function() {
+        var pageSize = 10;
+        var parentPicker = $('#selected-parent-picker');
+        parentPicker.select2({
+            placeholder: 'Search by name or hh code',
+            width: '400px',
+            minimumInputLength: 1,
+            ajax: {
+                url: parentPicker.attr('data-url'),
+                data: function(term, page) {
+                    return {query: term, offset: (page - 1) * pageSize, limit: pageSize};
+                },
+                results: function(data) {
+                    return {
+                        results: data.map(function(asset) {
+                            return {id: asset[0], text: asset[1] + ' (#' + asset[0] + ')'};
+                        }),
+                        more: data.length === pageSize,
+                    };
+                },
+            },
+        });
+
+        submitWithSelection(document.getElementById('selected-set-parent-bulk-form'), function() {
+            var parent = parentPicker.select2('data');
+            if (!parent) {
+                alert('Choose a parent asset');
+                return false;
+            }
+            this.elements.parent_asset_id.value = parent.id;
+        });
+    })();
+</script>
+{% endmacro %}

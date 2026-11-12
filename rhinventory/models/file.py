@@ -321,13 +321,18 @@ class File(db.Model):
 
         from rhinventory.models.asset import Asset # avoid circular import
 
-        if not asset_id:
+        if not asset_id or asset_id == self.asset_id:
             return
-        
+
         # check that asset exists
         asset = Asset.query.get(asset_id)
         if not asset:
             raise ValueError("Trying to assign to asset that does not exist")
+
+        if self.is_deleted:
+            raise ValueError("The file has been deleted")
+        if not self.file_store_configured:
+            raise ValueError(f"The file is stored in {self.storage.value}, which is not configured on this instance")
 
         self.asset_id = asset_id
 

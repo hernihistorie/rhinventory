@@ -1,0 +1,36 @@
+from datetime import datetime
+
+from flask import Response, flash, request
+from flask_admin import expose
+from flask_login import current_user
+
+from rhinventory.admin_views.utils import get_asset_list_from_request_args, redirect_back_to_list
+from rhinventory.extensions import db
+from rhinventory.models.asset import Asset
+from rhinventory.models.log import LogEvent, log
+from rhinventory.util import require_write_access
+
+
+class SetParentMixin:
+    @expose('/set_parent_bulk/', methods=['POST'])
+    @require_write_access
+    def set_parent_bulk(self) -> Response:
+        parent_asset_id = request.form.get('parent_asset_id', '').strip()
+        parent_asset = db.session.get(Asset, int(parent_asset_id)) if parent_asset_id.isdigit() else None
+        if not parent_asset:
+            flash(f"Asset with id {parent_asset_id} not found.", 'error')
+            return redirect_back_to_list()
+
+        bulk_datetime = datetime.utcnow()
+        assets: list[Asset] = get_asset_list_from_request_args()
+        for asset in assets:
+            asset.parent_id = parent_asset.id
+            db.session.add(asset)
+            log(LogEvent.Update, object=asset, user=current_user, is_bulk=True, bulk_datetime=bulk_datetime.isoformat())
+        db.session.commit()
+
+        message = f"Parent for {len(assets)} assets set to be {parent_asset}."
+
+        flash(message, "success")
+
+        return redirect_back_to_list()

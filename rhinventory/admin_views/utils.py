@@ -1,6 +1,7 @@
 import typing
 
-from flask import request
+from flask import Response, redirect, request, url_for
+from flask_admin.helpers import get_redirect_target
 from flask_login import current_user
 
 from rhinventory.models.asset import Asset
@@ -21,6 +22,11 @@ def get_asset_list_from_request_args() ->  typing.List[Asset]:
             assets = asset_query
     
     return assets
+
+def redirect_back_to_list() -> Response:
+    """Redirect to the list page given in the `url` field, so the user keeps
+    their page, sort and filters, or to the view's list if there is none."""
+    return redirect(get_redirect_target() or url_for('.index_view'))
 
 def visible_to_current_user(obj: Asset | File) -> bool:
     if current_user.is_authenticated and current_user.read_access:

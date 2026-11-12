@@ -1,13 +1,22 @@
 """
 Root pytest configuration shared by all test directories.
 
-This module sets up a PostgreSQL test database using podman.
+This module sets up a PostgreSQL test database using podman, and the Flask app fixtures.
 """
 import os
 import subprocess
 import time
+from pathlib import Path
+
 import pytest
 
+from rhinventory.app import create_app
+from rhinventory.extensions import db
+from rhinventory.db import User, Organization
+from rhinventory.models.file import pyzbar
+
+
+REPO_ROOT = Path(__file__).parent
 
 # PostgreSQL test container configuration (for local development)
 POSTGRES_CONTAINER_NAME = "rhinventory_test_db"
@@ -71,3 +80,112 @@ def database_url():
     # Otherwise, start local podman container
     start_postgres_container()
     return get_database_url()
+
+
+class TestAppConfig:
+    """Test configuration for the Flask app."""
+    TESTING = True
+    GITHUB_CLIENT_ID = None
+    GITHUB_CLIENT_SECRET = None
+    FILES_DIR = "files"
+    SECRET_KEY = "test-secret-key-for-testing-only"
+    SENTRY_DSN = None
+    DROPZONE_PATH = "dropzone"
+    WTF_CSRF_ENABLED = False  # Disable CSRF for testing
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    DEFAULT_FILE_STORE = "local"
+    FILE_STORE_LOCATIONS = {"local": "files", "local_nas": "files2"}
+
+
+@pytest.fixture()
+def app(database_url):
+    """Create and configure a test Flask application instance."""
+    # Set database URL in config
+    TestAppConfig.SQLALCHEMY_DATABASE_URI = database_url
+
+    app = create_app(config_object=TestAppConfig)
+
+    with app.app_context():
+        # Create dropzone directory
+        os.makedirs(app.config['DROPZONE_PATH'], exist_ok=True)
+
+        # Drop all tables and recreate them for a clean state
+        db.drop_all()
+        db.create_all()
+
+        # Create test user
+        user = User(username="pytest", read_access=True, write_access=True, admin=True)
+        db.session.add(user)
+
+        # Create test organization
+        org = Organization(name="Testing z.s.")
+        db.session.add(org)
+
+        db.session.commit()
+
+        user_id = user.id
+
+    # Set up automatic login for tests
+    @app.login_manager.request_loader
+    def load_user_from_request(request):
+        return db.session.get(User, user_id)
+
+    yield app
+
+    # Cleanup after test
+    with app.app_context():
+        db.session.remove()
+        db.drop_all()
+
+
+@pytest.fixture()
+def client(app):
+    """Create a test client for the app."""
+    return app.test_client()
+
+
+@pytest.fixture()
+def anonymous_client(app):
+    """Create a test client that isn't logged in automatically (don't combine with `client`)."""
+    app.login_manager.request_loader(lambda request: None)
+    return app.test_client()
+
+
+@pytest.fixture()
+def runner(app):
+    """Create a test CLI runner for the app."""
+    return app.test_cli_runner()
+
+
+@pytest.fixture()
+def db_session(app):
+    """Provide a database session for tests."""
+    with app.app_context():
+        yield db.session
+
+
+@pytest.fixture()
+def read_only_user(app, db_session):
+    """Log requests in as a user without write access (combine with `client`)."""
+    user = User(username="reader", read_access=True, write_access=False)
+    db_session.add(user)
+    db_session.commit()
+    user_id = user.id
+    app.login_manager.request_loader(lambda request: db_session.get(User, user_id))
+
+
+@pytest.fixture()
+def zbar():
+    """Barcode detection silently does nothing without zbar, so fail loudly instead."""
+    assert pyzbar is not None, "pyzbar failed to import, is the zbar library installed? (e.g. libzbar0 on Debian/Ubuntu)"
+
+
+@pytest.fixture()
+def test_photos_dir() -> Path:
+    """Photos of assets with their barcodes visible, named by asset."""
+    return REPO_ROOT / "data" / "test_photos"
+
+
+@pytest.fixture()
+def test_image() -> Path:
+    return REPO_ROOT / "tests" / "data" / "test_image.png"

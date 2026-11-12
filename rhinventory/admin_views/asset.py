@@ -6,7 +6,7 @@ from math import ceil
 from typing import Optional, Union, Iterable
 from uuid import UUID
 
-from flask import Response, abort, redirect, request, flash, url_for, get_template_attribute
+from flask import redirect, request, flash, url_for, get_template_attribute
 from flask_admin.model.filters import BaseFilter
 from sqlalchemy.orm import joinedload, subqueryload
 from wtforms import RadioField, TextAreaField, Field
@@ -22,8 +22,9 @@ from flask_admin.helpers import get_form_data
 from flask_login import current_user
 from sqlalchemy import nulls_last, func
 from sqlalchemy.sql.functions import coalesce
-from rhinventory.admin_views.asset_files.stream_asset_files_zip import stream_asset_files_zip
-from rhinventory.admin_views.utils import get_asset_list_from_request_args, visible_to_current_user
+from rhinventory.admin_views.publicize import PublicizeMixin
+from rhinventory.admin_views.selection import SelectionActionsMixin
+from rhinventory.admin_views.utils import visible_to_current_user
 
 from rhinventory.extensions import db
 from rhinventory.admin_views.model_view import CustomModelView
@@ -32,13 +33,13 @@ from rhinventory.models.asset import AssetCondition
 from rhinventory.models.enums import Privacy, PUBLIC_PRIVACIES
 from rhinventory.models.events import DBEvent
 from rhinventory.models.file import IMAGE_CATEGORIES, File
-from rhinventory.models.log import LogEvent, log
+from rhinventory.models.log import log
 from rhinventory.models.properties.properties import properties_by_id
-from rhinventory.forms import FileForm, StatementForm
+from rhinventory.forms import AssetLookupLoader, FileForm, StatementForm
 from rhinventory.events.statements import StatementCreated, StatementDeleted
 from rhinventory.models.aggregates.statement import Statement
 from rhinventory.models.asset import AssetCategory
-from rhinventory.models.asset_attributes import AssetTag, Company
+from rhinventory.models.asset_attributes import Company
 from rhinventory.models.aggregates.floppy_disk_capture import FloppyDiskCapture
 from rhinventory.events.floppy_disk_captures import FloppyDiskCaptureDisassociated
 from rhinventory.event_store.event_store import event_store
@@ -73,7 +74,7 @@ def _last_used_query_factory_factory(cls: db.Model):
         nulls_last(cls.last_used.desc())
     )
 
-class AssetView(CustomModelView):
+class AssetView(PublicizeMixin, SelectionActionsMixin, CustomModelView):
     form_overrides: dict[str, type[Field]] = {
         'condition_new': ConditionField,
         'privacy': PrivacyField
@@ -124,7 +125,9 @@ class AssetView(CustomModelView):
             'placeholder': '...',
             'page_size': 15,
             'minimum_input_length': 0,
-        }
+        },
+        # The parent picker in the selection panel
+        'selection_parent': AssetLookupLoader('selection_parent'),
     }
 
     form_args = {
@@ -337,11 +340,29 @@ class AssetView(CustomModelView):
                 subqueryload(Asset.floppy_disk_captures),
                 joinedload(Asset.organization),
             )
+        return self._filter_visible(query)
+
+    def _filter_visible(self, query):
+        """Restrict an Asset query to the assets the current user may see."""
         if current_user.is_authenticated and current_user.read_access:
             return query
         else:
             return query.filter(Asset.privacy.in_(PUBLIC_PRIVACIES))
-    
+
+    def get_list_url_for(self, asset: Asset) -> str:
+        """URL of the unfiltered list page showing `asset`, with its row highlighted.
+
+        Relies on the default sort (newest ID first): the asset's position is
+        the number of visible assets with a higher ID.
+        """
+        sort_column, sort_desc = self.column_default_sort
+        assert sort_column == 'id' and sort_desc, "list page lookup assumes id descending sort"
+        preceding = self._filter_visible(
+            self.session.query(func.count(Asset.id)).filter(Asset.id > asset.id)
+        ).scalar()
+        page = preceding // self.page_size
+        return self.get_url('.index_view', page=page or None, highlight=asset.id)
+
     @expose('/gallery/')
     def gallery_view(self):
         """
@@ -521,6 +542,7 @@ class AssetView(CustomModelView):
                             details_columns=self._details_columns,
                             get_value=self.get_detail_value,
                             return_url=return_url,
+                            list_url=self.get_list_url_for(model),
                             file_form=file_form,
                             statement_form=statement_form,
                             statements=statements,
@@ -580,85 +602,8 @@ class AssetView(CustomModelView):
 
 
         return self.render('admin/asset/map.html', image_count_by_id=image_count_by_id, asset_by_id=asset_by_id, max_id=max_id, assets_with_image_fraction=assets_with_image / len(assets_with_image_count))
-                    
-    
-
-    @expose('/publicize/', methods=['GET', 'POST'])
-    def publicize_view(self):
-        start_id = int(request.args.get('start_id', 0))
-        requested_tag = request.args.get('tag', 0)
-        count = int(request.args.get('count', 50))
-        if request.method != "POST":
-            all_assets = db.session.query(Asset)
-            private_implicit_assets = db.session.query(Asset)\
-                .filter(Asset.privacy == Privacy.private_implicit)
-            
-            all_assets_count = all_assets.count()
-            private_implicit_count = private_implicit_assets.count()
-
-            assets = private_implicit_assets
-            if requested_tag:
-                try:
-                    requested_tag_id = int(requested_tag)
-                except ValueError:
-                    requested_tag_id = None
-                tag = db.session.query(AssetTag).filter(
-                    (AssetTag.id == requested_tag_id) | (AssetTag.name == requested_tag)).scalar()
-                if not tag:
-                    flash(f"Tag {requested_tag} not found.", 'error')
-                    return redirect(url_for('.publicize_view'))
-                
-                assets = assets.filter(Asset.tags.any(AssetTag.id == tag.id))
-            else:
-                tag = None
-            assets = assets.filter(Asset.id >= start_id).order_by(Asset.id.asc()).limit(count).all()
-        else:
-            if '_skip' in request.form:
-                return redirect(url_for('.publicize_view'))
-            PRIVACY_DICT = {
-                'public': Privacy.public,
-                'private': Privacy.private,
-                'default': Privacy.public
-            }
-            num_files_changed = 0
-            num_assets_changed = 0
-            for key, value in request.form.items():
-                if key.startswith("file"):
-                    file_id = int(key.split('-')[1])
-                    file = db.session.query(File).filter(File.id == file_id).one()
-                    if value == 'default' and '_publicize' not in request.form:
-                        continue
-                    file.privacy = PRIVACY_DICT[value]
-                    db.session.add(file)
-                    num_files_changed += 1
-            
-            for key, value in request.form.items():
-                if key.startswith("asset"):
-                    asset_id = int(key.split('-')[1])
-                    asset = db.session.query(Asset).filter(Asset.id == asset_id).one()
-                    if value == 'default' and '_publicize' not in request.form:
-                        continue
-                    asset.privacy = PRIVACY_DICT[value]
-                    db.session.add(asset)
-                    for file in asset.files:
-                        if file.privacy == Privacy.private_implicit:
-                            file.privacy = PRIVACY_DICT[value]
-                            db.session.add(file)
-                            num_files_changed += 1
-                    num_assets_changed += 1
-            db.session.commit()
-            flash(f"Saved {num_assets_changed} assets and {num_files_changed} files.")
-            return redirect(url_for('.publicize_view'))
 
 
-        return self.render('admin/asset/publicize.html',
-                           assets=assets,
-                           all_assets_count=all_assets_count,
-                           private_implicit_count=private_implicit_count,
-                           count=count,
-                           tag=tag)
-                    
-    
     @action('create_transaction', 'Create transaction')
     @require_write_access
     def create_transaction(self, asset_ids):
@@ -795,62 +740,6 @@ class AssetView(CustomModelView):
         db.session.commit()
         flash(f"Added {num_assets} assets as contents.", "success")
         return response
-
-    @expose('/set_parent_bulk/', methods=['POST'])
-    @require_write_access
-    def set_parent_bulk(self) -> Response:
-        parent_asset_id = int(request.form['parent_asset_id'])
-        parent_asset: Asset | None = db.session.query(Asset).get(parent_asset_id)
-        if not parent_asset:
-            flash(f"Asset with id {parent_asset_id} not found.", 'error')
-            return redirect(url_for('.index_view'))
-        
-        assert isinstance(parent_asset, Asset)
-
-        bulk_datetime = datetime.utcnow()
-        assets: list[Asset] = get_asset_list_from_request_args()
-        for asset in assets:
-            asset.parent_id = parent_asset.id
-            db.session.add(asset)
-            log(LogEvent.Update, object=asset, user=current_user, is_bulk=True, bulk_datetime=bulk_datetime.isoformat())
-        db.session.commit()
-
-        message = f"Parent for {len(assets)} assets set to be {parent_asset}."
-
-        flash(message, "success")
-
-        return redirect(url_for('.index_view'))
-    
-    @expose('/add_tag_bulk/', methods=['POST'])
-    @require_write_access
-    def add_tag_bulk(self) -> Response:
-        asset_tag: AssetTag | None = db.session.query(AssetTag).get(int(request.form['tag_id']))
-        if not asset_tag:
-            abort(404)
-        
-        bulk_datetime = datetime.utcnow()
-        assets: list[Asset] = get_asset_list_from_request_args()
-        for asset in assets:
-            asset.tags.append(asset_tag)
-            db.session.add(asset)
-        db.session.commit()
-        flash(f"Given {len(assets)} assets the tag {asset_tag}.", 'success')
-
-        return redirect(url_for('.index_view'))
-
-    @expose('/download_files/', methods=['GET'])
-    @require_write_access
-    def download_files(self) -> Response:
-        assets: list[Asset] = get_asset_list_from_request_args()
-        if not assets:
-            abort(404)
-
-        zip_filename = f"asset_files_{datetime.utcnow():%Y-%m-%d}.zip"
-        return Response(
-            stream_asset_files_zip(assets),
-            mimetype='application/zip',
-            headers={'Content-Disposition': f'attachment; filename="{zip_filename}"'},
-        )
 
     @expose('/disassociate_floppy_disk_capture/', methods=['POST'])
     @require_write_access

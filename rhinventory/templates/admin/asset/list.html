@@ -9,6 +9,8 @@
 
 {% block tail %}
     {{ super() }}
+    {# Tabs of the selection panel, from admin_views/selection/templates/selection/ #}
+    {% set selection_actions = ['labels', 'files', 'transactions', 'parent', 'location', 'tag'] %}
     <style>
         body {
             margin-bottom: 32px;
@@ -38,6 +40,11 @@
         .table td.span1, .table th.span1 {
             width: 2px;
         }
+
+        /* Row linked to with ?highlight=<id>, e.g. from an asset's details page */
+        .table tr.highlighted > td:first-child {
+            box-shadow: inset 6px 0 0 var(--color-primary);
+        }
     </style>
     <div id="selected" class="selected">
         <div style="display: flex; align-items: center; gap: 8px">
@@ -49,246 +56,228 @@
         </div>
         <div class="selected-buttons">
             <ul class="nav nav-tabs">
-                <li class="active"><a href="#selected-tab-labels" data-toggle="tab">
-                    {{ icon('print') }} Labels
-                </a></li>
-                <li><a href="#selected-tab-transactions" data-toggle="tab">
-                    {{ icon("handshake") }} Transactions
-                </a></li>
-                <li><a href="#selected-tab-parent" data-toggle="tab">
-                    {{ icon("jar") }} Parent
-                </a></li>
-                <li><a href="#selected-tab-location" data-toggle="tab">
-                    {{ icon('cubes') }} Location
-                </a></li>
-                <li><a href="#selected-tab-tag" data-toggle="tab">
-                    {{ icon('tag') }} Tag
-                </a></li>
+                {% for name in selection_actions %}
+                    {% import 'selection/' ~ name ~ '.html' as action with context %}
+                    <li {% if loop.first %}class="active"{% endif %}><a href="#selected-tab-{{ name }}" data-toggle="tab">
+                        {{ action.label() }}
+                    </a></li>
+                {% endfor %}
             </ul>
             <div class="tab-content">
-                <div class="tab-pane active" id="selected-tab-labels">
-                    <button id="selected-show-sheet" class="btn">Show sheet</button>
-                    <a id="selected-print-labels" href="#" class="btn">Print labels</a>
-                    <a id="selected-print-labels-small" href="#" class="btn">Print labels (small)</a>
-                    <button id="selected-download-files" class="btn">Download files</button>
-                </div>
-                <div class="tab-pane" id="selected-tab-transactions">
-                    <button id="selected-create-transaction" class="btn">Create transaction</button>
-                    <form
-                        id="selected-add-to-transaction-form"
-                        class="input-append"
-                        action="{{ get_url('transaction.add_to_view') }}"
-                        method="POST"
-                    >
-                        <input type="hidden" name="asset_id" value="">
-                        <input name="transaction_id" type="text" placeholder="Transaction ID" style="margin: 0; padding: 2px; width: 100px;">
-                        <div class="btn-group">
-                            <input type="submit" value="Add to transaction" class="btn">
-                        </div>
-                    </form>
-                </div>
-                <div class="tab-pane" id="selected-tab-parent">
-                    <form
-                        id="selected-set-parent-bulk-form"
-                        class="input-append"
-                        action="{{ get_url('asset.set_parent_bulk') }}"
-                        method="POST"
-                    >
-                        {{ icon('jar') }}
-                        <input type="hidden" name="asset_id" value="">
-                        <input name="parent_asset_id" type="text" placeholder="Parent asset ID" >
-                        <div class="btn-group">
-                            <input type="submit" value="Set parent" class="btn">
-                        </div>
-                    </form>
-                </div>
-                <div class="tab-pane" id="selected-tab-location">
-                    TODO
-                </div>
-                <div class="tab-pane" id="selected-tab-tag">
-                    <form
-                        id="selected-add-tag-bulk-form"
-                        class="input-append"
-                        action="{{ get_url('asset.add_tag_bulk') }}"
-                        method="POST"
-                    >
-                        <input type="hidden" name="asset_id" value="">
-                        <input name="tag_id" type="text" placeholder="Tag ID" >
-                        <div class="btn-group">
-                            <input type="submit" value="Add tag" class="btn">
-                        </div>
-                    </form>
-                </div>
+                {% for name in selection_actions %}
+                    {% import 'selection/' ~ name ~ '.html' as action with context %}
+                    <div class="tab-pane {% if loop.first %}active{% endif %}" id="selected-tab-{{ name }}">
+                        {{ action.pane() }}
+                    </div>
+                {% endfor %}
             </div>
         </div>
     </div>
     <script>
-        var selected = [];
-        var checkboxes = Array.from(document.getElementsByClassName("action-checkbox"));
+        /*
+         * Asset selection.
+         *
+         * Persisted in localStorage under "selected" as a JSON array of numeric
+         * asset IDs, so it survives paging, filtering and searching. All reads
+         * and writes go through `selection`, which normalizes every ID to an
+         * integer: the same asset can never be in the list twice (e.g. as both
+         * 9540 and "9540"), and removing an ID that isn't there is a no-op.
+         */
+        var SELECTION_KEY = "selected";
 
-        /* Parse list of IDs in the selected URL parameter */
-        var urlParams = new URLSearchParams(window.location.search);
-        var selectedParam = urlParams.get('selected');
-
-        if (selectedParam) {
-            selected = selectedParam.split(',').map(String);
-            console.log(selected);
-        } else {
-            var selected_local_storage = localStorage.getItem("selected")
-            if (selected_local_storage) {
-                selected = JSON.parse(selected_local_storage);
-            }
-        }
-
-        updateCheckboxes();
-
-        function showSelected() {
-            localStorage.setItem("selected", JSON.stringify(selected));
-
-            document.getElementById('selected-list').innerHTML = selected.join(', ');
-            document.getElementById('selected').style.display = selected.length ? 'block' : 'none';
-            document.getElementById('selected-count').innerHTML = selected.length;
-            document.getElementById('selected-edit-all').disabled = selected.length === 0;
-
-            let reversed_selected = selected.slice().reverse();
-            document.getElementById("selected-print-labels").href = "{{ hhprint_url() }}&codes=" + reversed_selected.map(asset_id => asset_id + "-{{g.current_user_organization_label}}").join(";");
-            document.getElementById("selected-print-labels-small").href = "{{ hhprint_url() }}&codes=" + reversed_selected.map(asset_id => asset_id + "-small-{{g.current_user_organization_label}}").join(";");
-        }
-
-        function updateSelected() {
-            for (var i = 0; i < checkboxes.length; i++) {
-                if (checkboxes[i].value == 'on') {
-                    selected.splice(selected.indexOf(checkboxes[i].value), 1);
+        function parseAssetIds(values) {
+            var ids = [];
+            (values || []).forEach(function(value) {
+                var id = parseInt(value, 10);
+                if (Number.isInteger(id) && id > 0) {
+                    ids.push(id);
                 }
-                // if checked and not in array
-                if (
-                    checkboxes[i].checked
-                    && selected.indexOf(checkboxes[i].value) == -1
-                ) {
-                    selected.push(checkboxes[i].value);
-                } else if (
-                    !checkboxes[i].checked
-                    && selected.indexOf(checkboxes[i].value) != -1
-                ) {
-                    // remove checkbox value from selected list
-                    selected.splice(selected.indexOf(checkboxes[i].value), 1);
+            });
+            return ids;
+        }
+
+        var selection = {
+            ids: new Set(),
+
+            load: function() {
+                var stored = null;
+                try {
+                    stored = JSON.parse(localStorage.getItem(SELECTION_KEY));
+                } catch (e) {
+                    // missing, blocked or malformed storage: start empty
                 }
-            }
-
-            selected.sort();
-
-            showSelected();
-        }
-
-        function updateCheckboxes() {
-            for (var i = 0; i < checkboxes.length; i++) {
-                checkboxes[i].checked = selected.indexOf(checkboxes[i].value) != -1;
-            }
-        }
-
-        for (var i = 0; i < checkboxes.length; i++) {
-            checkboxes[i].addEventListener('change', updateSelected);
-        }
-
-        let rowtoggleEl = document.querySelectorAll('input.action-rowtoggle')[0];
-        rowtoggleEl.addEventListener("click", function(){
-            if (rowtoggleEl.checked) {
-                for (var i = 0; i < checkboxes.length; i++) {
-                    console.log(checkboxes[i]);
-                    selected.push(checkboxes[i].value);
+                this.replace(Array.isArray(stored) ? stored : []);
+            },
+            save: function() {
+                try {
+                    localStorage.setItem(SELECTION_KEY, JSON.stringify(this.list()));
+                } catch (e) {
+                    // storage unavailable; the selection still works for this page
                 }
-            } else {
-                for (var i = 0; i < checkboxes.length; i++) {
-                    // remove checkbox value from selected list
-                    selected.splice(selected.indexOf(checkboxes[i].value), 1);
+            },
+            replace: function(values) {
+                this.ids = new Set(parseAssetIds(values));
+            },
+            list: function() {
+                return Array.from(this.ids).sort(function(a, b) { return a - b; });
+            },
+            has: function(value) {
+                return this.ids.has(parseInt(value, 10));
+            },
+            set: function(value, isSelected) {
+                parseAssetIds([value]).forEach(function(id) {
+                    if (isSelected) {
+                        this.ids.add(id);
+                    } else {
+                        this.ids.delete(id);
+                    }
+                }, this);
+            },
+            clear: function() {
+                this.ids.clear();
+            },
+        };
+
+        var checkboxes = Array.from(document.querySelectorAll("input.action-checkbox"));
+        var rowtoggleEl = document.querySelector("input.action-rowtoggle");
+
+        /* Highlight and scroll to the row given by ?highlight=<asset id> */
+        var highlightId = parseAssetIds([new URLSearchParams(window.location.search).get('highlight')])[0];
+        if (highlightId) {
+            checkboxes.forEach(function(checkbox) {
+                if (parseInt(checkbox.value, 10) === highlightId) {
+                    var row = checkbox.closest('tr');
+                    row.classList.add('highlighted');
+                    row.scrollIntoView({block: 'center'});
                 }
-            }
-            selected.sort();
-            showSelected();
-        })
-
-        showSelected();
-
-        document.getElementById("selected-clear").onclick = function() {
-            selected = [];
-            localStorage.setItem("selected", selected);
-            updateCheckboxes();
-            showSelected();
-        }
-
-        document.getElementById("selected-show-sheet").onclick = function() {
-            localStorage.setItem("selected", "[]");
-            document.location.href = "{{ get_url('label_assets') }}?asset_ids=" + selected;
-        }
-
-        document.getElementById("selected-download-files").onclick = function() {
-            if (!selected.length) {
-                return;
-            }
-            document.location.href = "{{ get_url('asset.download_files') }}?asset_id=[" + selected + "]";
-        }
-
-        document.getElementById("selected-create-transaction").onclick = function() {
-            localStorage.setItem("selected", "[]");
-            document.location.href = "{{ get_url('transaction.create_view') }}?asset_id=[" + selected + "]";
-        }
-
-        document.getElementById("selected-edit-all").onclick = function() {
-            if (!selected.length) {
-                return;
-            }
-
-            selected.forEach(function(assetId, index) {
-                var url = "{{ get_url('asset.edit_view') }}?id=" + encodeURIComponent(assetId);
-                var target = index === 0 ? '_blank' : '_blank';
-                window.open(url, target);
             });
         }
 
-        function makeSelectedForm(action, object_name) {
-            document.getElementById(`selected-${action}-form`).addEventListener('submit', function(event) {
-                console.log(`#selected-${action}-form input[name="${object_name}_id"]`)
-                var id = document.querySelector(`#selected-${action}-form input[name="${object_name}_id"]`).value;
-                if (id == "") {
-                    alert(`${object_name} ID is required`);
-                    event.preventDefault()
-                    return false;
-                }
+        /* Redraw checkboxes and the selection panel from `selection`. */
+        function render() {
+            var ids = selection.list();
 
-                document.querySelector(`#selected-${action}-form input[name="asset_id"]`).value = selected;
-            })
+            checkboxes.forEach(function(checkbox) {
+                checkbox.checked = selection.has(checkbox.value);
+            });
+            if (rowtoggleEl) {
+                rowtoggleEl.checked = checkboxes.length > 0 && checkboxes.every(function(checkbox) {
+                    return checkbox.checked;
+                });
+            }
+
+            document.getElementById('selected-list').textContent = ids.join(', ');
+            document.getElementById('selected').style.display = ids.length ? 'block' : 'none';
+            document.getElementById('selected-count').textContent = ids.length;
+            document.getElementById('selected-edit-all').disabled = ids.length === 0;
+
+            /* Lets selection actions update themselves */
+            document.dispatchEvent(new CustomEvent('assetselectionchange', {detail: {ids: ids}}));
         }
 
-        makeSelectedForm('add-to-transaction', 'transaction');
+        function commit() {
+            selection.save();
+            render();
+        }
 
-        makeSelectedForm('set-parent-bulk', 'parent_asset');
+        /* Copy the checked state of the given checkboxes into the selection. */
+        function applyCheckboxes(boxes) {
+            boxes.forEach(function(checkbox) {
+                selection.set(checkbox.value, checkbox.checked);
+            });
+            commit();
+        }
 
-        makeSelectedForm('add-tag-bulk', 'tag');
+        /* Initial state: the ?selected= URL parameter wins over storage */
+        var selectedParam = new URLSearchParams(window.location.search).get('selected');
+        if (selectedParam) {
+            selection.replace(selectedParam.split(','));
+            selection.save();
+        } else {
+            selection.load();
+        }
+        render();
+
+        /* Keep tabs in sync: another tab changed the selection */
+        window.addEventListener('storage', function(event) {
+            if (event.key === SELECTION_KEY || event.key === null) {
+                selection.load();
+                render();
+            }
+        });
+
+        checkboxes.forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                applyCheckboxes([checkbox]);
+            });
+        });
+
+        if (rowtoggleEl) {
+            rowtoggleEl.addEventListener("click", function() {
+                checkboxes.forEach(function(checkbox) {
+                    checkbox.checked = rowtoggleEl.checked;
+                });
+                applyCheckboxes(checkboxes);
+            });
+        }
 
         /* Select multiple checkboxes with shift */
-
         var lastChecked = null;
 
         checkboxes.forEach(function(checkbox) {
             checkbox.addEventListener('click', function(e) {
-                if (!lastChecked) {
-                    lastChecked = this;
-                    return;
-                }
-
-                if (e.shiftKey) {
+                if (lastChecked && e.shiftKey) {
                     var start = checkboxes.indexOf(this);
                     var end = checkboxes.indexOf(lastChecked);
+                    var range = checkboxes.slice(Math.min(start, end), Math.max(start, end) + 1);
 
-                    for (var i = Math.min(start,end); i <= Math.max(start,end); i++) {
-                        checkboxes[i].checked = lastChecked.checked;
-                    }
+                    range.forEach(function(box) {
+                        box.checked = lastChecked.checked;
+                    });
+                    applyCheckboxes(range);
                 }
 
                 lastChecked = this;
             });
         });
 
+        /* Clear the stored selection, returning the IDs it held */
+        function takeSelection() {
+            var ids = selection.list();
+            selection.clear();
+            selection.save();
+            return ids;
+        }
 
+        document.getElementById("selected-clear").onclick = function() {
+            selection.clear();
+            commit();
+        }
+
+        document.getElementById("selected-edit-all").onclick = function() {
+            selection.list().forEach(function(assetId) {
+                var url = "{{ get_url('asset.edit_view') }}?id=" + encodeURIComponent(assetId);
+                window.open(url, '_blank');
+            });
+        }
+
+        /*
+         * Fill a selection action form's asset_id with the selection on submit.
+         * `prepare(event)` is called with the form as `this` to fill in the rest
+         * of the form; returning false cancels the submit.
+         */
+        function submitWithSelection(form, prepare) {
+            form.addEventListener('submit', function(event) {
+                if (prepare && prepare.call(form, event) === false) {
+                    event.preventDefault();
+                    return;
+                }
+                form.elements.asset_id.value = selection.list().join(',');
+            });
+        }
     </script>
+    {% for name in selection_actions %}
+        {% import 'selection/' ~ name ~ '.html' as action with context %}
+        {{ action.script() }}
+    {% endfor %}
 {% endblock %}

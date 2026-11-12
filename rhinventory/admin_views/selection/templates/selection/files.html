@@ -1,0 +1,21 @@
+{% from '_macros.html' import icon %}
+
+{% macro label() %}{{ icon('file') }} Files{% endmacro %}
+
+{% macro pane() %}
+    <button id="selected-download-files" class="btn">Download files</button>
+{% endmacro %}
+
+{% macro script() %}
+<script>
+    (function() {
+        document.getElementById("selected-download-files").onclick = function() {
+            var ids = selection.list();
+            if (!ids.length) {
+                return;
+            }
+            document.location.href = "{{ get_url('asset.download_files') }}?asset_id=[" + ids.join(',') + "]";
+        }
+    })();
+</script>
+{% endmacro %}

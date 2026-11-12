@@ -39,17 +39,16 @@
                     </form>
                 {% endif %}
             {% endif %}
-            {% if admin_view.can_edit %}
-                <form method="POST" action="" style="display: inline;">
-                    {# {{ file_assign_form.asset(style='margin-bottom: 0px; width: 400px;') }}
+            {% if admin_view.can_edit and model.file_store_configured and not model.is_deleted %}
+                <form method="POST" action="{{ url_for('file.assign_view', id=model.id) }}" style="display: inline;">
+                    {{ file_assign_form.asset_id(style='margin-bottom: 0px; width: 400px;') }}
                     <input type="submit" value="
                         {%- if not model.asset -%}
                             Assign
                         {%- else -%}
                             Re-assign
                         {%- endif -%}
-                    " class="btn btn-primary"> #}
-                    Sorry the form for assigning the file will be back soon.
+                    " class="btn btn-primary">
                 </form>
             {% endif %}
         </div>

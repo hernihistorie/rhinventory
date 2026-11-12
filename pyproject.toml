@@ -56,6 +56,12 @@ dev = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.pytest.ini_options]
+# Tests live next to the code they test, and many packages have no __init__.py,
+# which the default import mode can't handle
+addopts = "--import-mode=importlib"
+testpaths = ["rhinventory", "tests"]
+
 [tool.mypy]
 python_version = "3.11"
 warn_no_return = true

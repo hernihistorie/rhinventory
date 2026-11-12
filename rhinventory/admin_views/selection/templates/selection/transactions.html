@@ -1,0 +1,55 @@
+{% from '_macros.html' import icon %}
+
+{% macro label() %}{{ icon("handshake") }} Transactions{% endmacro %}
+
+{% macro pane() %}
+    <button id="selected-create-transaction" class="btn">Create transaction</button>
+    <form
+        id="selected-create-penouze-transaction-form"
+        class="input-append"
+        action="{{ get_url('transaction.create_penouze_view') }}"
+        method="POST"
+    >
+        <input type="hidden" name="asset_id" value="">
+        <input name="penouze_id" type="text" inputmode="numeric" placeholder="Peňouze ID" style="margin: 0; padding: 2px; width: 100px;">
+        <div class="btn-group">
+            <input type="submit" value="Create Peňouze transaction" class="btn">
+        </div>
+    </form>
+    <form
+        id="selected-add-to-transaction-form"
+        class="input-append"
+        action="{{ get_url('transaction.add_to_view') }}"
+        method="POST"
+    >
+        <input type="hidden" name="asset_id" value="">
+        <input name="transaction_id" type="text" placeholder="Transaction ID" style="margin: 0; padding: 2px; width: 100px;">
+        <div class="btn-group">
+            <input type="submit" value="Add to transaction" class="btn">
+        </div>
+    </form>
+{% endmacro %}
+
+{% macro script() %}
+<script>
+    (function() {
+        document.getElementById("selected-create-transaction").onclick = function() {
+            document.location.href = "{{ get_url('transaction.create_view') }}?asset_id=[" + takeSelection().join(',') + "]";
+        }
+
+        submitWithSelection(document.getElementById('selected-create-penouze-transaction-form'), function() {
+            if (!/^\d+$/.test(this.elements.penouze_id.value.trim())) {
+                alert('Peňouze ID must be a number');
+                return false;
+            }
+        });
+
+        submitWithSelection(document.getElementById('selected-add-to-transaction-form'), function() {
+            if (this.elements.transaction_id.value == "") {
+                alert('Transaction ID is required');
+                return false;
+            }
+        });
+    })();
+</script>
+{% endmacro %}

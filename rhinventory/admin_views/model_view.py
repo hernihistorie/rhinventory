@@ -1,5 +1,6 @@
-from flask import request, flash, redirect, url_for, current_app, jsonify
+from flask import abort, request, flash, redirect, url_for, current_app, jsonify
 from flask_login import current_user, login_required
+from flask_admin import expose
 from flask_admin.contrib.sqla import ModelView
 from sqlalchemy.orm import Session
 
@@ -30,6 +31,14 @@ class CustomModelView(ModelView):
     
     def get_save_return_url(self, model=None, is_created=False):
         return self.get_url('.details_view', id=model.id)
+
+    # Lookups serve edit forms and bypass get_query(), so they would reveal
+    # private records on views which are otherwise accessible to the public.
+    @expose('/ajax/lookup/')
+    def ajax_lookup(self):
+        if not current_user.write_access:
+            abort(403)
+        return super().ajax_lookup()
 
 class ReadOnlyCustomModelView(CustomModelView):
     can_edit = False

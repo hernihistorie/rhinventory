@@ -1,0 +1,27 @@
+{% from '_macros.html' import icon %}
+
+{% macro label() %}{{ icon('print') }} Labels{% endmacro %}
+
+{% macro pane() %}
+    <button id="selected-show-sheet" class="btn">Show sheet</button>
+    <a id="selected-print-labels" href="#" class="btn">Print labels</a>
+    <a id="selected-print-labels-small" href="#" class="btn">Print labels (small)</a>
+{% endmacro %}
+
+{% macro script() %}
+<script>
+    (function() {
+        function updatePrintLinks() {
+            var reversed = selection.list().reverse();
+            document.getElementById("selected-print-labels").href = "{{ hhprint_url() }}&codes=" + reversed.map(asset_id => asset_id + "-{{g.current_user_organization_label}}").join(";");
+            document.getElementById("selected-print-labels-small").href = "{{ hhprint_url() }}&codes=" + reversed.map(asset_id => asset_id + "-small-{{g.current_user_organization_label}}").join(";");
+        }
+        document.addEventListener('assetselectionchange', updatePrintLinks);
+        updatePrintLinks();
+
+        document.getElementById("selected-show-sheet").onclick = function() {
+            document.location.href = "{{ get_url('label_assets') }}?asset_ids=" + takeSelection().join(',');
+        }
+    })();
+</script>
+{% endmacro %}
