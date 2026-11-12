@@ -1,10 +1,10 @@
 from datetime import datetime
 
-from flask import Response, flash, redirect, request, url_for
+from flask import Response, flash, request
 from flask_admin import expose
 from flask_login import current_user
 
-from rhinventory.admin_views.utils import get_asset_list_from_request_args
+from rhinventory.admin_views.utils import get_asset_list_from_request_args, redirect_back_to_list
 from rhinventory.extensions import db
 from rhinventory.models.asset import Asset, AssetCategory
 from rhinventory.models.log import LogEvent, log
@@ -45,12 +45,12 @@ class SetLocationMixin:
             location = db.session.get(Asset, int(location_id)) if location_id.isdigit() else None
             if not location or location.category != AssetCategory.location:
                 flash(f"Location with id {location_id} not found.", 'error')
-                return redirect(url_for('.index_view'))
+                return redirect_back_to_list()
             looped = [asset for asset in assets if asset is location or asset in _containers(location)]
             if looped:
                 flash(f"Can't put {', '.join(str(asset) for asset in looped)} inside {location}, "
                       "as it would end up inside itself.", 'error')
-                return redirect(url_for('.index_view'))
+                return redirect_back_to_list()
 
         new_location_id = location.id if location else None
         assets_to_move = [asset for asset in assets if asset.location_id_new != new_location_id]
@@ -75,4 +75,4 @@ class SetLocationMixin:
                 message += f" {unchanged} had no location."
         flash(message, 'success')
 
-        return redirect(url_for('.index_view'))
+        return redirect_back_to_list()

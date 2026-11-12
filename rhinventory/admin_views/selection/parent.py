@@ -1,10 +1,10 @@
 from datetime import datetime
 
-from flask import Response, flash, redirect, request, url_for
+from flask import Response, flash, request
 from flask_admin import expose
 from flask_login import current_user
 
-from rhinventory.admin_views.utils import get_asset_list_from_request_args
+from rhinventory.admin_views.utils import get_asset_list_from_request_args, redirect_back_to_list
 from rhinventory.extensions import db
 from rhinventory.models.asset import Asset
 from rhinventory.models.log import LogEvent, log
@@ -19,7 +19,7 @@ class SetParentMixin:
         parent_asset: Asset | None = db.session.query(Asset).get(parent_asset_id)
         if not parent_asset:
             flash(f"Asset with id {parent_asset_id} not found.", 'error')
-            return redirect(url_for('.index_view'))
+            return redirect_back_to_list()
 
         assert isinstance(parent_asset, Asset)
 
@@ -35,4 +35,4 @@ class SetParentMixin:
 
         flash(message, "success")
 
-        return redirect(url_for('.index_view'))
+        return redirect_back_to_list()

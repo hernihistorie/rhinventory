@@ -1,11 +1,11 @@
 from datetime import datetime
 
-from flask import Response, flash, redirect, request, url_for
+from flask import Response, flash, request
 from flask_admin import expose
 from flask_login import current_user
 from sqlalchemy import func, nulls_last
 
-from rhinventory.admin_views.utils import get_asset_list_from_request_args
+from rhinventory.admin_views.utils import get_asset_list_from_request_args, redirect_back_to_list
 from rhinventory.extensions import db
 from rhinventory.models.asset import Asset
 from rhinventory.models.asset_attributes import AssetTag
@@ -35,7 +35,7 @@ class AddTagMixin:
             asset_tag = db.session.get(AssetTag, int(tag_id)) if tag_id.isdigit() else None
             if not asset_tag:
                 flash(f"Tag with id {tag_id} not found.", 'error')
-                return redirect(url_for('.index_view'))
+                return redirect_back_to_list()
         elif new_tag_name:
             asset_tag = db.session.query(AssetTag) \
                 .filter(func.lower(AssetTag.name) == new_tag_name.lower()) \
@@ -47,7 +47,7 @@ class AddTagMixin:
                 flash(f"Created tag {asset_tag}.", 'success')
         else:
             flash("Choose a tag to add.", 'error')
-            return redirect(url_for('.index_view'))
+            return redirect_back_to_list()
 
         bulk_datetime = datetime.utcnow()
         assets: list[Asset] = get_asset_list_from_request_args()
@@ -67,4 +67,4 @@ class AddTagMixin:
             message += f" {already_tagged} already had it."
         flash(message, 'success')
 
-        return redirect(url_for('.index_view'))
+        return redirect_back_to_list()
