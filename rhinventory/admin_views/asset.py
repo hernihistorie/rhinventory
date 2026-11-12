@@ -338,11 +338,29 @@ class AssetView(PublicizeMixin, SelectionActionsMixin, CustomModelView):
                 subqueryload(Asset.floppy_disk_captures),
                 joinedload(Asset.organization),
             )
+        return self._filter_visible(query)
+
+    def _filter_visible(self, query):
+        """Restrict an Asset query to the assets the current user may see."""
         if current_user.is_authenticated and current_user.read_access:
             return query
         else:
             return query.filter(Asset.privacy.in_(PUBLIC_PRIVACIES))
-    
+
+    def get_list_url_for(self, asset: Asset) -> str:
+        """URL of the unfiltered list page showing `asset`, with its row highlighted.
+
+        Relies on the default sort (newest ID first): the asset's position is
+        the number of visible assets with a higher ID.
+        """
+        sort_column, sort_desc = self.column_default_sort
+        assert sort_column == 'id' and sort_desc, "list page lookup assumes id descending sort"
+        preceding = self._filter_visible(
+            self.session.query(func.count(Asset.id)).filter(Asset.id > asset.id)
+        ).scalar()
+        page = preceding // self.page_size
+        return self.get_url('.index_view', page=page or None, highlight=asset.id)
+
     @expose('/gallery/')
     def gallery_view(self):
         """
@@ -522,6 +540,7 @@ class AssetView(PublicizeMixin, SelectionActionsMixin, CustomModelView):
                             details_columns=self._details_columns,
                             get_value=self.get_detail_value,
                             return_url=return_url,
+                            list_url=self.get_list_url_for(model),
                             file_form=file_form,
                             statement_form=statement_form,
                             statements=statements,

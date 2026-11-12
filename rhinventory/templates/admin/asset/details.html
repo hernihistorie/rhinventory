@@ -45,7 +45,21 @@
             flex-basis: 500px;
             padding-left: 12px;
         }
+
+        a.asset-collection-link,
+        a.asset-collection-link:hover,
+        a.asset-collection-link:focus {
+            display: block;
+            color: var(--color-primary);
+            text-decoration: none;
+            margin-top: 6px;
+        }
+
+        h2 {
+            margin-top: 2px;
+        }
     </style>
+    <a href="{{ list_url }}" class="asset-collection-link">Sbírka předmětů spolku Herní historie</a>
     <h2><small>{{ render_asset_code(model) }}</small> {{ model.name }}</h2>
     <div class="asset-split">
         <div class="asset-data">

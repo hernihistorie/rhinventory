@@ -40,6 +40,11 @@
         .table td.span1, .table th.span1 {
             width: 2px;
         }
+
+        /* Row linked to with ?highlight=<id>, e.g. from an asset's details page */
+        .table tr.highlighted > td:first-child {
+            box-shadow: inset 6px 0 0 var(--color-primary);
+        }
     </style>
     <div id="selected" class="selected">
         <div style="display: flex; align-items: center; gap: 8px">
@@ -135,6 +140,18 @@
 
         var checkboxes = Array.from(document.querySelectorAll("input.action-checkbox"));
         var rowtoggleEl = document.querySelector("input.action-rowtoggle");
+
+        /* Highlight and scroll to the row given by ?highlight=<asset id> */
+        var highlightId = parseAssetIds([new URLSearchParams(window.location.search).get('highlight')])[0];
+        if (highlightId) {
+            checkboxes.forEach(function(checkbox) {
+                if (parseInt(checkbox.value, 10) === highlightId) {
+                    var row = checkbox.closest('tr');
+                    row.classList.add('highlighted');
+                    row.scrollIntoView({block: 'center'});
+                }
+            });
+        }
 
         /* Redraw checkboxes and the selection panel from `selection`. */
         function render() {
