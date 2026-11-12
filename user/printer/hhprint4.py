@@ -341,13 +341,15 @@ class BrotherLabelPrinterDriver(AbstractPrinterDriver):
             from brother_ql.conversion import convert
             from brother_ql.backends.helpers import send
             from brother_ql.raster import BrotherQLRaster
-        except ModuleNotFoundError:
+        except ModuleNotFoundError as ex:
             print("Please install brother_ql:")
             print("pip install brother_ql")
-            exit(1)
+            raise ex
 
     def print(self, printer: AvailablePrinter, query: PrintQuery, image: BytesIO) -> None:
         # raw import
+        # When it came here it shall not raise ModuleNotFoundError - it already must fail during constructor call.
+        # Or it will be caught in the main loop for driver and go to different printer in preset list.
         from brother_ql.conversion import convert
         from brother_ql.backends.helpers import send
         from brother_ql.raster import BrotherQLRaster
