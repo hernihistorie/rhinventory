@@ -810,8 +810,11 @@ class AssetView(PublicizeMixin, SelectionActionsMixin, LabelsMixin, CustomModelV
                 models.append(self.create_model(form))
             if models:
                 flash(f'{len(models)} records was successfully created.', 'success')
+                # print=1 makes the list's labels pane send the selection to hhprint
+                print_labels = 1 if '_save_and_print' in request.form else None
                 return redirect(
-                    self.get_url(endpoint='.index_view', selected=",".join(str(m.id) for m in models))
+                    self.get_url(endpoint='.index_view', selected=",".join(str(m.id) for m in models),
+                                 print=print_labels)
                 )
 
         form_opts = FormOpts(widget_args=self.form_widget_args,

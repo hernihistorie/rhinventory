@@ -36,6 +36,37 @@ def test_asset_new(client: FlaskClient):
     assert asset_name in response.data.decode('utf-8')
 
 
+def test_asset_bulk_new(client: FlaskClient, db_session):
+    response = client.post("/asset/bulk_new/?category=game", data={
+        "organization": "1",
+        "category": AssetCategory.game.name,
+        "name": "Bulk One\nBulk Two\n",
+    })
+
+    assets = db_session.query(Asset).filter(Asset.name.like("Bulk %")).order_by(Asset.id).all()
+    assert [a.name for a in assets] == ["Bulk One", "Bulk Two"]
+    assert response.status_code == 302
+    assert f"selected={assets[0].id},{assets[1].id}" in response.location
+    assert "print=" not in response.location
+
+
+def test_asset_bulk_new_save_and_print(client: FlaskClient, db_session):
+    response = client.post("/asset/bulk_new/?category=game", data={
+        "organization": "1",
+        "category": AssetCategory.game.name,
+        "name": "Bulk One\nBulk Two",
+        "_save_and_print": "Save and Print Label",
+    })
+
+    assert response.status_code == 302
+    assert "print=1" in response.location
+
+    response = client.get(response.location)
+    assert response.status_code == 200
+    # The labels pane picks up ?print=1 and clicks its print link
+    assert "searchParams.get('print')" in response.data.decode('utf-8')
+
+
 def test_asset_edit_sets_platforms(client: FlaskClient, db_session):
     platform = Platform.from_name("NES")
     asset = Asset(organization_id=1, category=AssetCategory.game, name="Platform Game")
