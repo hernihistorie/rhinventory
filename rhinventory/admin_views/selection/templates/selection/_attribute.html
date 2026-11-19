@@ -1,0 +1,63 @@
+{#
+    Shared pane and script for selection actions which add a named attribute
+    (a tag, a platform...) to the selected assets.  See selection/attribute.py.
+#}
+
+{% macro pane(noun, endpoint, choices) %}
+    <form
+        id="selected-add-{{ noun }}-bulk-form"
+        action="{{ get_url(endpoint) }}"
+        method="POST"
+        style="display: flex; align-items: center; gap: 4px; margin: 0;"
+    >
+        <input type="hidden" name="asset_id" value="">
+        <input type="hidden" name="url" value="{{ return_url }}">
+        <input type="hidden" name="{{ noun }}_id" value="">
+        <input type="hidden" name="new_{{ noun }}_name" value="">
+        <input type="hidden" id="selected-{{ noun }}-picker">
+        <input type="submit" value="Add {{ noun }}" class="btn">
+    </form>
+    <script type="application/json" id="selected-{{ noun }}-choices">{{ choices|tojson }}</script>
+{% endmacro %}
+
+{% macro script(noun) %}
+<script>
+    /*
+     * {{ noun|capitalize }} picker: search existing ones by name or ID, or
+     * create a new one by typing a name that none has yet.
+     */
+    (function() {
+        var noun = {{ noun|tojson }};
+        var choices = JSON.parse(document.getElementById('selected-' + noun + '-choices').textContent);
+        var picker = $('#selected-' + noun + '-picker');
+        picker.select2({
+            placeholder: 'Search or create a ' + noun,
+            width: '300px',
+            data: choices.map(function(choice) {
+                return {id: choice.id, text: choice.name + ' (#' + choice.id + ')'};
+            }),
+            createSearchChoice: function(term) {
+                var name = term.trim();
+                var exists = choices.some(function(choice) {
+                    return choice.name.toLowerCase() === name.toLowerCase();
+                });
+                if (!name || exists) {
+                    return null;
+                }
+                return {id: 'new', text: 'Create ' + noun + ' "' + name + '"', newName: name};
+            },
+            createSearchChoicePosition: 'bottom',
+        });
+
+        submitWithSelection(document.getElementById('selected-add-' + noun + '-bulk-form'), function() {
+            var choice = picker.select2('data');
+            if (!choice) {
+                alert('Choose a ' + noun);
+                return false;
+            }
+            this.elements[noun + '_id'].value = choice.newName ? '' : choice.id;
+            this.elements['new_' + noun + '_name'].value = choice.newName || '';
+        });
+    })();
+</script>
+{% endmacro %}

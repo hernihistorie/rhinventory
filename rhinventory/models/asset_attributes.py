@@ -5,6 +5,7 @@ from sqlalchemy import Boolean, Column, DateTime, Integer, String, ForeignKey, T
 from sqlalchemy.orm import relationship, backref, Mapped, mapped_column
 
 from rhinventory.extensions import db
+from rhinventory.util import slugify
 
 class SimpleAssetAttribute():
     name: str
@@ -27,6 +28,10 @@ class Platform(db.Model, SimpleAssetAttribute):
     slug: str        = Column(String, nullable=False)  # type: ignore
     name: str        = Column(String, nullable=False)  # type: ignore
     last_used        = Column(DateTime, nullable=True)
+
+    @classmethod
+    def from_name(cls, name: str) -> "Platform":
+        return cls(name=name, slug=slugify(name))
 
 asset_platform_table = asset_n_to_n_table(Platform)
 

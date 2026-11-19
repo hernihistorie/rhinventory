@@ -1,0 +1,8 @@
+{% from '_macros.html' import icon %}
+{% import 'selection/_attribute.html' as attribute with context %}
+
+{% macro label() %}{{ icon('gamepad') }} Platform{% endmacro %}
+
+{% macro pane() %}{{ attribute.pane('platform', 'asset.add_platform_bulk', admin_view.selection_platform_choices()) }}{% endmacro %}
+
+{% macro script() %}{{ attribute.script('platform') }}{% endmacro %}

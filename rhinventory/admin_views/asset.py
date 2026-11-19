@@ -90,6 +90,7 @@ class AssetView(PublicizeMixin, SelectionActionsMixin, CustomModelView):
         'companies',
 #        'location',
         'hardware_type',
+        'platforms',
         'mediums',
         'packaging',
         'model',
@@ -111,7 +112,8 @@ class AssetView(PublicizeMixin, SelectionActionsMixin, CustomModelView):
     
     form_columns_categories: dict[str, Union[AssetCategory, Iterable[AssetCategory]]] = {
         'hardware_type': AssetCategory.computer_component,
-        'mediums': [AssetCategory.game, AssetCategory.software, AssetCategory.multimedia,
+        'platforms': PRODUCT_ASSET_CATEGORIES,
+        'mediums':[AssetCategory.game, AssetCategory.software, AssetCategory.multimedia,
             AssetCategory.rewritable_media],
         'model': PRODUCT_ASSET_CATEGORIES,
         'product_codes': PRODUCT_ASSET_CATEGORIES,
@@ -170,7 +172,10 @@ class AssetView(PublicizeMixin, SelectionActionsMixin, CustomModelView):
         'manufacturer',
         'note',
         'parent.id',
-        'privacy'
+        'privacy',
+        # Filters are addressed by index in URLs (e.g. flt1_45 for tags), so
+        # new ones go at the end.
+        'platforms.name',
     ]
     column_searchable_list = [
         'id',

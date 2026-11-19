@@ -7,6 +7,7 @@ ACTIONS = {
     'parent': 'id="selected-set-parent-bulk-form"',
     'location': 'id="selected-set-location-bulk-form"',
     'tag': 'id="selected-add-tag-bulk-form"',
+    'platform': 'id="selected-add-platform-bulk-form"',
 }
 
 
@@ -23,7 +24,7 @@ def test_asset_list_renders_every_selection_action(client: FlaskClient):
     assert 'class="tab-pane active" id="selected-tab-labels"' in html
 
     # Action scripts come after the shared script they rely on
-    assert html.index('function submitWithSelection') < html.index("submitWithSelection(document.getElementById('selected-add-tag-bulk-form')")
+    assert html.index('function submitWithSelection') < html.index("submitWithSelection(document.getElementById('selected-add-' + noun + '-bulk-form')")
 
 
 def test_selection_forms_return_to_current_list_page(client: FlaskClient):
@@ -31,8 +32,8 @@ def test_selection_forms_return_to_current_list_page(client: FlaskClient):
     assert response.status_code == 200
     html = response.data.decode('utf-8')
 
-    # One for each of the parent, location and tag forms
-    assert html.count('<input type="hidden" name="url" value="/asset/?page=4&amp;sort=1">') == 3
+    # One for each of the parent, location, tag and platform forms
+    assert html.count('<input type="hidden" name="url" value="/asset/?page=4&amp;sort=1">') == 4
 
 
 def test_selection_action_redirects_back_to_list_page(client: FlaskClient, make_assets):
