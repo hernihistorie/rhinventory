@@ -1,0 +1,48 @@
+{#- 62×10mm. With a logo, it shows the logo and custom code under the barcode, without, the name. -#}
+{% extends "_base.html" %}
+
+{% block style %}
+    .barcode {
+        height: {{ "6.68mm" if logo else "4.72mm" }};
+    }
+
+    .logo {
+        top: 7.1mm;
+        left: 1.79mm;
+        width: 16.15mm;
+        height: 2.6mm;
+    }
+
+    .custom-code {
+        position: absolute;
+        top: 6.73mm;
+        left: 20.15mm;
+        right: 15mm;
+        font-size: 3.53mm;
+    }
+
+    .medium {
+        font-family: "Label Sans", sans-serif;
+        font-size: 1.59mm;
+    }
+
+    .name {
+        position: absolute;
+        top: 5.56mm;
+        left: 0.52mm;
+        right: 15mm;
+        font-size: 4.63mm;
+        letter-spacing: -0.2mm;
+    }
+{% endblock %}
+
+{% block body %}
+    {% if logo %}
+        <img class="logo" src="{{ logo }}" alt="">
+        <div class="custom-code mono one-line">
+            {{- content.custom_code }} <span class="medium">{{ content.medium }}</span>
+        </div>
+    {% else %}
+        <div class="name one-line ellipsis">{{ content.name }}</div>
+    {% endif %}
+{% endblock %}

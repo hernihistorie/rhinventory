@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<title>{{ content.code }}</title>
+<style>
+    @font-face {
+        font-family: "Label Sans";
+        src: url("{{ fonts.sans }}") format("truetype");
+    }
+    @font-face {
+        font-family: "Label Mono";
+        src: url("{{ fonts.mono }}") format("truetype");
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Positions are in mm on the label, matched to the labels Inkscape used to make */
+    html, body {
+        width: {{ width_mm }}mm;
+        height: {{ height_mm }}mm;
+        overflow: hidden;
+        background: white;
+        color: black;
+    }
+
+    body {
+        position: relative;
+        font-family: "Label Sans", sans-serif;
+        line-height: 1;
+    }
+
+    .mono {
+        font-family: "Label Mono", monospace;
+    }
+
+    .barcode {
+        position: absolute;
+        top: 0;
+        left: 1.43mm;
+        width: 57.18mm;
+        display: block;
+    }
+
+    /* The code the barcode encodes, under its right end */
+    .barcode-text {
+        position: absolute;
+        top: 7.31mm;
+        right: 2.81mm;
+        font-size: 2.82mm;
+        letter-spacing: -0.14mm;
+    }
+
+    .logo {
+        position: absolute;
+        object-fit: contain;
+    }
+
+    .one-line {
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    .ellipsis {
+        text-overflow: ellipsis;
+    }
+
+    {% block style %}{% endblock %}
+</style>
+</head>
+<body>
+    {{ barcode }}
+    <div class="barcode-text mono">{{ content.code }}</div>
+    {% block body %}{% endblock %}
+</body>
+</html>
