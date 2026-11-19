@@ -5,7 +5,7 @@ from PIL import Image
 
 from rhinventory.db import Asset
 from rhinventory.labels.labels import (
-    LabelContent, LabelLogo, LabelSize, asset_label_content, label_html, location_label_content,
+    LabelContent, LabelLogo, LabelSize, asset_label_content, label_html, label_variant, location_label_content,
     parse_label_variant, render_label,
 )
 from rhinventory.models.asset import AssetCategory
@@ -67,6 +67,12 @@ def test_label_html_content(size, logo, shown, hidden):
 ])
 def test_parse_label_variant(variant, expected):
     assert parse_label_variant(variant) == expected
+
+
+@pytest.mark.parametrize("size", list(LabelSize))
+@pytest.mark.parametrize("logo", list(LabelLogo))
+def test_label_variant(size, logo):
+    assert parse_label_variant(label_variant(size, logo)) == (size, logo)
 
 
 @pytest.mark.parametrize("variant", ["rh", "tiny", "ha-small", "small-", "-small", "small-small", "small-ha-ha", "SMALL"])

@@ -24,6 +24,7 @@ from sqlalchemy import nulls_last, func
 from sqlalchemy.sql.functions import coalesce
 from rhinventory.admin_views.publicize import PublicizeMixin
 from rhinventory.admin_views.selection import SelectionActionsMixin
+from rhinventory.labels.admin import LabelsMixin
 from rhinventory.admin_views.utils import visible_to_current_user
 
 from rhinventory.extensions import db
@@ -74,7 +75,7 @@ def _last_used_query_factory_factory(cls: db.Model):
         nulls_last(cls.last_used.desc())
     )
 
-class AssetView(PublicizeMixin, SelectionActionsMixin, CustomModelView):
+class AssetView(PublicizeMixin, SelectionActionsMixin, LabelsMixin, CustomModelView):
     form_overrides: dict[str, type[Field]] = {
         'condition_new': ConditionField,
         'privacy': PrivacyField

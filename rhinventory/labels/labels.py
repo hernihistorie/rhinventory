@@ -154,6 +154,16 @@ def parse_label_variant(variant: str) -> tuple[LabelSize, LabelLogo]:
     return size, logo
 
 
+def label_variant(size: LabelSize, logo: LabelLogo) -> str:
+    """How hhprint asks for a label of this size and logo, the opposite of parse_label_variant()."""
+    parts = []
+    if size != LabelSize.STANDARD:
+        parts.append(size.name.lower())
+    if logo != LabelLogo.RH:
+        parts.append(logo.value)
+    return "-".join(parts)
+
+
 def asset_label_content(asset: Asset) -> LabelContent:
     if asset.CATEGORY_EXPOSE_NUMBER:
         custom_code = f"{asset.CATEGORY_PREFIX} {asset.custom_code or '???'}"
