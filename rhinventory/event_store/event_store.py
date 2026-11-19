@@ -50,8 +50,8 @@ class EventStore():
         except msgspec.DecodeError as e:
             raise ValueError(f"Failed to decode event for namespace {namespace}: {e}\nFull event data: {event_data.decode('utf-8')}") from e
     
-    def _apply_event_to_aggregates(self, event: EVENT_CLASS_UNION, aggregate_classes: list[type[Aggregate]]) -> None:
-        for aggregate_class in registered_aggregate_classes:
+    def _apply_event_to_aggregates(self, event: EVENT_CLASS_UNION, aggregate_classes: Iterable[type[Aggregate]]) -> None:
+        for aggregate_class in aggregate_classes:
             if type(event) in aggregate_class.listen_for_event_classes:
                 filter_expr = aggregate_class.filter_from_event(event)
                 if isinstance(filter_expr, bool) and filter_expr is False:
