@@ -6,7 +6,9 @@ import typing
 import flask_login
 from sqlalchemy import Boolean, Column, Integer, Numeric, String, Text, \
     DateTime, ForeignKey, Enum, Index, inspect, event
-from sqlalchemy.orm import relationship, object_mapper, ColumnProperty
+from sqlalchemy.orm import relationship, object_mapper, ColumnProperty, RelationshipProperty
+from sqlalchemy.orm.attributes import History, get_history
+from sqlalchemy.orm.base import NO_VALUE, PASSIVE_NO_INITIALIZE, PassiveFlag
 
 from rhinventory.extensions import db
 from rhinventory.db import User
@@ -90,9 +92,47 @@ def log_data(obj: typing.Any, event: str, data: dict[typing.Any, typing.Any]) ->
     )
 
 
+def _logs_collection_changes(prop: RelationshipProperty) -> bool:
+    """Whether changes to this many-to-many collection are logged on its owner.
+
+    Of two relationships kept in sync by a backref (`Asset.tags` and
+    `AssetTag.assets`), only the one declaring the backref is logged, so each
+    change is logged once.  Changes made through the other side are still
+    logged, as SQLAlchemy mirrors them onto the declaring side.
+    """
+    if prop.secondary is None or prop.viewonly:
+        return False
+    if prop.backref is not None or prop.back_populates is None:
+        return True
+    reverse = prop.mapper.relationships[prop.back_populates]
+    if reverse.backref is not None:
+        return False
+    # Declared with back_populates on both sides, so pick one
+    return (prop.parent.class_.__name__, prop.key) < (reverse.parent.class_.__name__, reverse.key)
+
+
+def _ids(objects: typing.Iterable[typing.Any]) -> list[typing.Any]:
+    return sorted(obj.id for obj in objects)
+
+
+def _collection_history(obj: typing.Any, key: str) -> History:
+    """Changes made to a collection, without loading it.
+
+    Includes changes that reached an unloaded collection through a backref,
+    which SQLAlchemy keeps as pending mutations.
+    """
+    return get_history(obj, key, passive=PASSIVE_NO_INITIALIZE | PassiveFlag.INCLUDE_PENDING_MUTATIONS)
+
+
 @event.listens_for(db.session, 'after_flush')
 def receive_after_flush(session, flush_context):
-    """The hook for saving changes in DB."""
+    """The hook for saving changes in DB.
+
+    Logs the columns of created objects, the changed columns of updated ones,
+    and everything still loaded of deleted ones.  Many-to-many collections are
+    logged as lists of ids on create and delete, and as `{"added": [...],
+    "removed": [...]}` on update.
+    """
     for obj in session.new:
         if isinstance(obj, LogItem):  # ignore LogItem objects
             continue
@@ -103,6 +143,8 @@ def receive_after_flush(session, flush_context):
                 key = mapper_property.key
                 attribute_state = inspect(obj).attrs.get(key)
                 data[key] = attribute_state.value
+            elif isinstance(mapper_property, RelationshipProperty) and _logs_collection_changes(mapper_property):
+                data[mapper_property.key] = _ids(_collection_history(obj, mapper_property.key).added)
 
         log_data(obj, "Create", data)
 
@@ -124,11 +166,33 @@ def receive_after_flush(session, flush_context):
                 if history.has_changes():
                     value = attribute_state.value
                     changes[key] = value
+            elif isinstance(mapper_property, RelationshipProperty) and _logs_collection_changes(mapper_property):
+                history = _collection_history(obj, mapper_property.key)
+                if history.added or history.deleted:
+                    changes[mapper_property.key] = {
+                        "added": _ids(history.added),
+                        "removed": _ids(history.deleted),
+                    }
 
-        log_data(obj, "Update", changes)
+        # Objects can be dirty without any logged change, e.g. through the
+        # other side of a backref, which is logged on the declaring side.
+        if changes:
+            log_data(obj, "Update", changes)
 
     for obj in session.deleted:
         if isinstance(obj, LogItem):  # ignore LogItem objects
             continue
 
-        log_data(obj, "Delete", {})
+        # Record what's gone, including all many-to-many links, which the
+        # delete removed without them being logged anywhere else.
+        data = {}
+        for mapper_property in object_mapper(obj).iterate_properties:
+            if isinstance(mapper_property, ColumnProperty) or (
+                    isinstance(mapper_property, RelationshipProperty)
+                    and mapper_property.secondary is not None and not mapper_property.viewonly):
+                value = inspect(obj).attrs[mapper_property.key].loaded_value
+                if value is NO_VALUE:
+                    continue
+                data[mapper_property.key] = _ids(value) if isinstance(mapper_property, RelationshipProperty) else value
+
+        log_data(obj, "Delete", data)
