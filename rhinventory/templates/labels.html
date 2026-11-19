@@ -27,7 +27,7 @@
 <body>
     <div class="labels">
         {% for asset in assets %}
-            <img src="{{ url_for('label_asset', asset_id=asset.id, small=False) }}">
+            <img src="{{ url_for('label_asset', asset_id=asset.id) }}">
         {% endfor %}
     </div>
 </body>

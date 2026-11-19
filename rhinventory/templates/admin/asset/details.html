@@ -66,11 +66,11 @@
             {% if admin_view.can_edit %}
                 <div style="margin-bottom: 8px;">
                     <!--
-                        <a href="{{ url_for('label_asset', asset_id=model.id, small=False) }}" class="btn btn-light">
+                        <a href="{{ url_for('label_asset', asset_id=model.id) }}" class="btn btn-light">
                             RH label
                         </a>
                     -->
-                    <a href="{{ url_for('label_asset', asset_id=model.id, small=False, big=False) }}" class="btn btn-link">
+                    <a href="{{ url_for('label_asset', asset_id=model.id) }}" class="btn btn-link">
                         Label:
                     </a>
                     {% if current_user.organization and current_user.organization.name.lower() == "ucm" %}

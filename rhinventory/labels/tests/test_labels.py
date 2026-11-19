@@ -5,7 +5,8 @@ from PIL import Image
 
 from rhinventory.db import Asset
 from rhinventory.labels.labels import (
-    LabelContent, LabelLogo, LabelSize, asset_label_content, label_html, location_label_content, render_label,
+    LabelContent, LabelLogo, LabelSize, asset_label_content, label_html, location_label_content,
+    parse_label_variant, render_label,
 )
 from rhinventory.models.asset import AssetCategory
 from rhinventory.models.asset_attributes import Company, Medium
@@ -52,6 +53,26 @@ def test_label_html_content(size, logo, shown, hidden):
         assert text in html
     for text in hidden:
         assert text not in html
+
+
+@pytest.mark.parametrize("variant, expected", [
+    ("", (LabelSize.STANDARD, LabelLogo.RH)),
+    ("small", (LabelSize.SMALL, LabelLogo.RH)),
+    ("ha", (LabelSize.STANDARD, LabelLogo.HA)),
+    ("small-ha", (LabelSize.SMALL, LabelLogo.HA)),
+    ("ucm", (LabelSize.STANDARD, LabelLogo.UCM)),
+    ("small-ucm", (LabelSize.SMALL, LabelLogo.UCM)),
+    ("big", (LabelSize.BIG, LabelLogo.RH)),
+    ("big-ha", (LabelSize.BIG, LabelLogo.HA)),
+])
+def test_parse_label_variant(variant, expected):
+    assert parse_label_variant(variant) == expected
+
+
+@pytest.mark.parametrize("variant", ["rh", "tiny", "ha-small", "small-", "-small", "small-small", "small-ha-ha", "SMALL"])
+def test_parse_label_variant_unknown(variant):
+    with pytest.raises(ValueError):
+        parse_label_variant(variant)
 
 
 def test_asset_label_content():

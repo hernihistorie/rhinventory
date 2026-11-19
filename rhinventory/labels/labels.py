@@ -142,6 +142,23 @@ def render_label(content: LabelContent, size: LabelSize, logo: LabelLogo) -> byt
     return png
 
 
+def parse_label_variant(variant: str) -> tuple[LabelSize, LabelLogo]:
+    """The size and logo from how hhprint asks for a label, e.g. "small-ha" ("" for a standard RH label).
+
+    Raises ValueError for anything else.
+    """
+    parts = variant.split("-") if variant else []
+    size = LabelSize.STANDARD
+    if parts and parts[0] in ("small", "big"):
+        size = LabelSize[parts.pop(0).upper()]
+    logo = LabelLogo.RH
+    if parts and parts[0] in ("ha", "ucm"):
+        logo = LabelLogo(parts.pop(0))
+    if parts:
+        raise ValueError(f"Unknown label variant {variant!r}")
+    return size, logo
+
+
 def asset_label_content(asset: Asset) -> LabelContent:
     if asset.CATEGORY_EXPOSE_NUMBER:
         custom_code = f"{asset.CATEGORY_PREFIX} {asset.custom_code or '???'}"

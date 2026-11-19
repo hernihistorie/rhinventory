@@ -1,4 +1,3 @@
-import os
 import typing
 import urllib.parse
 
@@ -17,11 +16,14 @@ from werkzeug.wrappers.response import Response
 from rhinventory.event_store.event_store import EventNamespaceName, EventStore
 from rhinventory.extensions import db, admin, github, login_manager
 from rhinventory.admin import CustomIndexView, add_admin_views
-from rhinventory.db import User, Asset, Location, File, log
+from rhinventory.db import User, Asset, Location, File
 from rhinventory.admin_views.utils import visible_to_current_user
 from rhinventory.util import safe_next_path
 
-from rhinventory.labels.labels import make_barcode, make_label, make_asset_label
+from rhinventory.labels.labels import (
+    LabelContent, asset_label_content, label_html, location_label_content, make_barcode, parse_label_variant,
+    render_label,
+)
 
 from simpleeval import EvalWithCompoundTypes
 from rhinventory.models.entities import Organization
@@ -369,22 +371,27 @@ Disallow: *
                         #attachment_filename='a_file.txt',
                         mimetype='image/svg+xml')
     
+    def label_response(content: LabelContent, variant: str) -> Response:
+        """The label as a PNG, or with ?format=html, the page it's rendered from."""
+        try:
+            size, logo = parse_label_variant(variant)
+        except ValueError:
+            abort(404)
+
+        if request.args.get('format') == 'html':
+            return Response(label_html(content, size, logo), mimetype='text/html')
+        return Response(render_label(content, size, logo), mimetype='image/png')
+
+    # Variants are how hhprint asks for labels, e.g. /label/asset/3175-small-ha
     @login_required
-    @app.route('/label/asset/<int:asset_id>')
-    @app.route('/label/asset/<int:asset_id>-small', defaults={'small': True})
-    @app.route('/label/asset/<int:asset_id>-ha', defaults={'logo_ha': True})
-    @app.route('/label/asset/<int:asset_id>-small-ha', defaults={'small': True, 'logo_ha': True})
-    @app.route('/label/asset/<int:asset_id>-ucm', defaults={'logo_ucm': True})
-    @app.route('/label/asset/<int:asset_id>-big', defaults={'big': True})
-    @app.route('/label/asset/<int:asset_id>-big-ha', defaults={'big': True, 'logo_ha': True})
-    def label_asset(asset_id, small=False, logo_ha=False, big=False, logo_ucm=False):
-        asset = Asset.query.get(asset_id)
+    @app.route('/label/asset/<int:asset_id>', defaults={'variant': ''})
+    @app.route('/label/asset/<int:asset_id>-<variant>')
+    def label_asset(asset_id: int, variant: str) -> Response:
+        asset = db.session.get(Asset, asset_id)
         if not asset: abort(404)
 
-        label_filename = make_asset_label(asset, small=small, logo_ha=logo_ha, big=big, logo_ucm=logo_ucm)
+        return label_response(asset_label_content(asset), variant)
 
-        return send_file(os.path.abspath(label_filename), mimetype='image/png')
-    
     
     @login_required
     @app.route('/label/assets')
@@ -395,34 +402,12 @@ Disallow: *
         return render_template('labels.html', assets=assets)
     
     @login_required
-    @app.route('/label/asset/<int:asset_id>/print', methods=['POST'], defaults={'small': False})
-    @app.route('/label/asset/<int:asset_id>-small/print', methods=['POST'], defaults={'small': True})
-    def print_label_asset(asset_id, small=False):
-        asset = Asset.query.get(asset_id)
-        if not asset: abort(404)
-
-        label_filename = make_asset_label(asset, small=small)
-
-        exit_code = os.system(f"brother_ql -p /dev/usb/lp0 -m QL-700 print -l 62 {label_filename}")
-
-        if exit_code == 0:
-            log("Other", asset, log_object=False, action="print_label", small=small)
-            db.session.commit()
-            
-            return 'OK'
-        else:
-            return f'Error {exit_code}'
-    
-    @login_required
     @app.route('/label/location/<int:location_id>')
-    def label_location(location_id):
-        location = Location.query.get(location_id)
+    def label_location(location_id: int) -> Response:
+        location = db.session.get(Location, location_id)
         if not location: abort(404)
 
-        id = f"RHL{location_id:04}"
-        label_filename = make_label(id, "LOCATION", location.name)
-
-        return send_file(os.path.abspath(label_filename), mimetype='image/png')
+        return label_response(location_label_content(location_id, location.name), '')
     
     @app.route('/files/<int:file_id>/thumb', defaults={'thumb': True})
     @app.route('/files/<int:file_id>/thumb_<filename>', defaults={'thumb': True})
