@@ -5,6 +5,7 @@ ssh -t retroherna.org "\
     cd /var/www/rhinventory && \
     sudo -u flask git pull && \
     sudo -u flask /home/flask/.local/bin/uv sync && \
+    sudo -u flask /home/flask/.local/bin/uv run playwright install --only-shell chromium && \
     sudo -u flask /home/flask/.local/bin/uv run alembic upgrade head && \
     sudo -u flask /home/flask/.local/bin/uv run python ./scripts/rebuild_aggregates.py && \
     sudo systemctl restart www_rhinventory && \

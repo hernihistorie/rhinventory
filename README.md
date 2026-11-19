@@ -10,12 +10,15 @@ Dependencies:
 - Run:
 ```bash
     uv sync
+    uv run playwright install --only-shell chromium  # for rendering labels
     uv run python dbseed.py
     uv run alembic heads
     uv run alembic stamp <revision>
 ```
 
 Where `<revision>` is the latest Alembic revision shown from `alembic heads`.
+
+Chromium also needs some system libraries. On Debian or Ubuntu, install them with `sudo .venv/bin/playwright install-deps chromium`.
 
 The first registered user should be given admin permissions.
 
