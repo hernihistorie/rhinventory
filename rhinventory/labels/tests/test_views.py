@@ -59,11 +59,32 @@ def test_asset_label_not_found(client: FlaskClient, asset, url):
 
 
 def test_asset_label_without_login(anonymous_client: FlaskClient, label_renderer, asset):
-    # @login_required is applied after @app.route, so it doesn't apply, and hhprint may rely on that
+    # hhprint fetches labels without logging in
     response = anonymous_client.get("/label/asset/3175")
 
     assert response.status_code == 200
     assert response.mimetype == "image/png"
+
+
+def test_label_sheet(client: FlaskClient, db_session, asset):
+    db_session.add(Asset(id=3176, organization_id=1, category=AssetCategory.game, name="Tetris"))
+    db_session.add(Asset(id=3177, organization_id=1, category=AssetCategory.game, name="Not selected"))
+    db_session.commit()
+
+    response = client.get("/label/assets?asset_ids=3175,3176")
+
+    assert response.status_code == 200
+    assert '<img src="/label/asset/3175">' in response.text
+    assert '<img src="/label/asset/3176">' in response.text
+    assert "/label/asset/3177" not in response.text
+
+
+def test_barcode(client: FlaskClient):
+    response = client.get("/barcode/HH03175")
+
+    assert response.status_code == 200
+    assert response.mimetype == "image/svg+xml"
+    assert b"<svg" in response.data
 
 
 def test_location_label(client: FlaskClient, label_renderer, zbar, db_session):

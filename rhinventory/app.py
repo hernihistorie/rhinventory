@@ -1,7 +1,7 @@
 import typing
 import urllib.parse
 
-from flask import Flask, render_template, redirect, url_for, send_file, Response, abort, request, session, jsonify, g
+from flask import Flask, redirect, url_for, send_file, Response, abort, request, session, jsonify, g
 from markupsafe import Markup
 import sentry_sdk
 from flask_login import current_user, login_required, login_user, logout_user
@@ -16,23 +16,15 @@ from werkzeug.wrappers.response import Response
 from rhinventory.event_store.event_store import EventNamespaceName, EventStore
 from rhinventory.extensions import db, admin, github, login_manager
 from rhinventory.admin import CustomIndexView, add_admin_views
-from rhinventory.db import User, Asset, Location, File
+from rhinventory.db import User, File
 from rhinventory.admin_views.utils import visible_to_current_user
 from rhinventory.util import safe_next_path
 
-from rhinventory.labels.labels import (
-    LabelContent, asset_label_content, label_html, location_label_content, make_barcode, parse_label_variant,
-    render_label,
-)
-
-from simpleeval import EvalWithCompoundTypes
 from rhinventory.models.entities import Organization
 from rhinventory.models.enums import Privacy
 
 from rhinventory.models.label_printer import LabelPrinter, LabelPrinterMethod
 from rhinventory.models.user import AnynomusUser
-
-simple_eval = EvalWithCompoundTypes()
 
 add_admin_views(admin)
 
@@ -104,6 +96,8 @@ def create_app(config_object='rhinventory.config'):
     app.register_blueprint(publicize_bp)
     from rhinventory.admin_views.selection import selection_bp
     app.register_blueprint(selection_bp)
+    from rhinventory.labels.views import labels_bp
+    app.register_blueprint(labels_bp)
 
     # Supports multiple query args with the same key.
     def url_for_here(**changed_args):
@@ -361,53 +355,6 @@ Disallow: *
     def index():
         return redirect(url_for('admin.index'))
     
-    
-    @login_required
-    @app.route('/barcode/<text>')
-    def barcode_endpoint(text):
-        fp = make_barcode(text)
-        return send_file(fp,
-                        #as_attachment=True,
-                        #attachment_filename='a_file.txt',
-                        mimetype='image/svg+xml')
-    
-    def label_response(content: LabelContent, variant: str) -> Response:
-        """The label as a PNG, or with ?format=html, the page it's rendered from."""
-        try:
-            size, logo = parse_label_variant(variant)
-        except ValueError:
-            abort(404)
-
-        if request.args.get('format') == 'html':
-            return Response(label_html(content, size, logo), mimetype='text/html')
-        return Response(render_label(content, size, logo), mimetype='image/png')
-
-    # Variants are how hhprint asks for labels, e.g. /label/asset/3175-small-ha
-    @login_required
-    @app.route('/label/asset/<int:asset_id>', defaults={'variant': ''})
-    @app.route('/label/asset/<int:asset_id>-<variant>')
-    def label_asset(asset_id: int, variant: str) -> Response:
-        asset = db.session.get(Asset, asset_id)
-        if not asset: abort(404)
-
-        return label_response(asset_label_content(asset), variant)
-
-    
-    @login_required
-    @app.route('/label/assets')
-    def label_assets():
-        asset_ids = simple_eval.eval(request.args['asset_ids'])
-        assets = Asset.query.filter(Asset.id.in_(asset_ids)).all()
-
-        return render_template('labels.html', assets=assets)
-    
-    @login_required
-    @app.route('/label/location/<int:location_id>')
-    def label_location(location_id: int) -> Response:
-        location = db.session.get(Location, location_id)
-        if not location: abort(404)
-
-        return label_response(location_label_content(location_id, location.name), '')
     
     @app.route('/files/<int:file_id>/thumb', defaults={'thumb': True})
     @app.route('/files/<int:file_id>/thumb_<filename>', defaults={'thumb': True})

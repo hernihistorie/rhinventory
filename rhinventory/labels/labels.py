@@ -61,7 +61,8 @@ _LOGO_FILES: dict[LabelLogo, tuple[str, str | None]] = {
 }
 
 _jinja_env = jinja2.Environment(
-    loader=jinja2.FileSystemLoader(LABELS_DIR / "templates"),
+    # Not templates/, which is the blueprint's, so these can't be mistaken for pages
+    loader=jinja2.FileSystemLoader(LABELS_DIR / "label_templates"),
     autoescape=True,
     undefined=jinja2.StrictUndefined,
 )

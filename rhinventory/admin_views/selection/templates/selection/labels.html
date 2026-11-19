@@ -20,7 +20,7 @@
         updatePrintLinks();
 
         document.getElementById("selected-show-sheet").onclick = function() {
-            document.location.href = "{{ get_url('label_assets') }}?asset_ids=" + takeSelection().join(',');
+            document.location.href = "{{ get_url('labels.assets') }}?asset_ids=" + takeSelection().join(',');
         }
     })();
 </script>
