@@ -42,12 +42,12 @@ dependencies = [
     "stream-zip>=0.0.84",
     "openpyxl>=3.1.5",
     "psycopg2-binary>=2.9.12",
+    "playwright>=1.56.0",
 ]
 
 [dependency-groups]
 dev = [
     "mypy>=0.950",
-    "playwright>=1.56.0",
     "psycopg2-binary>=2.9.10",
 ]
 

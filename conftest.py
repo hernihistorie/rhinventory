@@ -180,6 +180,14 @@ def zbar():
     assert pyzbar is not None, "pyzbar failed to import, is the zbar library installed? (e.g. libzbar0 on Debian/Ubuntu)"
 
 
+@pytest.fixture(scope="session")
+def label_renderer():
+    """Render labels with one browser for the whole session, rather than leaving it to exit."""
+    from rhinventory.labels import render
+    yield render.render_png
+    render.close()
+
+
 @pytest.fixture()
 def test_photos_dir() -> Path:
     """Photos of assets with their barcodes visible, named by asset."""

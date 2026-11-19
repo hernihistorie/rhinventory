@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = "==3.14.*"
 
 [[package]]
@@ -1432,6 +1432,7 @@ dependencies = [
     { name = "numpy" },
     { name = "openpyxl" },
     { name = "pillow" },
+    { name = "playwright" },
     { name = "psycopg2-binary" },
     { name = "pydantic" },
     { name = "pytest" },
@@ -1451,7 +1452,6 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "mypy" },
-    { name = "playwright" },
     { name = "psycopg2-binary" },
 ]
 
@@ -1477,6 +1477,7 @@ requires-dist = [
     { name = "numpy" },
     { name = "openpyxl", specifier = ">=3.1.5" },
     { name = "pillow", specifier = ">=10.4.0" },
+    { name = "playwright", specifier = ">=1.56.0" },
     { name = "psycopg2-binary", specifier = ">=2.9.12" },
     { name = "pydantic", specifier = ">=2.8.2" },
     { name = "pytest", specifier = ">=7.1.2" },
@@ -1496,7 +1497,6 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "mypy", specifier = ">=0.950" },
-    { name = "playwright", specifier = ">=1.56.0" },
     { name = "psycopg2-binary", specifier = ">=2.9.10" },
 ]
 
