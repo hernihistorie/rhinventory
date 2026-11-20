@@ -1,8 +1,10 @@
+import datetime
 import json
 
+from rhinventory.db import User
 from rhinventory.models.asset import Asset, AssetCategory
 from rhinventory.models.asset_attributes import Packaging, Platform
-from rhinventory.models.log import LogItem
+from rhinventory.models.log import REDACTED, LogItem, log, redact_logged_secrets
 
 
 def take_logs(db_session) -> list[tuple[str, int, str, dict]]:
@@ -116,3 +118,46 @@ def test_explicit_log_isnt_followed_by_empty_update(client, db_session):
     assert len(asset_logs) == 2
     assert {"platforms": {"added": [nes.id], "removed": []}} in asset_logs
     assert all(data for _, _, _, data in logs)
+
+
+def test_secret_columns_are_redacted(db_session):
+    take_logs(db_session)
+    user = User(username="secretive", github_access_token="gho_created")
+    db_session.add(user)
+    db_session.commit()
+    user.github_access_token = "gho_updated"
+    db_session.commit()
+    log("Update", user)
+    db_session.commit()
+
+    tokens = [data["github_access_token"] for table, _, _, data in take_logs(db_session) if table == "User"]
+    assert tokens and all(token == REDACTED for token in tokens)
+
+
+def test_redact_logged_secrets_rewrites_old_logs(db_session):
+    take_logs(db_session)
+    now = datetime.datetime.now()
+    contents = [
+        ("User", {"id": 5, "github_login": "someone", "github_access_token": "gho_old"}),
+        ("User", {"id": 6, "github_access_token": None}),
+        ("Asset", {"id": 7, "github_access_token": "not a secret of Asset"}),
+        ("User", None),
+    ]
+    db_session.add_all([
+        LogItem(table=table, object_id=1, event="Update", datetime=now,
+                object_json=json.dumps(data) if data is not None else None)
+        for table, data in contents
+    ])
+    db_session.commit()
+
+    assert redact_logged_secrets(db_session) == 1
+    db_session.commit()
+    assert redact_logged_secrets(db_session) == 0
+
+    logged = [item.object_json for item in db_session.query(LogItem).order_by(LogItem.id)]
+    assert [json.loads(data) if data else None for data in logged] == [
+        {"id": 5, "github_login": "someone", "github_access_token": REDACTED},
+        {"id": 6, "github_access_token": None},
+        {"id": 7, "github_access_token": "not a secret of Asset"},
+        None,
+    ]

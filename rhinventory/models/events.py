@@ -11,6 +11,7 @@ from rhinventory.extensions import db
 
 class PushKey(db.Model):
     __tablename__ = 'push_keys'
+    rhinventory_log_redact = frozenset({"key"})
 
     id: Mapped[int] = mapped_column(primary_key=True)
     key: Mapped[str] = mapped_column(index=True)

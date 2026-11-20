@@ -16,6 +16,13 @@ from rhinventory.models.events import DBEvent
 
 LogEvent = enum.Enum('LogEvent', ["Create", "Update", "Delete", "Other"])
 
+REDACTED = "[redacted]"
+"""Logged in place of the value of a secret column.
+
+Models list their secret columns in `rhinventory_log_redact`.  The log still
+records that the column was set or changed, only not to what.
+"""
+
 class LogItem(db.Model):
     __tablename__ = 'logs'
     id          = Column(Integer, primary_key=True)
@@ -42,12 +49,44 @@ class LogItem(db.Model):
         assert issubclass(class_, db.Model)
         return class_.query.get(self.object_id)
 
+def _redacted(model: type, data: dict[str, typing.Any]) -> dict[str, typing.Any]:
+    """`data` logged for an object of `model`, with its secret columns redacted."""
+    secret = getattr(model, "rhinventory_log_redact", frozenset())
+    return {
+        key: REDACTED if key in secret and value is not None else value
+        for key, value in data.items()
+    }
+
+
+def redact_logged_secrets(session: typing.Any) -> int:
+    """Redact secrets in logs written before their columns were redacted.
+
+    Returns the number of log items changed; the caller commits.
+    """
+    changed = 0
+    for mapper in db.Model.registry.mappers:
+        model = mapper.class_
+        if not getattr(model, "rhinventory_log_redact", None):
+            continue
+        log_items = session.query(LogItem).filter(
+            LogItem.table == model.__name__,
+            LogItem.object_json.isnot(None),
+        )
+        for log_item in log_items:
+            data = json.loads(log_item.object_json)
+            redacted = _redacted(model, data)
+            if redacted != data:
+                log_item.object_json = json.dumps(redacted, ensure_ascii=False)
+                changed += 1
+    return changed
+
+
 def log(event: LogEvent, object: typing.Any, log_object=True, user: User | None=None, **kwargs) -> None:
     log_item = LogItem(
         table=type(object).__name__,
         object_id=object.id,
         event=event,
-        object_json=json.dumps(object.asdict(), default=repr, ensure_ascii=False) if log_object else None,
+        object_json=json.dumps(_redacted(type(object), object.asdict()), default=repr, ensure_ascii=False) if log_object else None,
         user_id=user.id if user else None,
         datetime=datetime.datetime.now(),
         extra_json=json.dumps(kwargs, ensure_ascii=False)
@@ -81,7 +120,7 @@ def log_data(obj: typing.Any, event: str, data: dict[typing.Any, typing.Any]) ->
             object_id=obj.id,
             event=event,
             object_json=json.dumps(
-                data,
+                _redacted(type(obj), data),
                 default=repr,
                 ensure_ascii=False),
             object_json_new_format=True,
