@@ -5,7 +5,7 @@ import typing
 
 import flask_login
 from sqlalchemy import Boolean, Column, Integer, Numeric, String, Text, \
-    DateTime, ForeignKey, Enum, Index, inspect, event
+    DateTime, ForeignKey, Enum, Index, Uuid, inspect, event
 from sqlalchemy.orm import relationship, object_mapper, ColumnProperty, RelationshipProperty
 from sqlalchemy.orm.attributes import History, get_history
 from sqlalchemy.orm.base import NO_VALUE, PASSIVE_NO_INITIALIZE, PassiveFlag
@@ -13,15 +13,13 @@ from sqlalchemy.orm.base import NO_VALUE, PASSIVE_NO_INITIALIZE, PassiveFlag
 from rhinventory.extensions import db
 from rhinventory.db import User
 from rhinventory.models.events import DBEvent
+from rhinventory.models.log_transaction import REDACTED, LogTransaction, current_log_transaction
 
 LogEvent = enum.Enum('LogEvent', ["Create", "Update", "Delete", "Other"])
 
-REDACTED = "[redacted]"
-"""Logged in place of the value of a secret column.
-
-Models list their secret columns in `rhinventory_log_redact`.  The log still
-records that the column was set or changed, only not to what.
-"""
+# Models list their secret columns in `rhinventory_log_redact`, which are
+# logged as REDACTED.  The log still records that the column was set or
+# changed, only not to what.
 
 class LogItem(db.Model):
     __tablename__ = 'logs'
@@ -39,7 +37,11 @@ class LogItem(db.Model):
     user        = relationship(User)
     
     datetime    = Column(DateTime, nullable=False)
-    
+
+    # Null for logs written before transactions were recorded
+    transaction_id = Column(Uuid, ForeignKey('log_transactions.id'), index=True)
+    transaction = relationship(LogTransaction)
+
     idx_obj     = Index('table', 'object_id', unique=True)
     
     @property
@@ -89,7 +91,8 @@ def log(event: LogEvent, object: typing.Any, log_object=True, user: User | None=
         object_json=json.dumps(_redacted(type(object), object.asdict()), default=repr, ensure_ascii=False) if log_object else None,
         user_id=user.id if user else None,
         datetime=datetime.datetime.now(),
-        extra_json=json.dumps(kwargs, ensure_ascii=False)
+        extra_json=json.dumps(kwargs, ensure_ascii=False),
+        transaction=current_log_transaction(db.session),
     )
     db.session.add(log_item)
 
@@ -126,7 +129,8 @@ def log_data(obj: typing.Any, event: str, data: dict[typing.Any, typing.Any]) ->
             object_json_new_format=True,
             user_id=user_id,
             datetime=datetime.datetime.now(),
-            extra_json="{}"
+            extra_json="{}",
+            transaction=current_log_transaction(db.session),
         )
     )
 

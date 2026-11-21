@@ -53,6 +53,7 @@ def test_push_is_stored(client, db_session, push_key):
     assert (status, body) == (200, {"status": "success", "ingested": 2, "duplicates": 0})
     assert stored_test_data(db_session) == ["a", "b"]
     assert uses_remaining(db_session, push_key) == 0
+    assert {event.log_transaction.endpoint for event in db_session.query(DBEvent)} == {"event_store.ingest_event"}
 
 
 def test_failed_push_stores_nothing_and_can_be_retried(client, db_session, push_key):

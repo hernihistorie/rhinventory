@@ -16,6 +16,7 @@ from rhinventory.db import db
 from rhinventory.events.events import RHINVENTORY_EVENT_CLASS_UNION, event_decoder as rhinventory_event_decoder
 from rhinventory.models.aggregates.aggregate import Aggregate, registered_aggregate_classes
 from rhinventory.models.events import DBEvent, EventSession, datetime
+from rhinventory.models.log_transaction import current_log_transaction
 
 class EventNamespaceName(Enum):
     RHINVENTORY = "rhinventory"
@@ -128,7 +129,8 @@ class EventStore():
         # encoded by msgspec but SQLAlchemy needs a dict
         data = json.loads(msgspec.json.encode(event))
 
-        db.session.flush()  # so a new event session has an id
+        log_transaction = current_log_transaction(db.session)
+        db.session.flush()  # so a new event session and the log transaction have ids
         # Note: We are trusting the event ID from the client here.
         # Inserting with ON CONFLICT keeps concurrent pushes of the same event safe.
         inserted = db.session.execute(
@@ -139,6 +141,7 @@ class EventStore():
                 timestamp=event.event_timestamp,
                 ingested_at=datetime.now(),
                 event_session_id=event_session.id,
+                log_transaction_id=log_transaction.id,
                 data=data,
             ).on_conflict_do_nothing(index_elements=["id"]).returning(DBEvent.__table__.c.id)
         ).first()
