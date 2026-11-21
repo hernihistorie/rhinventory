@@ -69,7 +69,7 @@ If there are database migrations: run the script `./ops/deploy_with_migration.sh
 herniarchiv.cz (haweb) shows public rhinventory pages under `/inventory/`, by loading them in an iframe through its own proxy.  The proxy sends these request headers:
 
 - `X-Forwarded-Prefix: /inventory/_frame` – path the proxy serves rhinventory at.  All URLs must therefore be built with `url_for` (or the `site_url` filter for root-relative URLs from elsewhere, such as the database).
-- `X-Haweb-Embed: 1` – embed mode: no header, staff-only tools hidden, `noindex, indexifembedded`, and `static/embed.css` and `static/embed.js` are loaded (see `admin/master.html`).
+- `X-Haweb-Embed: 1` – embed mode: no header or menu (haweb shows its own), staff-only tools hidden, `noindex, indexifembedded`, and `static/embed.css` and `static/embed.js` are loaded (see `admin/master.html`).
 - `X-Haweb-Theme: light|dark` – the visitor's theme on.  Without it, the system preference applies.
 
 To try it locally:
