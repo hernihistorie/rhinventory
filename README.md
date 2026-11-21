@@ -80,6 +80,12 @@ curl -H 'X-Forwarded-Prefix: /inventory/_frame' -H 'X-Haweb-Embed: 1' http://127
 
 When `HAWEB_INVENTORY_URL` is set (`https://herniarchiv.cz/inventory` in production), visitors who aren't logged in are redirected from rhinventory's pages to the same page on herniarchiv.cz.  Its "Log in" link leads to `/login/github?next=<path>`, which returns them to the page in rhinventory.  Files, JSON and other responses that aren't pages are not redirected.
 
+## Serving files
+
+`/files/<id>/...` checks that the visitor may see the file, and then sends it.  Sending a large file from Flask ties up a gunicorn thread for the whole download, so in production nginx sends it instead: rhinventory returns an empty response with an `X-Accel-Redirect: /_files/<store>/<path>` header, and nginx serves that from an `internal` location for the store (`files/rhbox/sites-hh/rhinventory.retroherna.org.nginx.conf` in the infra repo).
+
+`X_ACCEL_REDIRECT_LOCATIONS` lists which stores nginx serves, e.g. `local=/_files/local/,coruscant=/_files/coruscant/`.  Only list a store once nginx (user `www-data`) can read its files, or downloads from it will fail with 404 or 403.  Files in stores that aren't listed are sent by Flask, as is everything when the setting is empty (the default, and the way to run without nginx).
+
 ## How to run scripts
 
 `PYTHONPATH=. python scripts/script.py`

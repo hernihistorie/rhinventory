@@ -95,6 +95,7 @@ class TestAppConfig:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEFAULT_FILE_STORE = "local"
     FILE_STORE_LOCATIONS = {"local": "files", "local_nas": "files2"}
+    X_ACCEL_REDIRECT_LOCATIONS: dict[str, str] = {}
 
 
 @pytest.fixture()

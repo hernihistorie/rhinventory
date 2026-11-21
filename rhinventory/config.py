@@ -26,6 +26,13 @@ FILE_STORE_LOCATIONS: dict[str, str | None] = {
 DEFAULT_FILE_STORE: str = env.str('DEFAULT_FILE_STORE', default='local')
 assert DEFAULT_FILE_STORE in FILE_STORE_LOCATIONS, f"Invalid DEFAULT_FILE_STORE: {DEFAULT_FILE_STORE}"
 
+# File stores nginx serves itself, mapped to the internal location it serves each one at,
+# e.g. `local=/_files/local/,coruscant=/_files/coruscant/` (see "Serving files" in README.md).
+# Files in other stores are sent by Flask.
+X_ACCEL_REDIRECT_LOCATIONS: dict[str, str] = env.dict('X_ACCEL_REDIRECT_LOCATIONS', default={})
+for _store in X_ACCEL_REDIRECT_LOCATIONS:
+    assert _store in FILE_STORE_LOCATIONS, f"Invalid file store in X_ACCEL_REDIRECT_LOCATIONS: {_store}"
+
 DROPZONE_PATH: str = env.str('DROPZONE_PATH', default='dropzone')
 
 MULTIPROCESSING_ENABLED: bool = env.bool("MULTIPROCESSING_ENABLED")

@@ -1,7 +1,8 @@
+import mimetypes
 import typing
 import urllib.parse
 
-from flask import Flask, redirect, url_for, send_file, Response, abort, request, session, jsonify, g
+from flask import Flask, current_app, redirect, url_for, send_file, Response, abort, request, session, jsonify, g
 from markupsafe import Markup
 import sentry_sdk
 from flask_login import current_user, login_required, login_user, logout_user
@@ -27,6 +28,30 @@ from rhinventory.models.label_printer import LabelPrinter, LabelPrinterMethod
 from rhinventory.models.user import AnynomusUser
 
 add_admin_views(admin)
+
+
+def send_stored_file(file: File, path: str, full_path: str, etag: str | bool) -> Response:
+    """Send `path` from `file`'s store, through nginx if it serves that store.
+
+    Sending a large file through Flask ties up a gunicorn thread for the whole download.
+    nginx instead gets an empty response with an `X-Accel-Redirect` header, and serves
+    the file from an internal location itself, including range requests and conditional
+    requests with its own `ETag` and `Last-Modified`.
+    """
+    location = current_app.config['X_ACCEL_REDIRECT_LOCATIONS'].get(file.storage.value)
+    if location is None:
+        return send_file(full_path, etag=etag)
+
+    # nginx passes Content-Type and Cache-Control on, but would otherwise
+    # guess the type itself, so set them the same as send_file does
+    mimetype, encoding = mimetypes.guess_type(path)
+    response = Response(mimetype=mimetype or 'application/octet-stream')
+    if encoding is not None:
+        response.headers['Content-Encoding'] = encoding
+    response.cache_control.no_cache = True
+    # nginx decodes the URI, so file names can contain characters such as '?' and '%'
+    response.headers['X-Accel-Redirect'] = location.rstrip('/') + '/' + urllib.parse.quote(path)
+    return response
 
 def create_app(config_object='rhinventory.config'):
     if isinstance(config_object, str):
@@ -378,8 +403,8 @@ Disallow: *
                 abort(404)
             if file.md5:
                 etag = f'{etag}-thumb'
-            return send_file(file.full_filepath_thumbnail, etag=etag)
-        return send_file(file.full_filepath, etag=etag)
+            return send_stored_file(file, file.filepath_thumbnail, file.full_filepath_thumbnail, etag)
+        return send_stored_file(file, file.filepath, file.full_filepath, etag)
         
     @app.route('/admin/<path:path>')
     def admin_redirect(path: str):
