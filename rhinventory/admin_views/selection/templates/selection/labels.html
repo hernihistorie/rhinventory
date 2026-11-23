@@ -19,8 +19,16 @@
         document.addEventListener('assetselectionchange', updatePrintLinks);
         updatePrintLinks();
 
+        /* ?print=1 (from "Save and Print Label" on bulk create) prints the selection's labels */
+        var url = new URL(window.location.href);
+        if (url.searchParams.get('print') === '1') {
+            url.searchParams.delete('print');
+            window.history.replaceState({}, "", url);
+            document.getElementById("selected-print-labels").click();
+        }
+
         document.getElementById("selected-show-sheet").onclick = function() {
-            document.location.href = "{{ get_url('label_assets') }}?asset_ids=" + takeSelection().join(',');
+            document.location.href = "{{ get_url('labels.assets') }}?asset_ids=" + takeSelection().join(',');
         }
     })();
 </script>

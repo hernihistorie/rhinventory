@@ -17,11 +17,12 @@ from flask import Blueprint
 from rhinventory.admin_views.selection.files import BulkFileDownloadMixin
 from rhinventory.admin_views.selection.location import SetLocationMixin
 from rhinventory.admin_views.selection.parent import SetParentMixin
+from rhinventory.admin_views.selection.platform import AddPlatformMixin
 from rhinventory.admin_views.selection.tag import AddTagMixin
 
 # Only makes this directory's templates available.  The routes stay on AssetView.
 selection_bp = Blueprint('selection', __name__, template_folder='templates')
 
 
-class SelectionActionsMixin(BulkFileDownloadMixin, SetParentMixin, SetLocationMixin, AddTagMixin):
+class SelectionActionsMixin(BulkFileDownloadMixin, SetParentMixin, SetLocationMixin, AddTagMixin, AddPlatformMixin):
     pass

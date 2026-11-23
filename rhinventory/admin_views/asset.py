@@ -24,6 +24,7 @@ from sqlalchemy import nulls_last, func
 from sqlalchemy.sql.functions import coalesce
 from rhinventory.admin_views.publicize import PublicizeMixin
 from rhinventory.admin_views.selection import SelectionActionsMixin
+from rhinventory.labels.admin import LabelsMixin
 from rhinventory.admin_views.utils import visible_to_current_user
 
 from rhinventory.extensions import db
@@ -74,7 +75,7 @@ def _last_used_query_factory_factory(cls: db.Model):
         nulls_last(cls.last_used.desc())
     )
 
-class AssetView(PublicizeMixin, SelectionActionsMixin, CustomModelView):
+class AssetView(PublicizeMixin, SelectionActionsMixin, LabelsMixin, CustomModelView):
     form_overrides: dict[str, type[Field]] = {
         'condition_new': ConditionField,
         'privacy': PrivacyField
@@ -90,6 +91,7 @@ class AssetView(PublicizeMixin, SelectionActionsMixin, CustomModelView):
         'companies',
 #        'location',
         'hardware_type',
+        'platforms',
         'mediums',
         'packaging',
         'model',
@@ -111,7 +113,8 @@ class AssetView(PublicizeMixin, SelectionActionsMixin, CustomModelView):
     
     form_columns_categories: dict[str, Union[AssetCategory, Iterable[AssetCategory]]] = {
         'hardware_type': AssetCategory.computer_component,
-        'mediums': [AssetCategory.game, AssetCategory.software, AssetCategory.multimedia,
+        'platforms': PRODUCT_ASSET_CATEGORIES,
+        'mediums':[AssetCategory.game, AssetCategory.software, AssetCategory.multimedia,
             AssetCategory.rewritable_media],
         'model': PRODUCT_ASSET_CATEGORIES,
         'product_codes': PRODUCT_ASSET_CATEGORIES,
@@ -170,7 +173,10 @@ class AssetView(PublicizeMixin, SelectionActionsMixin, CustomModelView):
         'manufacturer',
         'note',
         'parent.id',
-        'privacy'
+        'privacy',
+        # Filters are addressed by index in URLs (e.g. flt1_45 for tags), so
+        # new ones go at the end.
+        'platforms.name',
     ]
     column_searchable_list = [
         'id',
@@ -804,8 +810,11 @@ class AssetView(PublicizeMixin, SelectionActionsMixin, CustomModelView):
                 models.append(self.create_model(form))
             if models:
                 flash(f'{len(models)} records was successfully created.', 'success')
+                # print=1 makes the list's labels pane send the selection to hhprint
+                print_labels = 1 if '_save_and_print' in request.form else None
                 return redirect(
-                    self.get_url(endpoint='.index_view', selected=",".join(str(m.id) for m in models))
+                    self.get_url(endpoint='.index_view', selected=",".join(str(m.id) for m in models),
+                                 print=print_labels)
                 )
 
         form_opts = FormOpts(widget_args=self.form_widget_args,

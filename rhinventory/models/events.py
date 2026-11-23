@@ -7,10 +7,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from rhinventory.db import User
 from rhinventory.extensions import db
+from rhinventory.models.log_transaction import LogTransaction
 
 
 class PushKey(db.Model):
     __tablename__ = 'push_keys'
+    rhinventory_log_redact = frozenset({"key"})
 
     id: Mapped[int] = mapped_column(primary_key=True)
     key: Mapped[str] = mapped_column(index=True)
@@ -50,6 +52,8 @@ class DBEvent(db.Model):
     timestamp: Mapped[datetime] = mapped_column()
     ingested_at: Mapped[datetime] = mapped_column()
     event_session_id: Mapped[int] = mapped_column(ForeignKey('event_sessions.id'))
+    # Null for events ingested before transactions were recorded
+    log_transaction_id: Mapped[UUID | None] = mapped_column(ForeignKey('log_transactions.id'), index=True)
 
     data: Mapped[dict[Any, Any]] = mapped_column(JSONB)
 
@@ -57,3 +61,4 @@ class DBEvent(db.Model):
     # name = index_property("data", "name")
 
     event_session: Mapped[EventSession] = relationship()
+    log_transaction: Mapped["LogTransaction | None"] = relationship()

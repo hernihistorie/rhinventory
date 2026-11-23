@@ -8,7 +8,8 @@ from rhinventory.models.label_printer import LabelPrinter
 
 class User(db.Model):
     __tablename__ = 'users'
-    
+    rhinventory_log_redact = frozenset({"github_access_token"})
+
     id = Column(Integer, primary_key=True)
     username = Column(String(255))
     read_access = Column(Boolean(), nullable=False, default=False)

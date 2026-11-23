@@ -95,6 +95,7 @@ class TestAppConfig:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEFAULT_FILE_STORE = "local"
     FILE_STORE_LOCATIONS = {"local": "files", "local_nas": "files2"}
+    X_ACCEL_REDIRECT_LOCATIONS: dict[str, str] = {}
 
 
 @pytest.fixture()
@@ -178,6 +179,14 @@ def read_only_user(app, db_session):
 def zbar():
     """Barcode detection silently does nothing without zbar, so fail loudly instead."""
     assert pyzbar is not None, "pyzbar failed to import, is the zbar library installed? (e.g. libzbar0 on Debian/Ubuntu)"
+
+
+@pytest.fixture(scope="session")
+def label_renderer():
+    """Render labels with one browser for the whole session, rather than leaving it to exit."""
+    from rhinventory.labels import render
+    yield render.render_png
+    render.close()
 
 
 @pytest.fixture()

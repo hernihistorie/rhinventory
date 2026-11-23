@@ -1,8 +1,8 @@
-import os
+import mimetypes
 import typing
 import urllib.parse
 
-from flask import Flask, render_template, redirect, url_for, send_file, Response, abort, request, session, jsonify, g
+from flask import Flask, current_app, redirect, url_for, send_file, Response, abort, request, session, jsonify, g
 from markupsafe import Markup
 import sentry_sdk
 from flask_login import current_user, login_required, login_user, logout_user
@@ -17,22 +17,41 @@ from werkzeug.wrappers.response import Response
 from rhinventory.event_store.event_store import EventNamespaceName, EventStore
 from rhinventory.extensions import db, admin, github, login_manager
 from rhinventory.admin import CustomIndexView, add_admin_views
-from rhinventory.db import User, Asset, Location, File, log
+from rhinventory.db import User, File
 from rhinventory.admin_views.utils import visible_to_current_user
 from rhinventory.util import safe_next_path
 
-from rhinventory.labels.labels import make_barcode, make_label, make_asset_label
-
-from simpleeval import EvalWithCompoundTypes
 from rhinventory.models.entities import Organization
 from rhinventory.models.enums import Privacy
 
 from rhinventory.models.label_printer import LabelPrinter, LabelPrinterMethod
 from rhinventory.models.user import AnynomusUser
 
-simple_eval = EvalWithCompoundTypes()
-
 add_admin_views(admin)
+
+
+def send_stored_file(file: File, path: str, full_path: str, etag: str | bool) -> Response:
+    """Send `path` from `file`'s store, through nginx if it serves that store.
+
+    Sending a large file through Flask ties up a gunicorn thread for the whole download.
+    nginx instead gets an empty response with an `X-Accel-Redirect` header, and serves
+    the file from an internal location itself, including range requests and conditional
+    requests with its own `ETag` and `Last-Modified`.
+    """
+    location = current_app.config['X_ACCEL_REDIRECT_LOCATIONS'].get(file.storage.value)
+    if location is None:
+        return send_file(full_path, etag=etag)
+
+    # nginx passes Content-Type and Cache-Control on, but would otherwise
+    # guess the type itself, so set them the same as send_file does
+    mimetype, encoding = mimetypes.guess_type(path)
+    response = Response(mimetype=mimetype or 'application/octet-stream')
+    if encoding is not None:
+        response.headers['Content-Encoding'] = encoding
+    response.cache_control.no_cache = True
+    # nginx decodes the URI, so file names can contain characters such as '?' and '%'
+    response.headers['X-Accel-Redirect'] = location.rstrip('/') + '/' + urllib.parse.quote(path)
+    return response
 
 def create_app(config_object='rhinventory.config'):
     if isinstance(config_object, str):
@@ -102,6 +121,8 @@ def create_app(config_object='rhinventory.config'):
     app.register_blueprint(publicize_bp)
     from rhinventory.admin_views.selection import selection_bp
     app.register_blueprint(selection_bp)
+    from rhinventory.labels.views import labels_bp
+    app.register_blueprint(labels_bp)
 
     # Supports multiple query args with the same key.
     def url_for_here(**changed_args):
@@ -360,70 +381,6 @@ Disallow: *
         return redirect(url_for('admin.index'))
     
     
-    @login_required
-    @app.route('/barcode/<text>')
-    def barcode_endpoint(text):
-        fp = make_barcode(text)
-        return send_file(fp,
-                        #as_attachment=True,
-                        #attachment_filename='a_file.txt',
-                        mimetype='image/svg+xml')
-    
-    @login_required
-    @app.route('/label/asset/<int:asset_id>')
-    @app.route('/label/asset/<int:asset_id>-small', defaults={'small': True})
-    @app.route('/label/asset/<int:asset_id>-ha', defaults={'logo_ha': True})
-    @app.route('/label/asset/<int:asset_id>-small-ha', defaults={'small': True, 'logo_ha': True})
-    @app.route('/label/asset/<int:asset_id>-ucm', defaults={'logo_ucm': True})
-    @app.route('/label/asset/<int:asset_id>-big', defaults={'big': True})
-    @app.route('/label/asset/<int:asset_id>-big-ha', defaults={'big': True, 'logo_ha': True})
-    def label_asset(asset_id, small=False, logo_ha=False, big=False, logo_ucm=False):
-        asset = Asset.query.get(asset_id)
-        if not asset: abort(404)
-
-        label_filename = make_asset_label(asset, small=small, logo_ha=logo_ha, big=big, logo_ucm=logo_ucm)
-
-        return send_file(os.path.abspath(label_filename), mimetype='image/png')
-    
-    
-    @login_required
-    @app.route('/label/assets')
-    def label_assets():
-        asset_ids = simple_eval.eval(request.args['asset_ids'])
-        assets = Asset.query.filter(Asset.id.in_(asset_ids)).all()
-
-        return render_template('labels.html', assets=assets)
-    
-    @login_required
-    @app.route('/label/asset/<int:asset_id>/print', methods=['POST'], defaults={'small': False})
-    @app.route('/label/asset/<int:asset_id>-small/print', methods=['POST'], defaults={'small': True})
-    def print_label_asset(asset_id, small=False):
-        asset = Asset.query.get(asset_id)
-        if not asset: abort(404)
-
-        label_filename = make_asset_label(asset, small=small)
-
-        exit_code = os.system(f"brother_ql -p /dev/usb/lp0 -m QL-700 print -l 62 {label_filename}")
-
-        if exit_code == 0:
-            log("Other", asset, log_object=False, action="print_label", small=small)
-            db.session.commit()
-            
-            return 'OK'
-        else:
-            return f'Error {exit_code}'
-    
-    @login_required
-    @app.route('/label/location/<int:location_id>')
-    def label_location(location_id):
-        location = Location.query.get(location_id)
-        if not location: abort(404)
-
-        id = f"RHL{location_id:04}"
-        label_filename = make_label(id, "LOCATION", location.name)
-
-        return send_file(os.path.abspath(label_filename), mimetype='image/png')
-    
     @app.route('/files/<int:file_id>/thumb', defaults={'thumb': True})
     @app.route('/files/<int:file_id>/thumb_<filename>', defaults={'thumb': True})
     @app.route('/files/<int:file_id>', defaults={'thumb': False})
@@ -446,8 +403,8 @@ Disallow: *
                 abort(404)
             if file.md5:
                 etag = f'{etag}-thumb'
-            return send_file(file.full_filepath_thumbnail, etag=etag)
-        return send_file(file.full_filepath, etag=etag)
+            return send_stored_file(file, file.filepath_thumbnail, file.full_filepath_thumbnail, etag)
+        return send_stored_file(file, file.filepath, file.full_filepath, etag)
         
     @app.route('/admin/<path:path>')
     def admin_redirect(path: str):

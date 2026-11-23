@@ -1,0 +1,64 @@
+{#- 62×28mm, with the logo on the left and the asset's details on the right -#}
+{% extends "_base.html" %}
+
+{% block style %}
+    .barcode {
+        height: 6.68mm;
+    }
+
+    .logo {
+        top: 7.2mm;
+        left: 1.16mm;
+        width: 17.4mm;
+        height: 20.4mm;
+    }
+
+    .custom-code {
+        position: absolute;
+        top: 7.17mm;
+        left: 20.15mm;
+        /* Clear of the barcode's text */
+        right: 15mm;
+        font-size: 3.53mm;
+    }
+
+    .medium {
+        font-family: "Label Sans", sans-serif;
+        font-size: 1.59mm;
+    }
+
+    .details {
+        position: absolute;
+        top: 10.82mm;
+        left: 19.69mm;
+        right: 1.67mm;
+        bottom: 0;
+        overflow: hidden;
+    }
+
+    .name {
+        font-size: 4.63mm;
+        line-height: 4.45mm;
+        letter-spacing: -0.21mm;
+        overflow-wrap: anywhere;
+    }
+
+    .subtitle {
+        margin-top: 0.1mm;
+        font-size: 2.65mm;
+        letter-spacing: -0.1mm;
+    }
+{% endblock %}
+
+{% block body %}
+    <img class="logo" src="{{ logo }}" alt="">
+    <div class="custom-code mono one-line">
+        {{- content.custom_code }} <span class="medium">{{ content.medium }}</span>
+    </div>
+    <div class="details">
+        <div class="name">{{ content.name }}</div>
+        {% if content.subtitle %}
+            <div class="subtitle">{{ content.subtitle }}</div>
+        {% endif %}
+    </div>
+{% endblock %}

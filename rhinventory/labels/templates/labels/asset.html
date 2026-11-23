@@ -1,0 +1,74 @@
+{% extends 'admin/model/details.html' %}
+
+{% from '_macros.html' import icon %}
+{% from 'admin/asset/_macros.html' import render_asset_code %}
+
+{% block title -%}
+    Labels – HH{{ model.id }} {{ model.name }}
+{%- endblock %}
+
+{% block body %}
+    <style>
+        /* Every label is printed on the same 62mm tape, so they're shown at the same width,
+           which keeps them to scale with each other */
+        .label-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 280px));
+            gap: 12px 24px;
+            align-items: start;
+            margin-bottom: 24px;
+        }
+
+        .label-grid h3 {
+            grid-column: 1 / -1;
+            margin: 12px 0 0;
+        }
+
+        .label-option {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: flex-start;
+        }
+
+        .label-option img {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            background: white;
+        }
+
+        .label-option-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+    </style>
+
+    <a href="{{ get_url('.details_view', id=model.id) }}">{{ icon('arrow-left') }} Back to the asset</a>
+    <h2><small>{{ render_asset_code(model) }}</small> {{ model.name }}</h2>
+
+    <div class="label-grid">
+        {% for size, size_name in size_names.items() %}
+            <h3>{{ size_name }}</h3>
+            {% for logo, logo_name in logo_names.items() %}
+                {% set variant = variants[size, logo] %}
+                {% set code = model.id ~ ('-' ~ variant if variant else '') %}
+                <div class="label-option" id="label-{{ variant or 'standard' }}">
+                    <div class="label-option-header">
+                        <strong>{{ logo_name }}</strong>
+                        <a href="{{ hhprint_url(code) }}" class="btn btn-primary btn-small">
+                            {{ icon('print') }} Print
+                        </a>
+                    </div>
+                    <a href="{{ url_for('labels.asset', asset_id=model.id, variant=variant) }}">
+                        <img src="{{ url_for('labels.asset', asset_id=model.id, variant=variant) }}"
+                             alt="{{ size_name }} {{ logo_name }} label" loading="lazy">
+                    </a>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+{% endblock %}

@@ -66,11 +66,11 @@
             {% if admin_view.can_edit %}
                 <div style="margin-bottom: 8px;">
                     <!--
-                        <a href="{{ url_for('label_asset', asset_id=model.id, small=False) }}" class="btn btn-light">
+                        <a href="{{ url_for('labels.asset', asset_id=model.id) }}" class="btn btn-light">
                             RH label
                         </a>
                     -->
-                    <a href="{{ url_for('label_asset', asset_id=model.id, small=False, big=False) }}" class="btn btn-link">
+                    <a href="{{ get_url('.labels_view', id=model.id) }}" class="btn btn-link">
                         Label:
                     </a>
                     {% if current_user.organization and current_user.organization.name.lower() == "ucm" %}
@@ -153,6 +153,7 @@
                             </a>{% if not loop.last %},{% endif %}
                     {% endfor %}</td></tr>
                 {% endif %}
+                {{ row('platforms') }}
                 {{ row('mediums') }}
                 {{ row('packaging') }}
                 {{ row('hardware_type') }}

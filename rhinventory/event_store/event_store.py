@@ -2,7 +2,10 @@ from contextlib import contextmanager
 from enum import Enum
 import json
 from typing import Iterable, Iterator
+from uuid import UUID
 import msgspec
+from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from tqdm import tqdm
 
 from flask_login import current_user
@@ -13,6 +16,7 @@ from rhinventory.db import db
 from rhinventory.events.events import RHINVENTORY_EVENT_CLASS_UNION, event_decoder as rhinventory_event_decoder
 from rhinventory.models.aggregates.aggregate import Aggregate, registered_aggregate_classes
 from rhinventory.models.events import DBEvent, EventSession, datetime
+from rhinventory.models.log_transaction import current_log_transaction
 
 class EventNamespaceName(Enum):
     RHINVENTORY = "rhinventory"
@@ -25,6 +29,12 @@ supported_event_version = HHFLOPPY_EVENT_VERSION
 
 class UnsupportedEventVersion(Exception):
     pass
+
+class ConflictingEvent(Exception):
+    """An event with this id is already stored, with a different payload."""
+    def __init__(self, event_id: UUID) -> None:
+        super().__init__(f"Event {event_id} is already stored with a different payload")
+        self.event_id = event_id
 
 class EventStore():
     def __init__(self) -> None:
@@ -50,8 +60,8 @@ class EventStore():
         except msgspec.DecodeError as e:
             raise ValueError(f"Failed to decode event for namespace {namespace}: {e}\nFull event data: {event_data.decode('utf-8')}") from e
     
-    def _apply_event_to_aggregates(self, event: EVENT_CLASS_UNION, aggregate_classes: list[type[Aggregate]]) -> None:
-        for aggregate_class in registered_aggregate_classes:
+    def _apply_event_to_aggregates(self, event: EVENT_CLASS_UNION, aggregate_classes: Iterable[type[Aggregate]]) -> None:
+        for aggregate_class in aggregate_classes:
             if type(event) in aggregate_class.listen_for_event_classes:
                 filter_expr = aggregate_class.filter_from_event(event)
                 if isinstance(filter_expr, bool) and filter_expr is False:
@@ -98,7 +108,13 @@ class EventStore():
                 self._apply_event_to_aggregates(event=event, aggregate_classes=[aggregate_class])
             db.session.commit()
 
-    def ingest(self, event: EVENT_CLASS_UNION, event_session: EventSession) -> None:
+    def ingest(self, event: EVENT_CLASS_UNION, event_session: EventSession) -> bool:
+        """Store an event and apply it to the aggregates, without committing.
+
+        Ingesting is idempotent: an event already stored with the same payload
+        is skipped, and False returned.  If its payload differs, ConflictingEvent
+        is raised and the caller should roll back.
+        """
         if event.event_namespace != event_session.namespace:
             raise ValueError(
                 f"Event namespace '{event.event_namespace}' does not match "
@@ -109,22 +125,37 @@ class EventStore():
                 f"Unsupported event version: {event.event_version}. "
             )
 
-        db_event = DBEvent()
-        # Note: We are trusting the event ID from the client here.
-        db_event.id = event.event_id
-        db_event.namespace = event.event_namespace
-        db_event.class_name = event.__class__.__name__
-        db_event.timestamp = event.event_timestamp
-        db_event.ingested_at = datetime.now()
-        db_event.event_session_id = event_session.id
         # XXX Here we are doing a encode-decode round-trip because we need the format
-        # encoded by msgspec but SQLAlchemy needs a dict 
-        db_event.data = json.loads(msgspec.json.encode(event))
-        db.session.add(instance=db_event)
+        # encoded by msgspec but SQLAlchemy needs a dict
+        data = json.loads(msgspec.json.encode(event))
+
+        log_transaction = current_log_transaction(db.session)
+        db.session.flush()  # so a new event session and the log transaction have ids
+        # Note: We are trusting the event ID from the client here.
+        # Inserting with ON CONFLICT keeps concurrent pushes of the same event safe.
+        inserted = db.session.execute(
+            pg_insert(DBEvent.__table__).values(
+                id=event.event_id,
+                namespace=event.event_namespace,
+                class_name=event.__class__.__name__,
+                timestamp=event.event_timestamp,
+                ingested_at=datetime.now(),
+                event_session_id=event_session.id,
+                log_transaction_id=log_transaction.id,
+                data=data,
+            ).on_conflict_do_nothing(index_elements=["id"]).returning(DBEvent.__table__.c.id)
+        ).first()
+
+        if inserted is None:
+            stored_data = db.session.execute(
+                select(DBEvent.__table__.c.data).where(DBEvent.__table__.c.id == event.event_id)
+            ).scalar_one()
+            if stored_data != data:
+                raise ConflictingEvent(event.event_id)
+            return False
 
         self._apply_event_to_aggregates(event=event, aggregate_classes=registered_aggregate_classes)
-
-        db.session.commit()
+        return True
 
     @contextmanager
     def event_session_for_current_user(
@@ -133,7 +164,10 @@ class EventStore():
         namespace: str = "rhinventory"
     ) -> Iterator["EventSessionContext"]:
         """Create an event session context manager for the current user.
-        
+
+        The session and its events are committed together when the block
+        exits, or rolled back if it raises.
+
         Usage:
             with event_store.event_session_for_current_user() as event_session:
                 event_session.ingest(some_event)
@@ -144,14 +178,15 @@ class EventStore():
         event_session.internal = True
         event_session.user_id = current_user.id
         db.session.add(event_session)
-        db.session.commit()
-        
+
         context = EventSessionContext(event_store=self, event_session=event_session)
         try:
             yield context
-        finally:
-            event_session.closed = True
-            db.session.commit()
+        except BaseException:
+            db.session.rollback()
+            raise
+        event_session.closed = True
+        db.session.commit()
 
 
 class EventSessionContext:
@@ -165,9 +200,9 @@ class EventSessionContext:
     def event_session(self) -> EventSession:
         return self._event_session
     
-    def ingest(self, event: EVENT_CLASS_UNION) -> None:
-        """Ingest an event using this session."""
-        self._event_store.ingest(event=event, event_session=self._event_session)
+    def ingest(self, event: EVENT_CLASS_UNION) -> bool:
+        """Ingest an event using this session, see EventStore.ingest."""
+        return self._event_store.ingest(event=event, event_session=self._event_session)
 
 
 event_store = EventStore()

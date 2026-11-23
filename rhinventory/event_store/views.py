@@ -4,7 +4,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user
 import msgspec
 
-from rhinventory.event_store.event_store import EventNamespaceName, UnsupportedEventVersion, event_store
+from rhinventory.event_store.event_store import ConflictingEvent, EventNamespaceName, UnsupportedEventVersion, event_store
 from rhinventory.extensions import db
 from rhinventory.models.events import DBEvent, EventSession, PushKey
 
@@ -112,30 +112,39 @@ def ingest_event():
     if event_session is None:
         return {"error": "Unauthorized"}, 401
 
-    push_key = event_session.push_key
+    # Lock the key so concurrent pushes with it can't both spend its last use
+    push_key = db.session.get(PushKey, event_session.push_key_id, with_for_update=True, populate_existing=True)
+    assert push_key is not None
     # check event push key validity
     if push_key.authorized_at + timedelta(days=1) < datetime.now():
+        db.session.rollback()
         return {"error": "Push key expired"}, 401
-
-    if push_key.uses_remaining is not None:
-        if push_key.uses_remaining <= 0:
-            return {"error": "Push key has no remaining uses"}, 401
-        push_key.uses_remaining -= 1
 
     namespace = EventNamespaceName(namespace)
 
-    events = request.json['serialized_events']
-    for event_data in events:
-        event = event_store.decode(event_data=msgspec.json.encode(event_data), namespace=namespace)
+    # The push is stored all or nothing, so a client can retry it after any failure
+    try:
+        events = [
+            event_store.decode(event_data=msgspec.json.encode(event_data), namespace=namespace)
+            for event_data in request.json['serialized_events']
+        ]
+        ingested = [event_store.ingest(event=event, event_session=event_session) for event in events]
+    except (ValueError, UnsupportedEventVersion) as e:
+        db.session.rollback()
+        return {"error": str(e)}, 400
+    except ConflictingEvent as e:
+        db.session.rollback()
+        return {"error": str(e), "event_id": str(e.event_id)}, 409
 
-        try:
-            event_store.ingest(
-                event=event,
-                event_session=event_session
-            )
-        except UnsupportedEventVersion as e:
-            return {"error": str(e)}, 400
+    num_ingested = sum(ingested)
+    # Replaying a push that's already stored, such as a retry after its response
+    # was lost, doesn't use up the key
+    if num_ingested and push_key.uses_remaining is not None:
+        if push_key.uses_remaining <= 0:
+            db.session.rollback()
+            return {"error": "Push key has no remaining uses"}, 401
+        push_key.uses_remaining -= 1
 
     db.session.commit()
 
-    return {"status": "success"}
+    return {"status": "success", "ingested": num_ingested, "duplicates": len(events) - num_ingested}

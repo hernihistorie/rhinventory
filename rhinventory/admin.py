@@ -9,7 +9,8 @@ from rhinventory.extensions import db, admin
 from rhinventory.db import DBEvent, LogItem, Medium, Location, Organization, Asset, User, Transaction, File, Party
 from rhinventory.models.aggregates.floppy_disk_capture import FloppyDiskCapture
 from rhinventory.models.aggregates.file import FileAggregate
-from rhinventory.models.asset_attributes import AssetTag, Company, CompanyAlias, Packaging
+from rhinventory.models.asset_attributes import AssetTag, Company, CompanyAlias, Packaging, Platform
+from rhinventory.util import slugify
 from rhinventory.admin_views import CustomModelView, ReadOnlyCustomModelView, AdminModelView, AssetView, TransactionView, FileView
 from rhinventory.admin_views.floppy_disk_capture import FloppyDiskCaptureView
 from rhinventory.models.label_printer import LabelPrinter
@@ -51,6 +52,18 @@ class AssetTagView(CustomModelView):
     column_default_sort = ('id', True)
     details_template = 'admin/asset_tag/details.html'
 
+class PlatformView(CustomModelView):
+    column_list = ('id', 'name', 'slug', 'last_used')
+    column_default_sort = ('name', False)
+    column_searchable_list = ['name']
+    # The slug follows the name, so the inline "New" button on the asset form
+    # can create a platform from just a name.
+    form_excluded_columns = ['slug', 'assets', 'last_used']
+
+    def on_model_change(self, form, model: Platform, is_created: bool) -> None:
+        model.slug = slugify(model.name)
+        super().on_model_change(form, model, is_created)
+
 class CompanyView(CustomModelView):
     column_default_sort = ('name', False)
     column_searchable_list = [
@@ -72,6 +85,7 @@ def add_admin_views(admin: Admin) -> None:
     admin.add_view(CompanyView(Company, db.session, category="Misc"))
     admin.add_view(CustomModelView(CompanyAlias, db.session, category="Misc"))
 
+    admin.add_view(PlatformView(Platform, db.session, category="Misc"))
     admin.add_view(MediumView(Medium, db.session, category="Misc"))
 
     admin.add_view(CustomModelView(Packaging, db.session, category="Misc"))
